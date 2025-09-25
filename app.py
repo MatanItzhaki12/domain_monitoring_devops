@@ -8,7 +8,7 @@ import logger
 logger = logger.setup_logger("app")
 user_manager = UM()
 domain_engine = DME(user_manager=user_manager)
-# monitoring_system = ME()
+monitoring_system = ME()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "group2_devops_project")
