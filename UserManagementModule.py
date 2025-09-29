@@ -2,7 +2,7 @@ import json
 import re
 import logger
 
-logger = logger.setup_logger("app")
+logger = logger.setup_logger("UserManagementModule")
 
 class UserManager:
     def __init__(self):
@@ -121,5 +121,5 @@ class UserManager:
             logger.warning(f"Login failed: username={username}")
             return False
         except Exception as e:
-            logger.error(f"Could not validate users credentials. {e}")
+            logger.error(f"Could not validate users credentials. {str(e)}")
             return False
