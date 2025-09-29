@@ -5,40 +5,34 @@ import os
 import re
 from datetime import datetime, timezone
 from threading import RLock
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 
+# ----------------------------
 # Thread-safety for file IO
+# ----------------------------
 _lock = RLock()
 
+# ----------------------------
 # Base directory for per-user JSON files
-USERS_DATA_DIR = os.path.join(os.path.dirname(__file__), "UsersData")
+# ----------------------------
+BASE_DIR = os.path.dirname(__file__)
+USERS_DATA_DIR = os.path.join(BASE_DIR, "UsersData")
 
 
-def _now_iso() -> str:
-    """Return current time in ISO 8601 (UTC)."""
-    return datetime.now(timezone.utc).isoformat()
-
-
-def _safe_username(username: str) -> str:
-    """
-    Sanitize username for filesystem usage.
-    Allows alphanumerics, '-' and '_'.
-    """
-    return "".join(c for c in (username or "") if c.isalnum() or c in ("-", "_"))
+def _utc_now_iso() -> str:
+    """Return current UTC timestamp in ISO-8601 with 'Z' suffix."""
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def _domains_path(username: str) -> str:
-    """
-    Build an absolute path to the user's domains file.
-    Example: UsersData/<username>_domains.json
-    """
-    safe = _safe_username(username)
-    return os.path.join(USERS_DATA_DIR, f"{safe}_domains.json")
+    """Generate per-user JSON file path."""
+    safe_user = re.sub(r"[^A-Za-z0-9_.-]", "_", username.strip())
+    return os.path.join(USERS_DATA_DIR, f"{safe_user}_domains.json")
 
 
-class UserManager:
+class DomainManagementEngine:
     """
-    File-backed user domain storage and basic domain validation.
+    File-backed user domain storage and domain validation/CRUD.
 
     JSON structure example (UsersData/alex_domains.json):
     {
@@ -49,67 +43,76 @@ class UserManager:
           "host": "example.com",
           "added_at": "2025-09-15T12:34:56.000Z",
           "last_check": "2025-09-15T14:10:40.000Z",
-          "http": { "ok": true, "status_code": 200, "final_url": "https://example.com/", "error": null },
-          "ssl":  { "ok": true, "valid": true, "expires_at": "...", "days_left": 90, "issuer": "..." }
+          "http": null,
+          "ssl":  null
         }
       ]
     }
     """
 
-    # ---------------------------
-    # Domain validation
-    # ---------------------------
-
+    # Regex for FQDN validation (example.com, sub.example.co.il etc.)
     _FQDN_RE = re.compile(
         r"^(?=.{1,253}$)(?!-)([A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}$"
     )
 
+    def __init__(self, user_manager: Optional[object] = None):
+        """
+        :param user_manager: Optional UserManager object for integration with user logic
+        """
+        self.user_manager = user_manager
+        os.makedirs(USERS_DATA_DIR, exist_ok=True)
+
     @staticmethod
     def _normalize_domain(raw: str) -> str:
-        """
-        Strip scheme, path and port, return lower-case host.
-        Examples:
-          'HTTPS://Sub.Example.com:443/path' -> 'sub.example.com'
-        """
-        raw = (raw or "").strip()
+        """Normalize domain: remove scheme, trim slashes, lowercase, remove port and trailing dot."""
         if not raw:
             return ""
-        raw = re.sub(r"^https?://", "", raw, flags=re.I)
-        host = raw.split("/")[0].split(":")[0]
-        return host.lower()
+        s = raw.strip().lower()
 
-    @classmethod
-    def validate_domain(cls, raw_domain: str) -> Tuple[bool, str | None, str | None]:
+        if s.startswith("http://"):
+            s = s[7:]
+        elif s.startswith("https://"):
+            s = s[8:]
+
+        s = s.split("/", 1)[0]
+        s = s.split("?", 1)[0]
+        s = s.split("#", 1)[0]
+
+        if ":" in s:
+            s = s.split(":", 1)[0]
+
+        if s.endswith("."):
+            s = s[:-1]
+
+        return s
+
+    def validate_domain(self, raw_domain: str) -> Tuple[bool, Optional[str], Optional[str]]:
         """
-        Validate and normalize a domain string.
-        Returns: (ok, normalized_domain_or_None, reason_if_invalid)
-        Reasons: "empty", "format"
+        Validate domain format.
+        :return: (ok, normalized_host|None, reason|None)
         """
-        host = cls._normalize_domain(raw_domain)
+        host = self._normalize_domain(raw_domain)
         if not host:
-            return False, None, "empty"
-        if not cls._FQDN_RE.match(host):
-            return False, None, "format"
-        return True, host, None
+            return False, None, "Empty domain"
 
-    # ---------------------------
-    # Load / Save
-    # ---------------------------
+        if not self._FQDN_RE.match(host):
+            return False, None, "Domain does not match FQDN format"
+
+        return True, host, None
 
     @staticmethod
     def _empty_user_doc(username: str) -> Dict[str, Any]:
-        """Create a fresh user document."""
+        """Return a fresh user document structure."""
         return {"username": username, "domains": []}
 
     def load_user_domains(self, username: str) -> Dict[str, Any]:
         """
-        Load (or initialize) the user's domain JSON.
-        Always returns a dict with keys: username, domains[, last_full_check].
+        Load (or initialize) user's domain JSON.
+        Always returns dict with: username, domains[, last_full_check].
         """
         path = _domains_path(username)
         with _lock:
             if not os.path.exists(path):
-                # Initialize directory and empty file on first access
                 os.makedirs(USERS_DATA_DIR, exist_ok=True)
                 doc = self._empty_user_doc(username)
                 with open(path, "w", encoding="utf-8") as f:
@@ -120,70 +123,69 @@ class UserManager:
                 try:
                     data = json.load(f)
                 except json.JSONDecodeError:
-                    # Corrupted file fallback
                     data = self._empty_user_doc(username)
 
-            # Ensure minimal structure
             data.setdefault("username", username)
             data.setdefault("domains", [])
             return data
 
     def save_user_domains(self, username: str, data: Dict[str, Any]) -> None:
-        """
-        Persist the user's domain JSON (overwrites the file).
-        """
-        os.makedirs(USERS_DATA_DIR, exist_ok=True)
-        data.setdefault("username", username)
-        data.setdefault("domains", [])
+        """Save user's domain JSON to disk."""
         path = _domains_path(username)
         with _lock:
+            os.makedirs(USERS_DATA_DIR, exist_ok=True)
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
-    # ---------------------------
-    # Mutations (add / remove)
-    # ---------------------------
+    def list_domains(self, username: str) -> Dict[str, Any]:
+        """Return user document with username, domains[, last_full_check]."""
+        return self.load_user_domains(username)
 
-    def add_domain(self, username: str, host: str) -> bool:
+    def set_last_full_check_now(self, username: str) -> None:
+        """Update last full check timestamp (to be called after MonitoringSystem run)."""
+        with _lock:
+            data = self.load_user_domains(username)
+            data["last_full_check"] = _utc_now_iso()
+            self.save_user_domains(username, data)
+
+    def add_domain(self, username: str, raw_domain: str) -> bool:
         """
-        Add a domain if it doesn't exist yet.
-        Returns True if added, False if duplicate.
+        Add domain to user's list.
+        :return: True if new domain added, False if domain already exists or invalid.
         """
-        # Expect a *normalized* host here (validate beforehand)
-        host = self._normalize_domain(host)
-        if not host:
+        ok, host, reason = self.validate_domain(raw_domain)
+        if not ok or not host:
             return False
 
         with _lock:
             data = self.load_user_domains(username)
-            existing = {d.get("host") for d in data["domains"]}
+            existing = {d.get("host") for d in data.get("domains", [])}
             if host in existing:
                 return False
 
             data["domains"].append(
                 {
                     "host": host,
-                    "added_at": _now_iso(),
-                    # Optional fields filled later by monitoring:
-                    # "last_check": "...",
-                    # "http": {...},
-                    # "ssl": {...}
+                    "added_at": _utc_now_iso(),
+                    "last_check": None,
+                    "http": None,
+                    "ssl": None,
                 }
             )
             self.save_user_domains(username, data)
             return True
 
-    def remove_domains(self, username: str, hosts: List[str]) -> Dict[str, Any]:
+    def remove_domains(self, username: str, hosts: List[str]) -> Dict[str, List[str]]:
         """
-        Remove multiple domains at once.
-        Returns dict: {"removed": [...], "not_found": [...]}
+        Remove domains from user's list.
+        :param hosts: list of raw domain strings
+        :return: {"removed": [...], "not_found": [...]}
         """
-        to_remove = {
-            self._normalize_domain(h) for h in (hosts or []) if h and h.strip()
-        }
-        to_remove.discard("")  # remove empties if any
+        to_remove = {self._normalize_domain(h) for h in (hosts or []) if h and h.strip()}
+        to_remove.discard("")
 
-        removed, not_found = [], []
+        removed: List[str] = []
+        not_found: List[str] = []
 
         with _lock:
             data = self.load_user_domains(username)
@@ -197,7 +199,6 @@ class UserManager:
                 else:
                     new_list.append(entry)
 
-            # Any requested domains not present in the current set go to not_found
             for h in to_remove:
                 if h not in current:
                     not_found.append(h)
