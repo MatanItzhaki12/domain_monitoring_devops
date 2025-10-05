@@ -88,15 +88,14 @@ class UserManager:
             password_str = f"{password}"
             if len(password_str) < 8 or len(password_str) > 12:
                 return False, "Password is not between 8 to 12 characters."
-            if not re.fullmatch("[A-Z]+", password_str):
+            if not re.search("[A-Z]", password_str):
                 return False, "Password does not include at least one uppercase character."
-            if not re.fullmatch("[a-z]+", password_str):
+            if not re.search("[a-z]", password_str):
                 return False, "Password does not include at least one lowercase character."
-            if not re.fullmatch("[0-9]+", password_str):
+            if not re.search("[0-9]", password_str):
                 return False, "Password does not include at least one digit."
             if not password_str.isalnum():
-                return False, "Password should include only uppercase \
-                    characters, lowercase characters and digits!"
+                return False, "Password should include only uppercase characters, lowercase characters and digits!"
             return True, "SUCCESS"
         except Exception as e:
             logger.error(f"Unable to validate user's password.")

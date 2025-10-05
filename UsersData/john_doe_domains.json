@@ -1,0 +1,12 @@
+{
+  "username": "john_doe",
+  "domains": [
+    {
+      "host": "www.google.com",
+      "added_at": "2025-10-02T12:01:38.260Z",
+      "last_check": null,
+      "http": null,
+      "ssl": null
+    }
+  ]
+}

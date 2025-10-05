@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Domain Monitoring System</title>
   <link rel="stylesheet" href="static/dashboard/dashboard.css">
-  <script src="static/dashboard/dashboard.js"></script>
 </head>
 <body>
   <!-- HEADER -->
@@ -14,7 +13,7 @@
   </header>
 
   <!-- GREETING -->
-  <div id="greeting">Hello {{ user }}!</div>
+  <div id="greeting">Hello {{ username }}!</div>
 
   <!-- ACTION BUTTONS -->
   <div class="action-buttons">
@@ -100,11 +99,10 @@
         </div>
     </div>
     </div>
-  
-  <script src="{{ url_for('static', filename='dashboard/dashboard.js') }}"></script>
     <!-- FOOTER -->
     <footer class="footer">
         <p>&copy; 2025 Domain Monitoring System - Group 2</p>
     </footer>
+  <script src="{{ url_for('static', filename='dashboard/dashboard.js') }}"></script>
 </body>
 </html>

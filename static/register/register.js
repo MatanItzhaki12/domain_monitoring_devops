@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const Password = document.querySelector('#password');
     const PasswordConfirmation = document.querySelector('#password_confirmation');
     const ErrorMessage = document.querySelector('#error-message');
-    const SuccessMessage = document.querySelector('#error-message');
+    const SuccessMessage = document.querySelector('#success-message');
     const Form = document.querySelector('form');
     
     // Form submission event listener

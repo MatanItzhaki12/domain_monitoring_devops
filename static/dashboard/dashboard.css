@@ -77,26 +77,39 @@ body {
   box-shadow: 0 4px 12px rgba(94,129,172,0.15);
 }
 .dashboard-button.scan {
-  background: linear-gradient(135deg, #88C0D0, #5E81AC);
-  color: #2E3440;
-  font-weight: bold;
-  border: 1px solid #4C566A;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-}
-.dashboard-button.scan:hover {
-  background: linear-gradient(135deg, #81A1C1, #88C0D0);
-  transform: scale(1.05);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+  background: transparent;
+  color: #4C566A;
+  border: 2px solid #5E81AC;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: none;
 }
 
+.dashboard-button.scan:hover {
+  background: #5E81AC;
+  color: #fff;
+  transform: scale(1.03);
+  box-shadow: 0 4px 10px rgba(94,129,172,0.25);
+}
+
+.dashboard-button.scan:active {
+  transform: scale(0.98);
+  background: #4C678C;
+  border-color: #4C678C;
+}
+
+/* =========================
+   Bulk Actions
+   ========================= */
 .bulk-actions {
-  display: flex;
+  display: none; /* hidden by default, toggled via JS */
   gap: 0.6rem;
   margin: 0 auto 0.5rem auto;
   max-width: 900px;
   width: 100%;
   justify-content: flex-start;
 }
+
 .bulk-delete-btn {
   background: transparent;
   border: 1.5px solid #BF616A;
@@ -151,7 +164,9 @@ tbody tr {
   border-bottom: 1px solid #D8DEE9;
   transition: background 0.2s;
 }
-tbody tr:hover { background-color: #D8DEE9; }
+tbody tr:hover {
+  background-color: #D8DEE9;
+}
 
 tbody td {
   padding: 0.25rem 0.4rem;
@@ -169,7 +184,7 @@ tbody td {
 }
 
 /* =========================
-   Badges & Trash
+   Badges & Trash Buttons
    ========================= */
 .badge {
   padding: 0.15rem 0.5rem;
@@ -204,7 +219,7 @@ tbody td {
   display: none;
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.45); /* slightly lighter overlay */
+  background-color: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(6px);
   justify-content: center;
   align-items: center;
@@ -213,7 +228,7 @@ tbody td {
 
 .modal-content {
   position: relative;
-  background: rgba(236, 239, 244, 0.88); /* softer transparency */
+  background: rgba(236, 239, 244, 0.88);
   border: 1px solid #D8DEE9;
   border-radius: 12px;
   box-shadow: 0 8px 25px rgba(0,0,0,0.25);
@@ -269,18 +284,50 @@ tbody td {
   box-shadow: 0 0 0 2px #81A1C133;
 }
 
-/* Status messages inside modals */
-#bulkUploadStatus, #addDomainStatus {
-  margin-top: 0.6rem;
+/* =========================
+   Modal Status Feedback
+   ========================= */
+.modal-status {
+  margin-top: 0.8rem;
   font-size: 0.9rem;
   font-weight: 500;
+  text-align: center;
 }
-.status-success { color: #A3BE8C; }
-.status-error   { color: #BF616A; }
+
+.status-loading {
+  color: #5E81AC;
+  font-style: italic;
+}
+.status-success {
+  color: #A3BE8C;
+}
+.status-error {
+  color: #BF616A;
+}
+
+/* Animated spinner for loading */
+.status-loading::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  border: 2px solid #5E81AC;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* =========================
+   Animations
+   ========================= */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 /* =========================
@@ -293,8 +340,8 @@ tbody td {
 }
 
 .footer p {
-  font-size: 0.75rem;        
-  font-style: italic;        
+  font-size: 0.75rem;
+  font-style: italic;
   color: #4C566A;
   margin: 0;
   opacity: 0.8;

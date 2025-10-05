@@ -1,12 +1,22 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function () {
   // =======================
-  // Utility Functions
+  // Utility Helpers
   // =======================
-  function showStatus(el, message, isSuccess) {
+  function showStatus(el, message, type = "loading") {
     if (!el) return;
     el.textContent = message;
-    el.classList.remove("status-success", "status-error");
-    el.classList.add(isSuccess ? "status-success" : "status-error");
+    el.className = ""; // Reset classes
+    el.classList.add("modal-status", `status-${type}`);
+  }
+
+  async function finalizeModal(el, message, type = "success", modal, reload = true) {
+    showStatus(el, message, type);
+    if (type === "success" && modal) {
+      setTimeout(() => {
+        closeModal(modal);
+        if (reload) location.reload();
+      }, 1200);
+    }
   }
 
   function openModal(modal) {
@@ -20,12 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
   // =======================
   // Global Elements
   // =======================
-  fetch('/get_username', { credentials: 'same-origin' })
-    .then(res => res.json())
-    .then(data => {
-      const username = data.username;
-
-  const greeting = document.getElementById("greeting");
   const addDomainModal = document.getElementById("addDomainModal");
   const openAddDomainBtn = document.getElementById("openAddDomain");
   const addDomainForm = document.getElementById("addDomainForm");
@@ -41,19 +45,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
   const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
 
+  const logoutBtn = document.getElementById("logoutBtn");
+  const scanNowBtn = document.getElementById("scanNowBtn");
   const bulkActions = document.querySelector(".bulk-actions");
   const selectAllCheckbox = document.getElementById("selectAll");
+
   let domainsToDelete = [];
 
-  const scanNowBtn = document.getElementById("scanNowBtn");
   // =======================
-  // Initialize Greeting
-  // =======================
-  if (greeting && username) {
-    greeting.textContent = `Hello ${username}!`;
-  }
-  // =======================
-  // Add Domain Modal
+  // Add Domain
   // =======================
   openAddDomainBtn?.addEventListener("click", () => {
     openModal(addDomainModal);
@@ -64,7 +64,11 @@ document.addEventListener('DOMContentLoaded', function () {
   addDomainForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const domain = document.getElementById("domainInput").value.trim();
-    showStatus(addDomainStatus, "Adding...", true);
+    const submitBtn = addDomainForm.querySelector('button[type="submit"]');
+
+    submitBtn.style.display = "none";
+    showStatus(addDomainStatus, "Adding domain... please wait", "loading");
+    await new Promise(requestAnimationFrame);
 
     try {
       const res = await fetch("/add_domain", {
@@ -73,22 +77,21 @@ document.addEventListener('DOMContentLoaded', function () {
         body: JSON.stringify({ domain }),
       });
       const result = await res.json();
+
       if (result.ok) {
-        showStatus(addDomainStatus, result.message, true);
-        setTimeout(() => {
-          closeModal(addDomainModal);
-          location.reload();
-        }, 1200);
+        await finalizeModal(addDomainStatus, "Domain added successfully!", "success", addDomainModal);
       } else {
-        showStatus(addDomainStatus, result.error, false);
+        showStatus(addDomainStatus, result.error || "Failed to add domain.", "error");
+        submitBtn.style.display = "block";
       }
     } catch {
-      showStatus(addDomainStatus, "Request failed. Try again.", false);
+      showStatus(addDomainStatus, "Request failed. Try again.", "error");
+      submitBtn.style.display = "block";
     }
   });
 
   // =======================
-  // Bulk Upload Modal
+  // Bulk Upload
   // =======================
   openBulkUploadBtn?.addEventListener("click", () => {
     openModal(bulkUploadModal);
@@ -99,22 +102,25 @@ document.addEventListener('DOMContentLoaded', function () {
   bulkUploadForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(bulkUploadForm);
-    showStatus(bulkUploadStatus, "Uploading...", true);
+    const submitBtn = bulkUploadForm.querySelector('button[type="submit"]');
+
+    submitBtn.style.display = "none";
+    showStatus(bulkUploadStatus, "Uploading domains... please wait", "loading");
+    await new Promise(requestAnimationFrame);
 
     try {
-      const res = await fetch("/bulk_upload", { method: "POST", body: formData });
+      const res = await fetch("/bulk_domains", { method: "POST", body: formData });
       const result = await res.json();
+
       if (result.ok) {
-        showStatus(bulkUploadStatus, result.message, true);
-        setTimeout(() => {
-          closeModal(bulkUploadModal);
-          location.reload();
-        }, 1500);
+        await finalizeModal(bulkUploadStatus, "Bulk upload completed!", "success", bulkUploadModal);
       } else {
-        showStatus(bulkUploadStatus, result.error, false);
+        showStatus(bulkUploadStatus, result.error || "Upload failed.", "error");
+        submitBtn.style.display = "block";
       }
     } catch {
-      showStatus(bulkUploadStatus, "Upload failed. Try again.", false);
+      showStatus(bulkUploadStatus, "Upload failed. Try again.", "error");
+      submitBtn.style.display = "block";
     }
   });
 
@@ -124,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function openDeleteModal(domains, message) {
     domainsToDelete = domains;
     deleteDomainText.textContent = message;
+    confirmDeleteBtn.style.display = "block";
     openModal(deleteDomainModal);
   }
 
@@ -158,8 +165,12 @@ document.addEventListener('DOMContentLoaded', function () {
   confirmDeleteBtn?.addEventListener("click", async () => {
     if (!domainsToDelete.length) return;
 
+    confirmDeleteBtn.style.display = "none";
+    showStatus(deleteDomainText, "Removing domains... please wait", "loading");
+    await new Promise(requestAnimationFrame);
+
     try {
-      const response = await fetch("/delete_domain", {
+      const response = await fetch("/remove_domains", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domains: domainsToDelete }),
@@ -167,22 +178,26 @@ document.addEventListener('DOMContentLoaded', function () {
       const result = await response.json();
 
       if (result.ok) {
-        domainsToDelete.forEach((domain) => {
-          document.querySelector(`.select-domain[value="${domain}"]`)?.closest("tr")?.remove();
-        });
+        await finalizeModal(deleteDomainText, "Domains removed successfully!", "success", deleteDomainModal);
       } else {
-        alert(result.error);
+        showStatus(deleteDomainText, result.error || "Failed to delete.", "error");
+        confirmDeleteBtn.style.display = "block";
       }
     } catch {
-      alert("Failed to delete domains.");
+      showStatus(deleteDomainText, "Request failed. Try again.", "error");
+      confirmDeleteBtn.style.display = "block";
     }
-    closeModal(deleteDomainModal);
     domainsToDelete = [];
   });
 
   // =======================
-  // Checkbox Logic
+  // Bulk Actions Visibility
   // =======================
+  function toggleBulkActions() {
+    const anyChecked = document.querySelectorAll(".select-domain:checked").length > 0;
+    bulkActions.style.display = anyChecked ? "flex" : "none";
+  }
+
   function attachCheckboxHandlers() {
     document.querySelectorAll(".select-domain").forEach((cb) => {
       cb.onchange = toggleBulkActions;
@@ -195,12 +210,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  function toggleBulkActions() {
-    const anyChecked = document.querySelectorAll(".select-domain:checked").length > 0;
-    bulkActions.style.display = anyChecked ? "flex" : "none";
-  }
   attachCheckboxHandlers();
-  toggleBulkActions();
+  toggleBulkActions(); // initialize hidden
 
   // =======================
   // Scan Now
@@ -213,10 +224,20 @@ document.addEventListener('DOMContentLoaded', function () {
       location.reload();
     } catch {
       alert("Scan failed.");
-    } finally {
-      scanNowBtn.disabled = false;
       scanNowBtn.textContent = "Scan Now";
+      scanNowBtn.disabled = false;
     }
+  });
+
+  // =======================
+  // Logout feedback
+  // =======================
+  logoutBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    logoutBtn.textContent = "Logging out...";
+    logoutBtn.style.pointerEvents = "none";
+    logoutBtn.style.opacity = "0.7";
+    setTimeout(() => (window.location.href = "/logout"), 700);
   });
 
   // =======================
@@ -225,8 +246,8 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll(".modal .close").forEach((btn) => {
     btn.addEventListener("click", () => closeModal(btn.closest(".modal")));
   });
+
   window.addEventListener("click", (e) => {
     if (e.target.classList.contains("modal")) closeModal(e.target);
   });
-});
 });
