@@ -1,19 +1,28 @@
 import json
 import re
 import logger
+import DomainManagementEngine as DME
 
 logger = logger.setup_logger("UserManagementModule")
 
 class UserManager:
+    """
+    This class handles everything in relation to users.
+    """
     def __init__(self):
+        # This method loads the users from the users.json file, using the method 
         logger.debug(f"Initializing UserManagement module.")
-        self.users = self.load_json_to_dict()
+        self.users = self._load_json_to_dict()
 
-    def load_json_to_dict(self):
+    def _load_json_to_dict(self):
+        """
+        This method loads the users.json file and return a dictionary in the format:
+        dict[username] = password
+        """
         logger.debug(f"Loading users.json file.")
         try:
             users = {}
-            with open("./userdata/users.json", "r") as f:
+            with open("./UsersData/users.json", "r") as f:
                 users_json = json.load(f)
             for user_details in users_json:
                 username = user_details["username"]
@@ -22,35 +31,40 @@ class UserManager:
             logger.debug(f"users.json file loaded successfully.")
             return users
         except Exception as e:
-            logger.error(f"users.json could not be loaded! {e}")
+            logger.error(f"users.json could not be loaded! {str(e)}")
             return {}
 
-    def register_page_add_user(self, username, password, password_confirmation):
+    def register_page_add_user(self, username, password, password_confirmation, dme):
+        """
+        registering user to the system, after checking the validity of the credentials.
+        """
         logger.debug(f"Proccessing new user's details.")
         try:
+            # Checking username validity using the method username validity
             logger.debug(f"Checking username validity.")
-            usr_valid = self.username_validity(self.users, username)
+            usr_valid = self.username_validity(username)
             if usr_valid == "FAILED" or not usr_valid[0]:
                 logger.debug(f"username invalid.")
                 return {"error" : usr_valid[1]}
-            
+            # Checking password validitiy using the method register_page_password_validity
             logger.debug(f"Checking password validity.")
             password_validity = self.register_page_password_validity(password, password_confirmation)
             if password_validity[0] == "FAILED" or not password_validity[0]:
                 logger.debug(f"Password invalid.")
                 return {"error": password_validity[1]}
-            
+            # Adding user to the memory (users variable) and writing it to file
             logger.debug(f"Adding user to database.")
             self.users[username] = password
             write_user_status = self.write_user_to_json (username, password)
             if write_user_status[0] == "FAILED":
                 logger.debug(f"Writing user to json failed.")
                 return {"error": write_user_status[1]}
-            
-            logger.debug(f"creating ./UserData/{username}_domains.json file.")
-            with open(f"./UsersData/{username}_domains.json", "w") as f:
-                json.dump({}, f, indent=4)
-            
+            # Creating a new file for user's domains
+            logger.debug(f"creating ./UsersData/{username}_domains.json file.")
+            # with open(f"./Usersdata/{username}_domains.json", "w") as f:
+            #     json.dump([], f, indent=4)
+            dme.load_user_domains(username)
+
             logger.debug(f"{username} registered successfully.")
             return {"message" : "Registered Successfully"}
         
@@ -59,6 +73,14 @@ class UserManager:
             return {"error": "Unable to register user.", 'exception': e}
 
     def register_page_password_validity(self, password, password_confirmation):
+        """
+        This method checks the validity of the password.
+        The password needs to be between 8 to 12 characters.
+        It should also contain uppercase and lowercase characters and digits.
+        It should also match the password_confirmation.
+        This method should return True if the password valid and False otherwise, with
+        an matching message for the user.
+        """
         logger.debug(f"Checking the validity of the password.")
         try:
             if password != password_confirmation:
@@ -81,6 +103,10 @@ class UserManager:
             return "FAILED", "Error: Unable to validate password.", e
 
     def username_validity(self, username):
+        """
+        This method checks username validity, mainly it checks if the 
+        username is not empty and not already exist.
+        """
         logger.debug(f"Checking the validity of the username.")
         try:
             if username == "":
@@ -93,9 +119,12 @@ class UserManager:
             return "FAILED","Error: Unable to validate username.", e 
     
     def write_user_to_json(self, username, password):
+        """
+        This method writes the username and password to the json file.
+        """
         logger.debug(f"Writing user's details to users.json.")
         try:
-            with open("./userData/users.json", "r") as f:
+            with open("./UsersData/users.json", "r") as f:
                 users_list = json.load(f)
             
             user_to_write = {
@@ -104,7 +133,7 @@ class UserManager:
             }
 
             users_list.append(user_to_write)
-            with open("./userData/users.json", "w") as f:
+            with open("./UsersData/users.json", "w") as f:
                json.dump(users_list, f, indent=4, ensure_ascii=False)
 
             return "SUCCESS", "Username and password was written successfully."
@@ -114,6 +143,10 @@ class UserManager:
             return "FAILED", "Error: Unable to write user to file.", e 
 
     def validate_login(self, username, password):
+        """
+        This method validate the username and password for login, i.e. checking if the 
+        username exist in the database, and the password is the that belongs to it.
+        """
         try:
             if username in self.users and self.users[username] == password:
                 logger.info(f"Login successful: username={username}")
