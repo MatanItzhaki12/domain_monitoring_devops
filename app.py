@@ -54,11 +54,11 @@ def register():
         return app.send_static_file('register/register.html')
     else:
         try:
-            registerInfo = request.json or {}
+            registerInfo = _get_payload()
             username = (registerInfo.get("username") or "").strip()
             password = registerInfo.get("password") or ""
             password_confirmation = registerInfo.get("password_confirmation")
-            register_status = user_manager.register_page_add_user(username, password, password_confirmation)
+            register_status = user_manager.register_page_add_user(username, password, password_confirmation, domain_engine)
             if "message" in register_status:
                 return jsonify(register_status), 200
             elif "error" in register_status:
