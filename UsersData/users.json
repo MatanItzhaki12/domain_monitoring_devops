@@ -1,10 +1,18 @@
 [
-{
-"username": "john_doe",
-"password": "password"
-},
-{
-"username": "james_smith",
-"password": "password"
-}
+    {
+        "username": "john_doe",
+        "password": "password"
+    },
+    {
+        "username": "james_smith",
+        "password": "password"
+    },
+    {
+        "username": "etcsys2",
+        "password": "As055658273"
+    },
+    {
+        "username": "etcsys1",
+        "password": "111111As"
+    }
 ]
