@@ -24,12 +24,17 @@ def time_scan(username: str) -> float:
 if __name__ == "__main__":
     # Тестовые «пользователи» и домены для каждого
     tests = {
-        "test1": ["google.com", "github.com", "wikipedia.org", "netflix.com"],
-        "test2": ["example.com", "openai.com", "microsoft.com", "apple.com"],
-        "test3": ["craigslist.org", "duckduckgo.com", "cloudflare.com", "python.org"],
+        "test1": ["tnog85d4f2k1.store", "z7g0l.online", "z7g0l.online", "netflix.com"],
+        "test2": ["jipic.org", "lihnfl.com", "microsoft.com", "soxd9cs.app"],
+        "test3": ["craigslist.org", "zoom.us", "cloudflare.com", "python.org"],
         "test4": ["bbc.co.uk", "paypal.com", "paypal.com", "harvard.edu", "linkedin.com"],
-        "test5": ["github.com", "apple.com", "twitch.tv", "duckduckgo.com", "notion.so"],
-
+        "test5": ["polygon.biz", "hlu6vfu.com", "joy7.online", "yahoo.com", "ilw3j.org"],
+        "test6": ["github.com", "zd0m.net", "twitch.tv", "duckduckgo.com", "vp6ywk.net"],
+        "test7": ["z2ohkbm00.org", "bbc.co.uk", "twitch.tv", "imdb.com", "q1g7-yrdl.co"],
+        "test8": ["zadnbcj29y.org", "pinterest.com", "twitch.tv", "espn.com", "z2ohkbm00.org"],
+        "test9": ["ceqns.site", "wordpress.com", "twitch.tv", "shopify.com", "zpkw.net"],
+        "test10": ["telegram.org", "airbnb.com", "twitch.tv", "stripe.com", "pvdo4s4.io"],
+        "test11": ["mit.edu", "linkedin.com", "twitch.tv", "slack.com", "notion.so"],
     }
 
     # 1) подготовка доменов
