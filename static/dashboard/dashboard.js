@@ -214,21 +214,73 @@ document.addEventListener("DOMContentLoaded", function () {
   toggleBulkActions(); // initialize hidden
 
   // =======================
-  // Scan Now
-  // =======================
-  scanNowBtn?.addEventListener("click", async () => {
-    scanNowBtn.disabled = true;
-    scanNowBtn.textContent = "Scanning...";
-    try {
-      await fetch("/scan_domains");
-      location.reload();
-    } catch {
-      alert("Scan failed.");
-      scanNowBtn.textContent = "Scan Now";
-      scanNowBtn.disabled = false;
-    }
-  });
+// =======================
+// Scan Now (updated for /refresh_checks)
+// =======================
+scanNowBtn?.addEventListener("click", async () => {
+  scanNowBtn.disabled = true;
+  scanNowBtn.textContent = "Scanning...";
 
+  try {
+    const res = await fetch("/refresh_checks", { method: "POST" });
+    const result = await res.json();
+
+    if (!result.ok) throw new Error(result.error || "Failed to start scan");
+
+    // Visual Aler
+    alert("✅ Domain scan started successfully!");
+
+    // polling starts here
+    await pollDomainsUntilDone();
+  } catch (err) {
+    console.error("Scan error:", err);
+    alert("❌ Scan failed. Check logs or try again.");
+  } finally {
+    scanNowBtn.textContent = "Scan Now";
+    scanNowBtn.disabled = false;
+  }
+});
+
+// =======================
+// Polling function
+// =======================
+async function fetchDomains() {
+  const res = await fetch("/my_domains");
+  const json = await res.json();
+  return json.data || [];
+}
+
+async function pollDomainsUntilDone(interval = 2000) {
+  const tableBody = document.querySelector("tbody");
+  const start = Date.now();
+
+  const intervalId = setInterval(async () => {
+    const domains = await fetchDomains();
+    tableBody.innerHTML = domains.map(d => `
+      <tr>
+        <td><input type="checkbox" class="select-domain" value="${d.domain}"></td>
+        <td>${d.domain}</td>
+        <td><span class="badge ${d.status.toLowerCase()}">${d.status}</span></td>
+        <td>${d.ssl_expiration}</td>
+        <td>${d.ssl_issuer}</td>
+        <td>
+          <button class="delete-domain-btn" data-domain="${d.domain}" title="Delete">
+            <img src="static/dashboard/trash.png" alt="Delete" class="trash-icon">
+          </button>
+        </td>
+      </tr>`).join("");
+
+    attachDeleteHandlers();
+    attachCheckboxHandlers();
+
+    const hasPending = domains.some(d => d.status === "Pending");
+    if (!hasPending) {
+      clearInterval(intervalId);
+      const duration = ((Date.now() - start) / 1000).toFixed(1);
+      alert(`✅ Scan completed in ${duration}s!`);
+    }
+  }, interval);
+}
   // =======================
   // Logout feedback
   // =======================
