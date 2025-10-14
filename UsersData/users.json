@@ -8,59 +8,11 @@
         "password": "password"
     },
     {
-        "username": "yoni",
-        "password": "Aa123456"
+        "username": "etcsys2",
+        "password": "As055658273"
     },
     {
-        "username": "matan",
-        "password": "Ab12345678"
-    },
-    {
-        "username": "user1",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test1",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test2",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test3",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test4",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test5",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test6",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test7",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test8",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test9",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test10",
-        "password": "Qw123456"
-    },
-    {
-        "username": "test11",
-        "password": "Qw123456"
+        "username": "etcsys1",
+        "password": "111111As"
     }
 ]

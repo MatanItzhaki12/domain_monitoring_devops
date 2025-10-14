@@ -1,103 +1,183 @@
-import socket
+# MonitoringSystem.py
 import ssl
-import concurrent.futures
-from datetime import datetime, timezone
-from typing import Dict, Any, List
+import socket
+import threading
+from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from time import time
 
-from logger import setup_logger
-from DomainManagementEngine import DomainManagementEngine
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+from DomainManagementEngine import DomainManagementEngine as DME
 
-logger = setup_logger("MonitoringSystem")
+# Logging (uses your existing logger if available)
+try:
+    import logger
+    log = logger.setup_logger("MonitoringSystem")
+except Exception:
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger("MonitoringSystem")
 
+# ------------------------------
+# SETTINGS
+# ------------------------------
+MAX_THREADS = 30                 # concurrent threads
+CONNECT_TIMEOUT = 1.5
+READ_TIMEOUT = 2.0
+SOCKET_TIMEOUT = 3.0
+REQUEST_TIMEOUT = (CONNECT_TIMEOUT, READ_TIMEOUT)
+BATCH_SIZE = 10                  # flush results every 10 domains
+FLUSH_INTERVAL = 2.0             # or every 2 seconds
+USER_AGENT = "DomainChecker/1.1"
 
-class MonitoringSystem:
-    @staticmethod
-    def _check_domain(domain: str) -> Dict[str, Any]:
-        """
-        Check reachability and SSL certificate details using sockets.
-        Falls back to HTTP port 80 if SSL is unavailable.
-        Returns: Live / Expired SSL / Down
-        """
-        result = {
-            "domain": domain,
-            "status": "Down",
-            "ssl_expiration": "N/A",
-            "ssl_issuer": "N/A"
-        }
+# ------------------------------
+# GLOBAL HTTP SESSION
+# ------------------------------
+def _make_session() -> requests.Session:
+    s = requests.Session()
+    s.headers.update({"User-Agent": USER_AGENT})
+    retries = Retry(
+        total=1,
+        backoff_factor=0.0,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=frozenset(["GET"]),
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(pool_connections=64, pool_maxsize=64, max_retries=retries)
+    s.mount("http://", adapter)
+    s.mount("https://", adapter)
+    return s
 
-        # Normalize host
-        host = domain.lower().strip()
-        if host.startswith("http://"):
-            host = host[7:]
-        elif host.startswith("https://"):
-            host = host[8:]
-        host = host.split("/")[0]
+_session = _make_session()
 
-        # --- Try HTTPS first ---
+# ------------------------------
+# HELPERS
+# ------------------------------
+def _clean_host(domain: str) -> str:
+    if not domain:
+        return ""
+    s = domain.strip().lower()
+    if s.startswith("http://"):
+        s = s[7:]
+    elif s.startswith("https://"):
+        s = s[8:]
+    s = s.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    if ":" in s:
+        s = s.split(":", 1)[0]
+    if s.endswith("."):
+        s = s[:-1]
+    return s
+
+def _can_resolve_fast(host: str) -> bool:
+    """Fast DNS check — skip host if cannot resolve quickly."""
+    try:
+        socket.getaddrinfo(host, 80, type=socket.SOCK_STREAM)
+        return True
+    except socket.gaierror:
+        return False
+
+def _is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
+
+def _check_status(host: str) -> str:
+    """Try HTTPS first, then HTTP. Return Live/Down."""
+    for scheme in ("https://", "http://"):
         try:
-            ctx = ssl.create_default_context()
-            with socket.create_connection((host, 443), timeout=2) as sock:
-                with ctx.wrap_socket(sock, server_hostname=host) as ssock:
-                    cert = ssock.getpeercert()
+            r = _session.get(f"{scheme}{host}", timeout=REQUEST_TIMEOUT, allow_redirects=False)
+            if 200 <= r.status_code < 400:
+                return "Live"
+        except requests.exceptions.RequestException:
+            continue
+    return "Down"
 
-                    expiry_str = cert.get("notAfter")
-                    if expiry_str:
-                        expiry_date = datetime.strptime(expiry_str, "%b %d %H:%M:%S %Y %Z").replace(
-                            tzinfo=timezone.utc
-                        )
-                        result["ssl_expiration"] = expiry_date.strftime("%Y-%m-%d")
+def _check_ssl(host: str) -> tuple[str, str]:
+    """Check SSL expiration and issuer quickly."""
+    try:
+        ctx = ssl.create_default_context()
+        with socket.create_connection((host, 443), timeout=SOCKET_TIMEOUT) as sock:
+            with ctx.wrap_socket(sock, server_hostname=host) as ssock:
+                cert = ssock.getpeercert()
+        not_after = cert.get("notAfter")
+        if not not_after:
+            return "N/A", "N/A"
+        expire_dt = datetime.strptime(not_after, "%b %d %H:%M:%S %Y %Z")
+        expire_str = expire_dt.strftime("%Y-%m-%d")
+        issuer = dict(x[0] for x in cert.get("issuer", [] )).get("organizationName", "Unknown")
+        return expire_str, issuer
+    except Exception:
+        return "N/A", "N/A"
 
-                        result["status"] = "Live"
+def _scan_one(host: str) -> tuple[str, dict]:
+    """Check single host with DNS and port filtering."""
+    if not _can_resolve_fast(host):
+        return host, {"status": "Down", "ssl_expiration": "N/A", "ssl_issuer": "N/A"}
 
-                    issuer = next(
-                        (v for tup in cert.get("issuer", []) for k, v in tup if k == "organizationName"),
-                        None
-                    )
-                    result["ssl_issuer"] = issuer or "Unknown"
+    status = _check_status(host)
+    ssl_expiration, ssl_issuer = ("N/A", "N/A")
+    if status == "Live" or _is_port_open(host, 443, timeout=1.0):
+        ssl_expiration, ssl_issuer = _check_ssl(host)
 
-            return result 
+    return host, {
+        "status": status,
+        "ssl_expiration": ssl_expiration,
+        "ssl_issuer": ssl_issuer
+    }
 
-        except (socket.gaierror, socket.timeout, ssl.SSLError, socket.error) as e:
-            logger.warning(f"HTTPS failed for {domain}: {e}")
+# ------------------------------
+# MAIN FUNCTIONALITY
+# ------------------------------
+def run_user_check(username: str) -> dict:
+    """Run domain checks for user with incremental updates."""
+    dme = DME()
+    domains_data = dme.list_domains(username)
+    hosts = [_clean_host(d.get("domain", "")) for d in domains_data if d.get("domain")]
 
-        # --- Fallback: try HTTP port 80 ---
+    if not hosts:
+        log.info(f"[{username}] No domains to scan.")
+        return {"ok": True, "domains": 0, "updated": 0}
+
+    updates = {}
+    errors = 0
+    last_flush = time()
+
+    log.info(f"[{username}] Starting scan of {len(hosts)} domains using {MAX_THREADS} threads...")
+
+    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        futures = [executor.submit(_scan_one, h) for h in hosts]
+        for fut in as_completed(futures):
+            try:
+                host, fields = fut.result()
+                updates[host] = fields
+            except Exception as e:
+                errors += 1
+                log.error(f"[{username}] Error: {e}")
+                continue
+
+            # Incremental flush every BATCH_SIZE or FLUSH_INTERVAL seconds
+            if len(updates) >= BATCH_SIZE or (time() - last_flush >= FLUSH_INTERVAL):
+                dme.update_fields(username, updates)
+                updates = {}
+                last_flush = time()
+
+        # Final flush
+        if updates:
+            dme.update_fields(username, updates)
+
+    log.info(f"[{username}] Scan complete. Errors={errors}")
+    return {"ok": True, "domains": len(hosts), "errors": errors}
+
+def run_user_check_async(username: str) -> None:
+    """Start background scan in daemon thread (used by app.py)."""
+    def _worker():
         try:
-            with socket.create_connection((host, 80), timeout=2) as sock:
-                http_request = f"HEAD / HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n"
-                sock.sendall(http_request.encode())
-                response = sock.recv(512).decode(errors="ignore")
-
-                if "HTTP" in response:
-                    result["status"] = "Live"
-                else:
-                    result["status"] = "Down"
-
-        except socket.timeout:
-            logger.warning(f"Timeout while checking HTTP for {domain}")
+            run_user_check(username)
         except Exception as e:
-            logger.warning(f"HTTP fallback failed for {domain}: {e}")
+            log.exception(f"[{username}] Background scan failed: {e}")
 
-        return result
-
-    @staticmethod
-    def scan_user_domains(username: str, max_workers: int = 20) -> List[Dict[str, Any]]:
-        """
-        Run SSL and reachability checks for all domains concurrently.
-        """
-        dme = DomainManagementEngine()
-        domains = dme.load_user_domains(username)
-        if not domains:
-            return []
-
-        results = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {executor.submit(MonitoringSystem._check_domain, d["domain"]): d for d in domains}
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    results.append(future.result())
-                except Exception as e:
-                    logger.error(f"Domain check failed in worker: {e}")
-
-        dme.save_user_domains(username, results)
-        logger.info(f"{len(results)} domains scanned for {username}")
-        return results
+    threading.Thread(target=_worker, name=f"scan-{username}", daemon=True).start()
