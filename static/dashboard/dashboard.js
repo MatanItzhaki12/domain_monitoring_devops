@@ -79,6 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const result = await res.json();
 
       if (result.ok) {
+        sessionStorage.removeItem("scanClicked"); 
         await finalizeModal(addDomainStatus, "Domain added successfully!", "success", addDomainModal);
       } else {
         showStatus(addDomainStatus, result.error || "Failed to add domain.", "error");
@@ -113,7 +114,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const result = await res.json();
 
       if (result.ok) {
-        await finalizeModal(bulkUploadStatus, "Bulk upload completed!", "success", bulkUploadModal);
+        sessionStorage.removeItem("scanClicked"); 
+        await finalizeModal(bulkUploadStatus, "Bulk upload completed!", "success", bulkUploadModal); 
       } else {
         showStatus(bulkUploadStatus, result.error || "Upload failed.", "error");
         submitBtn.style.display = "block";
@@ -234,6 +236,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // =======================
   logoutBtn?.addEventListener("click", (e) => {
     e.preventDefault();
+    sessionStorage.removeItem("scanClicked"); 
     logoutBtn.textContent = "Logging out...";
     logoutBtn.style.pointerEvents = "none";
     logoutBtn.style.opacity = "0.7";
@@ -250,4 +253,16 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("click", (e) => {
     if (e.target.classList.contains("modal")) closeModal(e.target);
   });
+  // =======================
+  // Auto-scan on page load
+  // =======================
+
+  if (!sessionStorage.getItem("scanClicked")) {
+    const scanBtn = document.getElementById("scanNowBtn");
+    if (scanBtn) {
+      sessionStorage.setItem("scanClicked", "true");
+      scanBtn.click();
+    }
+  }
 });
+

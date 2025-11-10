@@ -1,17 +1,5 @@
 [
   {
-    "domain": "example.com",
-    "status": "Pending",
-    "ssl_expiration": "N/A",
-    "ssl_issuer": "N/A"
-  },
-  {
-    "domain": "google.com",
-    "status": "Pending",
-    "ssl_expiration": "N/A",
-    "ssl_issuer": "N/A"
-  },
-  {
     "domain": "openai.com",
     "status": "Pending",
     "ssl_expiration": "N/A",

@@ -47,8 +47,10 @@
         <tr>
           <td><input type="checkbox" class="select-domain" value="{{ d.domain }}"></td>
           <td>{{ d.domain }}</td>
-          <td><span class="badge {{ d.status|lower }}">{{ d.status }}</span></td>
-          <td>{{ d.ssl_expiration }}</td>
+          <td>
+            <span class="badge {{ d.status|lower|replace(' ', '-') }}">{{ d.status }}</span>
+          </td>
+          <td class="timestamp">{{ d.ssl_expiration }}</td>
           <td>{{ d.ssl_issuer }}</td>
           <td>
             <button class="delete-domain-btn" data-domain="{{ d.domain }}" title="Delete">
@@ -104,5 +106,8 @@
         <p>&copy; 2025 Domain Monitoring System - Group 2</p>
     </footer>
   <script src="{{ url_for('static', filename='dashboard/dashboard.js') }}"></script>
+  <script>
+
+  </script>
 </body>
 </html>

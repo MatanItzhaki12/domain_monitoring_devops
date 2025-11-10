@@ -11,7 +11,7 @@ class UserManager:
     """
     def __init__(self):
         # This method loads the users from the users.json file, using the method 
-        logger.debug(f"Initializing UserManagement module.")
+        logger.info(f"Initializing UserManagement module.")
         self.users = self._load_json_to_dict()
 
     def _load_json_to_dict(self):
@@ -34,11 +34,11 @@ class UserManager:
             logger.error(f"users.json could not be loaded! {str(e)}")
             return {}
 
-    def register_page_add_user(self, username, password, password_confirmation, dme):
+    def register_page_add_user(self, username, password, password_confirmation, dme: DME.DomainManagementEngine):
         """
         registering user to the system, after checking the validity of the credentials.
         """
-        logger.debug(f"Proccessing new user's details.")
+        logger.info(f"Proccessing new user's details.")
         try:
             # Checking username validity using the method username validity
             logger.debug(f"Checking username validity.")
@@ -61,16 +61,14 @@ class UserManager:
                 return {"error": write_user_status[1]}
             # Creating a new file for user's domains
             logger.debug(f"creating ./UsersData/{username}_domains.json file.")
-            # with open(f"./Usersdata/{username}_domains.json", "w") as f:
-            #     json.dump([], f, indent=4)
             dme.load_user_domains(username)
 
-            logger.debug(f"{username} registered successfully.")
+            logger.info(f"{username} registered successfully.")
             return {"message" : "Registered Successfully"}
         
         except Exception as e:
-            logger.error(f"Unable to register user.")
-            return {"error": "Unable to register user.", 'exception': e}
+            logger.error(f"Unable to register user; Exception: {str(e)}")
+            return {"error": "Unable to register user."}
 
     def register_page_password_validity(self, password, password_confirmation):
         """
@@ -81,7 +79,7 @@ class UserManager:
         This method should return True if the password valid and False otherwise, with
         an matching message for the user.
         """
-        logger.debug(f"Checking the validity of the password.")
+        logger.info(f"Checking the validity of the password.")
         try:
             if password != password_confirmation:
                 return False, "Password and Password Confirmation are not the same."
@@ -98,7 +96,7 @@ class UserManager:
                 return False, "Password should include only uppercase characters, lowercase characters and digits!"
             return True, "SUCCESS"
         except Exception as e:
-            logger.error(f"Unable to validate user's password.")
+            logger.error(f"Unable to validate user's password; Exception: {str(e)}")
             return "FAILED", "Error: Unable to validate password.", e
 
     def username_validity(self, username):
@@ -106,7 +104,7 @@ class UserManager:
         This method checks username validity, mainly it checks if the 
         username is not empty and not already exist.
         """
-        logger.debug(f"Checking the validity of the username.")
+        logger.info(f"Checking the validity of the username.")
         try:
             if username == "":
                 return False,  "Username invalid."
@@ -114,14 +112,14 @@ class UserManager:
                 return False, "Username already taken."
             return True, "Username is valid."
         except Exception as e:
-            logger.debug(f"Unable to check the validity of the password.")
+            logger.debug(f"Unable to check the validity of the password; Exception: {str(e)}")
             return "FAILED","Error: Unable to validate username.", e 
     
     def write_user_to_json(self, username, password):
         """
         This method writes the username and password to the json file.
         """
-        logger.debug(f"Writing user's details to users.json.")
+        logger.info(f"Writing user's details to users.json.")
         try:
             with open("./UsersData/users.json", "r") as f:
                 users_list = json.load(f)
@@ -138,7 +136,7 @@ class UserManager:
             return "SUCCESS", "Username and password was written successfully."
         
         except Exception as e:
-            logger.error(f"Failed to write user's details to users.json.")
+            logger.error(f"Failed to write user's details to users.json; Exception: {str(e)}")
             return "FAILED", "Error: Unable to write user to file.", e 
 
     def validate_login(self, username, password):

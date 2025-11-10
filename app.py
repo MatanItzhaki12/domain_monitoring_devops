@@ -2,13 +2,13 @@ from flask import Flask, request, jsonify, session, redirect, render_template
 import os
 from UserManagementModule import UserManager as UM
 from DomainManagementEngine import DomainManagementEngine as DME
-import MonitoringSystem as ME
+from MonitoringSystem import MonitoringSystem as MS
 import logger
 
 logger = logger.setup_logger("app")
 user_manager = UM()
-domain_engine = DME(user_manager=user_manager)
-# monitoring_system = ME()
+domain_engine = DME()
+monitoring_system = MS()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "group2_devops_project")
@@ -30,6 +30,8 @@ def _get_payload():
 # ---------------------------
 @app.route('/', methods=['GET'])
 def main_page():
+    if "username" in session:
+            return redirect("/dashboard")
     return app.send_static_file('main/main.html')
 
 
@@ -60,9 +62,10 @@ def register():
             password_confirmation = registerInfo.get("password_confirmation")
             register_status = user_manager.register_page_add_user(username, password, password_confirmation, domain_engine)
             if "message" in register_status:
+                session["username"] = username
                 return jsonify(register_status), 200
             elif "error" in register_status:
-                return jsonify(register_status), 400
+                return jsonify(register_status), 401
         except Exception as e:
             return jsonify({"error": f"User could not be registered: {str(e)}"}), 400
 
@@ -107,7 +110,7 @@ def add_domain():
     saved = domain_engine.add_domain(session["username"], norm_domain)
     if not saved:
         return jsonify({"ok": False, "error": "Domain already exists"}), 409
-
+    
     return jsonify({"ok": True, "domain": norm_domain}), 201
 
 
@@ -172,20 +175,19 @@ def my_domains():
 # ---------------------------
 # Monitoring
 # ---------------------------
-@app.route('/refresh_checks', methods=['POST'])
-def refresh_checks():
+
+@app.route('/scan_domains', methods=['GET'])
+def scan_domains():
     if "username" not in session:
         return jsonify({"ok": False, "error": "Unauthorized"}), 401
-    ME.run_user_check_async(session["username"])
-    return jsonify({"ok": True, "message": "Checks started"}), 202
 
-
-# ---------------------------
-# Static passthrough (top-level files)
-# ---------------------------
-@app.route('/<filename>', methods=['GET'])
-def static_files(filename):
-    return app.send_static_file(filename)
+    username = session["username"]
+    try:
+        updated = monitoring_system.scan_user_domains(username, dme=domain_engine)
+        return jsonify({"ok": True, "updated": len(updated)}), 200
+    except Exception as e:
+        logger.error(f"Error during scan: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 if __name__ == "__main__":

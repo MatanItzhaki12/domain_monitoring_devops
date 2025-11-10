@@ -1,8 +1,0 @@
-[
-    {
-        "domain": "example.com",
-        "status": "Live",
-        "ssl_expiration": "2025-12-31",
-        "ssl_issuer": "Example Certificate Authority"
-    }
-]

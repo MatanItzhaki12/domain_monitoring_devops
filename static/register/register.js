@@ -7,7 +7,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const ErrorMessage = document.querySelector('#error-message');
     const SuccessMessage = document.querySelector('#success-message');
     const Form = document.querySelector('form');
+    const Title = document.querySelector('.title')
     
+    Title.addEventListener('click', function() {
+        window.location.href = '/';
+    });
+
     // Form submission event listener
     Form.addEventListener('submit', function(event) {
         event.preventDefault();
@@ -48,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
         else {
             SuccessMessage.textContent = `${data["message"]}`
             SuccessMessage.style.display = 'block'
-            setTimeout(function() { window.location.href = "/login"; }, 2000); 
+            setTimeout(function() { window.location.href = "/dashboard"; }, 2000); 
         }
     }
 });

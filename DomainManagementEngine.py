@@ -36,10 +36,7 @@ class DomainManagementEngine:
     File-backed user domain storage and domain validation/CRUD.
 
     JSON structure example (UsersData/alex_domains.json):
-    {
-      "username": "alex",
-      "last_full_check": "2025-09-15T14:10:43.201Z",
-      "domains": [
+    [
         {
           "host": "example.com",
           "added_at": "2025-09-15T12:34:56.000Z",
@@ -47,8 +44,8 @@ class DomainManagementEngine:
           "http": null,
           "ssl":  null
         }
-      ]
-    }
+    ]
+    
     """
 
     # Regex for FQDN validation (example.com, sub.example.co.il etc.)
@@ -56,11 +53,7 @@ class DomainManagementEngine:
         r"^(?=.{1,253}$)(?!-)([A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}$"
     )
 
-    def __init__(self, user_manager: Optional[object] = None):
-        """
-        :param user_manager: Optional UserManager object for integration with user logic
-        """
-        self.user_manager = user_manager
+    def __init__(self):
         os.makedirs(USERS_DATA_DIR, exist_ok=True)
 
     @staticmethod
@@ -126,7 +119,7 @@ class DomainManagementEngine:
                         data = []
                 except json.JSONDecodeError:
                     data = []
-            return data
+            return sorted(data, key=lambda x: x["domain"].lower())
 
 
     def save_user_domains(self, username: str, data: List[Dict[str, Any]]) -> None:
@@ -135,7 +128,8 @@ class DomainManagementEngine:
         with _lock:
             os.makedirs(USERS_DATA_DIR, exist_ok=True)
             with open(path, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
+                json.dump(sorted(data, key=lambda x: x["domain"].lower()), 
+                          f, ensure_ascii=False, indent=2)
 
     def list_domains(self, username: str) -> List[Dict[str, Any]]:
         return self.load_user_domains(username)

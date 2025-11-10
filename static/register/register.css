@@ -64,11 +64,17 @@ form {
 #error-message {
     text-align: left;
     color: red;
+    font-weight: bold;
 }
 
 #success-message {
     text-align: left;
     color: green;
+    font-weight: bold;
+}
+
+#account-exist {
+    font-size: smaller;
 }
 
 input::placeholder {
