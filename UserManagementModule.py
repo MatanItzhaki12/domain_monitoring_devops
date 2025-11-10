@@ -1,6 +1,7 @@
 import json
 import re
 import logger
+from pathlib import Path
 import DomainManagementEngine as DME
 
 logger = logger.setup_logger("UserManagementModule")
@@ -153,3 +154,12 @@ class UserManager:
         except Exception as e:
             logger.error(f"Could not validate users credentials. {str(e)}")
             return False
+
+    def remove_user(self, username):
+        logger.info(f"deleting {username}'s details from users.json, and deletes its domains file if exists.")
+        try:
+            if username in self.users:
+                del self.users[username]
+            Path(f"./UsersData/{username}_domains.json").unlink(missing_ok=True)
+        except Exception as e:
+            logger.error(f"Error deleting {username} and files from system: {str(e)}")
