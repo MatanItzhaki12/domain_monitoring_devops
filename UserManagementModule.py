@@ -5,6 +5,8 @@ from pathlib import Path
 import DomainManagementEngine as DME
 
 logger = logger.setup_logger("UserManagementModule")
+USERS_CRED_PATH = "./UsersData/users.json"
+DATA_PATH = "./UsersData/"
 
 class UserManager:
     """
@@ -23,7 +25,7 @@ class UserManager:
         logger.debug(f"Loading users.json file.")
         try:
             users = {}
-            with open("./UsersData/users.json", "r") as f:
+            with open(USERS_CRED_PATH, "r") as f:
                 users_json = json.load(f)
             for user_details in users_json:
                 username = user_details["username"]
@@ -61,7 +63,7 @@ class UserManager:
                 logger.debug(f"Writing user to json failed.")
                 return {"error": write_user_status[1]}
             # Creating a new file for user's domains
-            logger.debug(f"creating ./UsersData/{username}_domains.json file.")
+            logger.debug(f"creating {DATA_PATH}{username}_domains.json file.")
             dme.load_user_domains(username)
 
             logger.info(f"{username} registered successfully.")
@@ -122,7 +124,7 @@ class UserManager:
         """
         logger.info(f"Writing user's details to users.json.")
         try:
-            with open("./UsersData/users.json", "r") as f:
+            with open(USERS_CRED_PATH, "r") as f:
                 users_list = json.load(f)
             
             user_to_write = {
@@ -131,7 +133,7 @@ class UserManager:
             }
 
             users_list.append(user_to_write)
-            with open("./UsersData/users.json", "w") as f:
+            with open(USERS_CRED_PATH, "w") as f:
                json.dump(users_list, f, indent=4, ensure_ascii=False)
 
             return "SUCCESS", "Username and password was written successfully."
@@ -160,6 +162,8 @@ class UserManager:
         try:
             if username in self.users:
                 del self.users[username]
-            Path(f"./UsersData/{username}_domains.json").unlink(missing_ok=True)
+                with open(USERS_CRED_PATH, "w") as f:
+                    json.dump(self.users, f, indent=4, ensure_ascii=False)
+            Path(f"{DATA_PATH}{username}_domains.json").unlink(missing_ok=True)
         except Exception as e:
             logger.error(f"Error deleting {username} and files from system: {str(e)}")
