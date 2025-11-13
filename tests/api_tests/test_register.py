@@ -1,346 +1,152 @@
-import Aux_Library as aux
+from Aux_Library import check_get_webpage, check_register_user
 import pytest
-import requests
 from UserManagementModule import UserNanager as UM
 
 pytestmark = pytest.mark.prder(1)
 
-ADDRESS = "127.0.0.1"
-PORT = "8080"
-ENDPOINT = "register"
+# Fixtures
 
+@pytest.fixture(scope="module")
+def existing_username():
+    return "test1"
 
-def request_get(endpoint):
-   response = requests.get(f"http://{ADDRESS}:{PORT}/{endpoint}", timeout=1)
-   return response  
+@pytest.fixture(scope="module")
+def new_username():
+    return "test57"
 
+# Tests
 
-def request_post_data(endpoint, data):
-   response = requests.post(f"http://{ADDRESS}:{PORT}/{endpoint}",data=data, timeout=1)
-   return response
-
-def request_post_json(endpoint, json_data):
-    response = requests.post(f"http://{ADDRESS}:{PORT}", 
-        json=json_data, 
-        timeout=1)
-    return response
 @pytest.mark.order(1)
 def test_register_page_access():
-    # access to register page is valid
-    assert request_get(ENDPOINT).ok == True
+    # Check if the /register page is accessible
+    assert check_get_webpage("/register").ok == True
+
+# Invalid Username Tests
 
 @pytest.mark.order(2)
-def test_register_invalid_username():
-    
-    # username empty or backspace 
+@pytest.mark.parametrize(
+    "username,password,password_confirmation",
+    [
+        # Empty or space username
+        ("", "Qwe12345", "Qwe12345"),
+        ("", "Qwe12345", "Qwe12346"),
+        ("", "Qwe1234", "Qwe1234"),
+        ("", "Qwe1234567890", "Qwe1234567890"),
+        ("", "qwe12345", "qwe12345"),
+        ("", "QWE12345", "QWE12345"),
+        ("", "Qwertyuiop", "Qwertyuiop"),
+        ("", "Qwe12345!", "Qwe12345!"),
+        (" ", "Qwe12345", "Qwe12345")
+    ]
+)
+def test_register_invalid_username(username, password, password_confirmation): 
+    # Invalid or empty username should be rejected
     expected_response = {"error": "Username invalid."} 
-    # Test 1
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": "", "password": "Qwe12345", 
-                "password_confirmation": "Qwe12345"})
-    assert response.json() == expected response
-    # Test 2
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": "", "password": "Qwe12345", 
-                "password_confirmation": "Qwe12346"})
-    assert response.json() == expected response
-    # Test 3
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": "", "password": "Qwe1234", 
-                "password_confirmation": "Qwe1234"})
-    assert response.json() == expected response
-    # Test 4
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": "", "password": "Qwe1234567890", 
-                "password_confirmation": "Qwe1234567890"})
-    assert response.json() == expected response
-    # Test 5 
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": "", "password": "qwe12345", 
-                "password_confirmation": "qwe12345"})
-    assert response.json() == expected response 
-    # Test 6
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": "", "password": "QWE12345", 
-                "password_confirmation": "QWE12345"})
-    assert response.json() == expected response
-    # Test 7
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": "", "password": "Qwertyuiop", 
-                "password_confirmation": "Qwertyuiop"})
-    assert response.json() == expected response
-    # Test 8
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": "", "password": "Qwe12345!", 
-                "password_confirmation": "Qwe12345!"})
-    assert response.json() == expected response
-    # Test 9 
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": " ", "password": "Qwe12345", 
-                "password_confirmation": "Qwe12345"})
-    assert response.json() == expected response
+    response = check_register_user(username=username, password=password, 
+                                   password_confirmation=password_confirmation)
+    assert response.status_code == 400
+    assert response.json() == expected_response
     
-    # username already exists
-    existing_username = "test1"
-    expected_response = {"error": "Username already taken."}
-    # Test 1
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{existing_username}", "password": "Qwe12345", 
-                "password_confirmation": "Qwe12345"})
-    assert response.json() == expected response
-    # Test 2
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{existing_username}", "password": "Qwe12345", 
-                "password_confirmation": "Qwe12346"})
-    assert response.json() == expected response
-    # Test 3
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{existing_username}", "password": "Qwe1234", 
-                "password_confirmation": "Qwe1234"})
-    assert response.json() == expected response
-    # Test 4
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{existing_username}", "password": "Qwe1234567890", 
-                "password_confirmation": "Qwe1234567890"})
-    assert response.json() == expected response
-    # Test 5 
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{existing_username}", "password": "qwe12345", 
-                "password_confirmation": "qwe12345"}) 
-    assert response.json() == expected response 
-    # Test 6
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{existing_username}", "password": "QWE12345", 
-                "password_confirmation": "QWE12345"})
-    assert response.json() == expected response
-    # Test 7
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{existing_username}", "password": "Qwertyuiop", 
-                "password_confirmation": "Qwertyuiop"})
-    assert response.json() == expected response
-    # Test 8
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{existing_username}", "password": "Qwe12345!", 
-                "password_confirmation": "Qwe12345!"})
-    assert response.json() == expected response
+pytest.mark.order(3)
+pytest.mark.parametrize(
+    "password,password_confirmation",
+    [
+        ("Qwe12345", "Qwe12345"),
+        ("Qwe12345", "Qwe12346"),
+        ("Qwe1234", "Qwe1234"),
+        ("Qwe1234567890", "Qwe1234567890"),
+        ("qwe12345", "qwe12345"),
+        ("QWE12345", "QWE12345"),
+        ("Qwertyuiop", "Qwertyuiop"),
+        ("Qwe12345!", "Qwe12345!")
+    ]
+)
+def test_register_existing_username(existing_username, password, password_confirmation):
 
-@pytest.mark.order(3)
-def test_register_invalid_password_confirmation():
-    # checking if password and password confirmation are the same
-    expected_response = {"error": "Password and Password Confirmation are not the same."}
-    username = "test57"
-    # Test 1
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe12345", 
-                "password_confirmation": "Qwe12346"})
-    assert response.json() == expected response
-    # Test 2
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe12345", 
-                "password_confirmation": "Qwe1234"})
-    assert response.json() == expected response
-    # Test 3
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe123456", 
-                "password_confirmation": "Qwe12345"})
-    assert response.json() == expected response
-    # Test 4
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe1234567891", 
-                "password_confirmation": "Qwe12345678901"})
-    assert response.json() == expected response
-    # Test 5 
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "qwe12345", 
-                "password_confirmation": "Qwe12345"}) 
-    assert response.json() == expected response 
-    # Test 6
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "QWE12345", 
-                "password_confirmation": "Qwe12345"})
-    assert response.json() == expected response
-    # Test 7
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwertyuiop", 
-                "password_confirmation": "Qwertyuiopq"})
-    assert response.json() == expected response
-    # Test 8
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe12345!", 
-                "password_confirmation": "Qwe12345"})
-    assert response.json() == expected response
+    # username already exists
+    expected_response = {"error": "Username already taken."}
+    response = check_register_user(username=existing_username, password=password, 
+                                   password_confirmation=password_confirmation)
+    assert response.status_code == 409
+    assert response.json() == expected_response
+
+# Invalid Password Confirmatiom Tests
 
 @pytest.mark.order(4)
-def test_register_invalid_password():
-    # password not long enough - less than 8 characters
-    expected_response = {"error": "Password is not between 8 to 12 characters."}
-    username = "test57"
-    # Test 1
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe1234", 
-                "password_confirmation": "Qwe1234"})
-    assert response.json() == expected response
-    # Test 2
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe123", 
-                "password_confirmation": "Qwe123"})
-    assert response.json() == expected response
-    # Test 3
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "qwe1234", 
-                "password_confirmation": "qwe1234"})
-    assert response.json() == expected response
-    # Test 4
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "QWE123", 
-                "password_confirmation": "QWE123"})
-    assert response.json() == expected response
-    # Test 5 
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwert", 
-                "password_confirmation": "Qwert"})
-    assert response.json() == expected response
-    # Test 8
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe12!", 
-                "password_confirmation": "Qwe12!})
-    assert response.json() == expected response
+@pytest.mark.parametrize(
+    "password,password_confirmation",
+    [
+        ("Qwe12345", "Qwe12346"),
+        ("Qwe12345", "Qwe1234"),
+        ("Qwe123456", "Qwe12345"),
+        ("Qwe1234567891", "Qwe12345678901"),
+        ("qwe12345", "Qwe12345"),
+        ("QWE12345", "Qwe12345"),
+        ("Qwertyuiop", "Qwertyuiopq"),
+        ("Qwe12345!", "Qwe12345")
+    ]
+)
+def test_register_invalid_password_confirmation(new_username, password, password_confirmation):
+    # checking if password and password confirmation are the same
+    expected_response = {"error": "Password and Password Confirmation are not the same."}
+    response = check_register_user(username=new_username, password=password, 
+                                   password_confirmation=password_confirmation)
+    assert response.status_code == 400
+    assert response.json() == expected_response
     
-    # password too long - more than 12 characters
-    expected_response = {"error": "Password is not between 8 to 12 characters."}
-    # Test 1
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe1234567890", 
-                "password_confirmation": "Qwe1234567890"})
-    assert response.json() == expected response
-    # Test 2
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe123456789012", 
-                "password_confirmation": "Qwe123456789012"})
-    assert response.json() == expected response
-    # Test 3
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "qwe1234567890", 
-                "password_confirmation": "qwe1234567890"})
-    assert response.json() == expected response
-    # Test 4
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "QWE1234567890", 
-                "password_confirmation": "QWE1234567890"})
-    assert response.json() == expected response
-    # Test 5 
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwertyuiopasd", 
-                "password_confirmation": "Qwertyuiopasd"})
-    assert response.json() == expected response
-    # Test 8
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe123456789!", 
-                "password_confirmation": "Qwe123456789!})
-    assert response.json() == expected response
-    
-    # password not include at least one uppercase character
-    expected_response = {"error": "Password does not include at least one uppercase character."}
-    # Test 1 
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "qwe12345", 
-                "password_confirmation": "qwe12345"}) 
-    assert response.json() == expected response 
-    # Test 2
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "qwertyuiop", 
-                "password_confirmation": "qwertyuiop"})
-    assert response.json() == expected response
-    # Test 3
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "qwe12345!", 
-                "password_confirmation": "qwe12345!"})
-    assert response.json() == expected response
-    
-    # password not include at least one lowercase character
-    expected_response = {"error": "Password does not include at least one lowercase character."}
-    # Test 1 
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "QWE12345", 
-                "password_confirmation": "QWE12345"}) 
-    assert response.json() == expected response 
-    # Test 2
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "QWERTYUIOP", 
-                "password_confirmation": "QWERTYUIOP"})
-    assert response.json() == expected response
-    # Test 3
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "QWE12345!", 
-                "password_confirmation": "QWE12345!"})
-    assert response.json() == expected response
-    
-    # password not include at least one digits
-    expected_response = {"error": "Password does not include at least one digit."}
-    # Test 1
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwertyuiop", 
-                "password_confirmation": "Qwertyuiop"})
-    assert response.json() == expected response
-    # Test 2
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwertyuiop!", 
-                "password_confirmation": "Qwertyuiop!"})
-    assert response.json() == expected response
+# Invalid Password Tests   
 
-    # password include characters that are not uppercase, lowercase or digits
-    expected_response = {"error": "Password does not include at least one digit."}
-    # Test 1
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe12345!", 
-                "password_confirmation": "Qwe12345!"})
-    assert response.json() == expected response
+@pytest.mark.order(5)
+@pytest.mark.parametrize(
+    "password,password_confirmation,expected_response",
+    [
+        # password not long enough - less than 8 characters
+        ("Qwe1234", "Qwe1234", {"error": "Password is not between 8 to 12 characters."}),
+        ("Qwe123", "Qwe123", {"error": "Password is not between 8 to 12 characters."}),
+        ("qwe1234", "qwe1234", {"error": "Password is not between 8 to 12 characters."}),
+        ("QWE123", "QWE123", {"error": "Password is not between 8 to 12 characters."}),
+        ("Qwert", "Qwert", {"error": "Password is not between 8 to 12 characters."}),
+        ("Qwe12!", "Qwe12!", {"error": "Password is not between 8 to 12 characters."}),    
+        # password too long - more than 12 characters
+        ("Qwe1234567890", "Qwe1234567890", {"error": "Password is not between 8 to 12 characters."}),
+        ("Qwe123456789012", "Qwe123456789012", {"error": "Password is not between 8 to 12 characters."}),
+        ("qwe1234567890", "qwe1234567890", {"error": "Password is not between 8 to 12 characters."}),
+        ("QWE1234567890", "QWE1234567890", {"error": "Password is not between 8 to 12 characters."}),
+        ("Qwertyuiopasd", "Qwertyuiopasd", {"error": "Password is not between 8 to 12 characters."}),
+        ("Qwe123456789!", "Qwe123456789!", {"error": "Password is not between 8 to 12 characters."}),
+        # password does not include at least one uppercase character
+        ("qwe12345", "qwe12345", {"error": "Password does not include at least one uppercase character."}),
+        ("qwertyuiop", "qwertyuiop", {"error": "Password does not include at least one uppercase character."}),
+        ("qwe12345!", "qwe12345!", {"error": "Password does not include at least one uppercase character."}),
+        # password does not include at least one lowercase character
+        ("QWE12345", "QWE12345", {"error": "Password does not include at least one lowercase character."}),
+        ("QWERTYUIOP", "QWERTYUIOP", {"error": "Password does not include at least one lowercase character."}),
+        ("QWE12345!", "QWE12345!", {"error": "Password does not include at least one lowercase character."}),
+        # password does not include at least one digits
+        ("Qwertyuiop", "Qwertyuiop", {"error": "Password does not include at least one digit."}),
+        ("Qwertyuiop!", "Qwertyuiop!", {"error": "Password does not include at least one digit."}),
+        # password include characters that are not uppercase, lowercase or digits
+        ("Qwe12345!", "Qwe12345!", {"error": "Password should include only uppercase characters, lowercase characters and digits!"})
+    ]
 
+)
+def test_register_invalid_password(new_username, password, password_confirmation, expected_response):
+    # Invalid password formats should be rejected
+    response = check_register_user(username=new_username, password=password, 
+                                   password_confirmation=password_confirmation)
+    assert response.status_code == 400
+    assert response.json() == expected_response
 
 
 @pytest.mark.order(-1)
-def test_register_successful_registration():
+def test_register_successful_registration(new_username):
     # check the registration of fully valid users 
-    username = "test57"
     expected_response = {"message" : "Registered Successfully"}
     # Test 1
-    response = request_post_json(endpoint=ENDPOINT, 
-                json_data={"username": f"{username}", 
-                "password": "Qwe12345", 
-                "password_confirmation": "Qwe12345"})
-    assert response.json() == expected response
+    response = check_register_user(username=new_username, password="Qwe12345", 
+                                   password_confirmation="Qwe12345")
+    assert response.status_code == 201
+    assert response.json() == expected_response
     
     # Removing new test user
-    UM().remove_user(username)
-
-
-
+    UM().remove_user(new_username)

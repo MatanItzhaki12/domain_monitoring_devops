@@ -87,6 +87,7 @@ def logout():
 
 @app.route('/get_username', methods=['GET'])
 def get_username():
+    
     if "username" not in session:
         return {"error": "not logged in"}, 401
     return {"username": session["username"]}

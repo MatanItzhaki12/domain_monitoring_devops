@@ -1,0 +1,13 @@
+from Aux_Library import check_get_webpage
+import pytest
+
+@pytest.mark.parametrize("PATH", [
+    "/",
+    "/login",
+    "/register",
+    "/dashboard"
+])
+
+def test_page_retrival(PATH):
+    response = check_get_webpage(PATH)
+    assert response.status_code == 200

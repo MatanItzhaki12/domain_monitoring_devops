@@ -1,20 +1,20 @@
 [
   {
     "domain": "51.la",
-    "status": "Down",
-    "ssl_expiration": "N/A",
-    "ssl_issuer": "N/A"
+    "status": "Live",
+    "ssl_expiration": "2026-04-19",
+    "ssl_issuer": "GlobalSign nv-sa"
   },
   {
     "domain": "a.co",
     "status": "Live",
-    "ssl_expiration": "2026-06-09",
+    "ssl_expiration": "2026-08-18",
     "ssl_issuer": "Amazon"
   },
   {
     "domain": "aap.org",
     "status": "Live",
-    "ssl_expiration": "2025-11-10",
+    "ssl_expiration": "2026-12-01",
     "ssl_issuer": "GlobalSign nv-sa"
   },
   {
@@ -26,13 +26,13 @@
   {
     "domain": "amazon.it",
     "status": "Live",
-    "ssl_expiration": "2026-06-27",
+    "ssl_expiration": "2026-10-07",
     "ssl_issuer": "Amazon"
   },
   {
     "domain": "apache-ssl.org",
     "status": "Live",
-    "ssl_expiration": "2025-12-08",
+    "ssl_expiration": "2026-02-05",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -50,13 +50,13 @@
   {
     "domain": "blender.org",
     "status": "Live",
-    "ssl_expiration": "2025-12-01",
+    "ssl_expiration": "2026-01-29",
     "ssl_issuer": "Let's Encrypt"
   },
   {
     "domain": "blogspot.ca",
     "status": "Live",
-    "ssl_expiration": "2025-12-15",
+    "ssl_expiration": "2026-01-05",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -98,7 +98,7 @@
   {
     "domain": "copyright.gov",
     "status": "Live",
-    "ssl_expiration": "2025-12-31",
+    "ssl_expiration": "2026-02-01",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -116,7 +116,7 @@
   {
     "domain": "discordapp.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-07",
+    "ssl_expiration": "2026-02-04",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -206,14 +206,14 @@
   {
     "domain": "google.be",
     "status": "Live",
-    "ssl_expiration": "2025-12-15",
+    "ssl_expiration": "2026-01-05",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "googleadservices.com",
-    "status": "Down",
-    "ssl_expiration": "N/A",
-    "ssl_issuer": "N/A"
+    "status": "Live",
+    "ssl_expiration": "2026-01-05",
+    "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "guinnessworldrecords.com",
@@ -254,19 +254,19 @@
   {
     "domain": "i.ytimg.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-15",
+    "ssl_expiration": "2026-01-05",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "icloud.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-17",
-    "ssl_issuer": "Apple Inc."
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "imperial.ac.uk",
     "status": "Live",
-    "ssl_expiration": "2025-11-27",
+    "ssl_expiration": "2026-01-27",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -290,19 +290,19 @@
   {
     "domain": "justgiving.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-01",
+    "ssl_expiration": "2026-12-01",
     "ssl_issuer": "Amazon"
   },
   {
     "domain": "laravel-news.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-20",
+    "ssl_expiration": "2026-01-18",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "lothar.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-14",
+    "ssl_expiration": "2026-01-14",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -319,9 +319,9 @@
   },
   {
     "domain": "messenger.com",
-    "status": "Down",
-    "ssl_expiration": "N/A",
-    "ssl_issuer": "N/A"
+    "status": "Live",
+    "ssl_expiration": "2025-11-18",
+    "ssl_issuer": "DigiCert Inc"
   },
   {
     "domain": "michigan.gov",
@@ -338,7 +338,7 @@
   {
     "domain": "mtv.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-03",
+    "ssl_expiration": "2026-02-01",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -368,13 +368,13 @@
   {
     "domain": "note.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-23",
+    "ssl_expiration": "2026-12-06",
     "ssl_issuer": "GlobalSign nv-sa"
   },
   {
     "domain": "ora.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-01",
+    "ssl_expiration": "2026-01-30",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -392,7 +392,7 @@
   {
     "domain": "postimg.cc",
     "status": "Live",
-    "ssl_expiration": "2025-11-15",
+    "ssl_expiration": "2026-01-14",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -416,7 +416,7 @@
   {
     "domain": "redbubble.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-06",
+    "ssl_expiration": "2026-02-03",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -434,37 +434,37 @@
   {
     "domain": "royalsocietypublishing.org",
     "status": "Live",
-    "ssl_expiration": "2025-12-04",
-    "ssl_issuer": "Google Trust Services"
+    "ssl_expiration": "2026-02-08",
+    "ssl_issuer": "Let's Encrypt"
   },
   {
     "domain": "samhsa.gov",
     "status": "Live",
-    "ssl_expiration": "2026-02-16",
-    "ssl_issuer": "IdenTrust"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "secureserver.net",
     "status": "Live",
-    "ssl_expiration": "2026-06-10",
-    "ssl_issuer": "GoDaddy.com, Inc."
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "sleepfoundation.org",
     "status": "Live",
-    "ssl_expiration": "2025-11-24",
+    "ssl_expiration": "2026-01-25",
     "ssl_issuer": "Let's Encrypt"
   },
   {
     "domain": "smashingmagazine.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-29",
+    "ssl_expiration": "2026-01-28",
     "ssl_issuer": "Let's Encrypt"
   },
   {
     "domain": "softonic.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-03",
+    "ssl_expiration": "2026-02-01",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -476,7 +476,7 @@
   {
     "domain": "startribune.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-24",
+    "ssl_expiration": "2026-01-25",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -488,7 +488,7 @@
   {
     "domain": "thinkwithgoogle.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-15",
+    "ssl_expiration": "2026-01-05",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -536,8 +536,8 @@
   {
     "domain": "uu.nl",
     "status": "Live",
-    "ssl_expiration": "2025-11-14",
-    "ssl_issuer": "GEANT Vereniging"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "virustotal.com",
@@ -554,7 +554,7 @@
   {
     "domain": "vistaprint.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-08",
+    "ssl_expiration": "2026-11-30",
     "ssl_issuer": "GlobalSign nv-sa"
   },
   {
@@ -578,7 +578,7 @@
   {
     "domain": "wikiquote.org",
     "status": "Live",
-    "ssl_expiration": "2025-11-08",
+    "ssl_expiration": "2026-01-07",
     "ssl_issuer": "Let's Encrypt"
   },
   {

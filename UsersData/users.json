@@ -74,5 +74,17 @@
     {
         "username": "test13",
         "password": "Qw123456"
+    },
+    {
+        "username": "ozou",
+        "password": "987654321Aa"
+    },
+    {
+        "username": "test_scan_user_4db51335",
+        "password": "StrongPass12"
+    },
+    {
+        "username": "test_scan_user_978ee4c2",
+        "password": "StrongPass12"
     }
 ]
