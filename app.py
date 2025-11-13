@@ -63,11 +63,13 @@ def register():
             register_status = user_manager.register_page_add_user(username, password, password_confirmation, domain_engine)
             if "message" in register_status:
                 session["username"] = username
-                return jsonify(register_status), 200
+                return jsonify(register_status), 201
             elif "error" in register_status:
-                return jsonify(register_status), 401
+                if register_status["error"] == "Username already taken.":
+                    return jsonify(register_status), 409
+                return jsonify(register_status), 400
         except Exception as e:
-            return jsonify({"error": f"User could not be registered: {str(e)}"}), 400
+            return jsonify({"error": f"User could not be registered: {str(e)}"}), 500
 
 @app.route('/dashboard', methods=['GET'])
 def dashboard():

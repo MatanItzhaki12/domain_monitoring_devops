@@ -47,7 +47,7 @@ class UserManager:
             logger.debug(f"Checking username validity.")
             usr_valid = self.username_validity(username)
             if usr_valid == "FAILED" or not usr_valid[0]:
-                logger.debug(f"username invalid.")
+                logger.debug(f"The \"{username}\" is an invalid username.")
                 return {"error" : usr_valid[1]}
             # Checking password validitiy using the method register_page_password_validity
             logger.debug(f"Checking password validity.")
