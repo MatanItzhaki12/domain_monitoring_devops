@@ -1,8 +1,8 @@
-from Aux_Library import check_get_webpage, check_register_user
+from .Aux_Library import check_get_webpage, check_register_user
 import pytest
-from UserManagementModule import UserNanager as UM
+from UserManagementModule import UserManager as UM
 
-pytestmark = pytest.mark.prder(1)
+pytestmark = pytest.mark.order(1)
 
 # Fixtures
 
@@ -47,8 +47,8 @@ def test_register_invalid_username(username, password, password_confirmation):
     assert response.status_code == 400
     assert response.json() == expected_response
     
-pytest.mark.order(3)
-pytest.mark.parametrize(
+@pytest.mark.order(3)
+@pytest.mark.parametrize(
     "password,password_confirmation",
     [
         ("Qwe12345", "Qwe12345"),

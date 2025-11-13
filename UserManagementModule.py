@@ -118,6 +118,27 @@ class UserManager:
             logger.debug(f"Unable to check the validity of the password; Exception: {str(e)}")
             return "FAILED","Error: Unable to validate username.", e 
     
+    def save_users_from_memory_to_json(self):
+        logger.info(f"writing users from memory to users.json file.")
+        try:
+            users_list = []
+            for user in self.users:
+                user_temp = {
+                    "username": user,
+                    "password": self.users[user]
+                }
+                users_list.append(user_temp)
+            
+            with open(USERS_CRED_PATH, "w") as f:
+                json.dump(users_list, f, indent=4, ensure_ascii=False)
+
+            return "SUCCESS", "Users was written from memory to users.json file successfully."
+        
+        except Exception as e:
+            logger.error(f"Failed to write self.users from memory to users.json; Exception: {str(e)}")
+            return "FAILED", "Unabled to write self.users to users.json.", e
+
+    
     def write_user_to_json(self, username, password):
         """
         This method writes the username and password to the json file.
@@ -161,9 +182,14 @@ class UserManager:
         logger.info(f"deleting {username}'s details from users.json, and deletes its domains file if exists.")
         try:
             if username in self.users:
+                password = self.users[username]
                 del self.users[username]
-                with open(USERS_CRED_PATH, "w") as f:
-                    json.dump(self.users, f, indent=4, ensure_ascii=False)
+                result = self.save_users_from_memory_to_json()
+                if result[0] == "FAILED":
+                    self.users[username] = password
+                    logger.error(f"Unable to remove user {username} from json file.")
+                
             Path(f"{DATA_PATH}{username}_domains.json").unlink(missing_ok=True)
+            
         except Exception as e:
             logger.error(f"Error deleting {username} and files from system: {str(e)}")
