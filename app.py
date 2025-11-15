@@ -15,7 +15,7 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "group2_devops_project")
 
 
 # ---------------------------
-# Helpers (no error handlers here)
+# Helpers
 # ---------------------------
 def _get_payload():
     """Accept JSON or HTML form-data; always return a dict."""
@@ -31,7 +31,7 @@ def _get_payload():
 @app.route('/', methods=['GET'])
 def main_page():
     if "username" in session:
-            return redirect("/dashboard")
+        return redirect("/dashboard")
     return app.send_static_file('main/main.html')
 
 
@@ -41,35 +41,46 @@ def login():
         if "username" in session:
             return redirect("/dashboard")
         return app.send_static_file('login/login.html')
-    else:
-        data = _get_payload()
-        username = (data.get("username") or "").strip()
-        password = data.get("password") or ""
-        if user_manager.validate_login(username,password):
-            session["username"] = username
-            return jsonify({"ok": True, "message": "Login successful", "username": username}), 200
-        return jsonify({"ok": False, "error": "Invalid username or password"}), 401
+
+    data = _get_payload()
+    username = (data.get("username") or "").strip()
+    password = data.get("password") or ""
+
+    if user_manager.validate_login(username, password):
+        session["username"] = username
+        return jsonify({"ok": True, "message": "Login successful", "username": username}), 200
+
+    return jsonify({"ok": False, "error": "Invalid username or password"}), 401
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
         return app.send_static_file('register/register.html')
-    else:
-        try:
-            registerInfo = _get_payload()
-            username = (registerInfo.get("username") or "").strip()
-            password = registerInfo.get("password") or ""
-            password_confirmation = registerInfo.get("password_confirmation")
-            register_status = user_manager.register_page_add_user(username, password, password_confirmation, domain_engine)
-            if "message" in register_status:
-                session["username"] = username
-                return jsonify(register_status), 201
-            elif "error" in register_status:
-                if register_status["error"] == "Username already taken.":
-                    return jsonify(register_status), 409
-                return jsonify(register_status), 400
-        except Exception as e:
-            return jsonify({"error": f"User could not be registered: {str(e)}"}), 500
+    
+    try:
+        # Getting Payload
+        registerInfo = _get_payload()
+        # Extracting username, password and password confirmation
+        username = (registerInfo.get("username") or "").strip()
+        password = registerInfo.get("password") or ""
+        password_confirmation = registerInfo.get("password_confirmation")
+        # Registering username and getting status message
+        register_status = user_manager.register_page_add_user(username, password, password_confirmation, domain_engine)
+        # Return code, if:
+        # 201 - username registered Succesfully
+        # 400 - invalid fields
+        # 409 - username already existing
+        # 500 - internal server error
+        if "message" in register_status:
+            session["username"] = username
+            return jsonify(register_status), 201
+        elif "error" in register_status:
+            if register_status["error"] == "Username already taken.":
+                return jsonify(register_status), 409
+            return jsonify(register_status), 400
+    except Exception as e:
+        return jsonify({"error": f"User could not be registered: {str(e)}"}), 500
 
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
@@ -87,9 +98,9 @@ def logout():
     session.pop("username", None)
     return redirect("/login")
 
+
 @app.route('/get_username', methods=['GET'])
 def get_username():
-    
     if "username" not in session:
         return {"error": "not logged in"}, 401
     return {"username": session["username"]}
@@ -113,7 +124,7 @@ def add_domain():
     saved = domain_engine.add_domain(session["username"], norm_domain)
     if not saved:
         return jsonify({"ok": False, "error": "Domain already exists"}), 409
-    
+
     return jsonify({"ok": True, "domain": norm_domain}), 201
 
 
@@ -135,18 +146,25 @@ def bulk_domains():
         raw = raw.strip()
         if not raw:
             continue
+
         ok, domain, reason = domain_engine.validate_domain(raw)
+
         if not ok:
             invalid.append({"input": raw, "reason": reason})
             continue
+
         saved = domain_engine.add_domain(session["username"], domain)
         (added if saved else duplicates).append(domain)
 
-    return jsonify({"ok": True, "summary": {
-        "added": added,
-        "duplicates": duplicates,
-        "invalid": invalid
-    }}), 200
+    return jsonify({
+        "ok": True,
+        "summary": {
+            "added": added,
+            "duplicates": duplicates,
+            "invalid": invalid
+        }
+    }), 200
+
 
 @app.route('/remove_domains', methods=['POST'])
 def remove_domains():
@@ -161,16 +179,14 @@ def remove_domains():
 
     result = domain_engine.remove_domains(session["username"], domains_to_remove)
 
-    return jsonify({
-        "ok": True,
-        "summary": result
-    }), 200
+    return jsonify({"ok": True, "summary": result}), 200
 
 
 @app.route('/my_domains', methods=['GET'])
 def my_domains():
     if "username" not in session:
         return jsonify({"ok": False, "error": "Unauthorized"}), 401
+
     data = domain_engine.list_domains(session["username"])
     return jsonify({"ok": True, "data": data}), 200
 
@@ -178,7 +194,6 @@ def my_domains():
 # ---------------------------
 # Monitoring
 # ---------------------------
-
 @app.route('/scan_domains', methods=['GET'])
 def scan_domains():
     if "username" not in session:
@@ -191,6 +206,26 @@ def scan_domains():
     except Exception as e:
         logger.error(f"Error during scan: {e}")
         return jsonify({"ok": False, "error": str(e)}), 500
+
+# -------------------------#
+#  Reload Users to Memory  #
+# -------------------------#
+
+@app.route('/reload_users_to_memory', methods=['GET'])
+def reload_users_to_memory():
+    try:
+        user_manager.load_users_json_to_memory()
+        return jsonify({"ok": True}), 200
+    except Exception as e:
+        logger.error(f"Error during reloading users.json: {str(e)}")
+        return jsonify({"ok": False}), 500
+
+# ---------------------------
+# Static passthrough
+# ---------------------------
+@app.route('/<filename>', methods=['GET'])
+def static_files(filename):
+    return app.send_static_file(filename)
 
 
 if __name__ == "__main__":

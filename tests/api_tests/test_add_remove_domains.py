@@ -4,8 +4,9 @@ import requests
 import json
 import os
 import re
-import Aux_Library as aux
+from tests.api_tests import Aux_Library as aux
 
+pytestmark = pytest.mark.order(5)
 
 def load_test_user():
     """
@@ -82,3 +83,62 @@ def test_add_and_remove_domain(session_cookie):
     assert not any(test_domain in str(d) for d in domains_after), "Domain still present after removal"
 
     print("Add/remove domain test completed successfully.")
+    
+# -------------------------------
+# 2. Remove Domain Edge Cases (Planned Failure)
+# -------------------------------
+
+def test_remove_domain_without_auth():
+    """Removing a domain without authentication should fail."""
+    BASE_URL = aux.BASE_URL
+    resp = requests.post(
+        f"{BASE_URL}/remove_domains",
+        json={"domains": ["unauth.com"]},
+        headers={"Content-Type": "application/json"},
+    )
+    assert resp.status_code in (401, 302, 403), f"Unexpected code: {resp.status_code}"
+
+def test_remove_nonexistent_domain(session_cookie):
+    """Removing a non-existent domain should return a graceful error."""
+    BASE_URL = aux.BASE_URL
+    headers = {"Content-Type": "application/json", "Cookie": f"session={session_cookie}"}
+
+    domain = "this-domain-does-not-exist.com"
+    resp = requests.post(
+        f"{BASE_URL}/remove_domains",
+        json={"domains": [domain]},
+        headers=headers,
+    )
+    assert resp.status_code in (200, 404)
+    data = resp.json()
+    assert "ok" in data
+
+def test_remove_domains_bulk(session_cookie):
+    """Add several domains and remove them all in one API call."""
+    BASE_URL = aux.BASE_URL
+    headers = {"Content-Type": "application/json", "Cookie": f"session={session_cookie}"}
+
+    domains = [f"bulk{i}.example.com" for i in range(3)]
+
+    # Add all
+    for d in domains:
+        requests.post(f"{BASE_URL}/add_domain", json={"domain": d}, headers=headers)
+
+    # Remove all at once
+    rem_resp = requests.post(f"{BASE_URL}/remove_domains", json={"domains": domains}, headers=headers)
+    assert rem_resp.status_code == 200, f"Bulk remove failed: {rem_resp.text}"
+    assert rem_resp.json().get("ok") is True
+
+    # Verify none remain
+    list_resp = requests.get(f"{BASE_URL}/my_domains", headers=headers)
+    assert list_resp.status_code == 200
+    for d in domains:
+        assert d not in str(list_resp.json()), f"{d} still present after bulk removal"
+
+def test_remove_domains_empty_payload(session_cookie):
+    """Removing domains with empty payload should return 400 or ok:false."""
+    BASE_URL = aux.BASE_URL
+    headers = {"Content-Type": "application/json", "Cookie": f"session={session_cookie}"}
+
+    resp = requests.post(f"{BASE_URL}/remove_domains", json={}, headers=headers)
+    assert resp.status_code in (400, 422)

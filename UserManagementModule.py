@@ -17,6 +17,10 @@ class UserManager:
         logger.info(f"Initializing UserManagement module.")
         self.users = self._load_json_to_dict()
 
+    def load_users_json_to_memory(self):
+        logger.info(f"Reloading users.json file.")
+        self.users = self._load_json_to_dict()
+
     def _load_json_to_dict(self):
         """
         This method loads the users.json file and return a dictionary in the format:

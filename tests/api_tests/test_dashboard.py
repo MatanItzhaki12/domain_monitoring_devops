@@ -8,6 +8,7 @@ from tests.api_tests.Aux_Library import (
 )
 from app import app
 
+pytestmark = pytest.mark.order(4)
 
 # ============================================================
 # Utilities

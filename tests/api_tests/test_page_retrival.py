@@ -1,5 +1,7 @@
-from Aux_Library import check_get_webpage
+from .Aux_Library import check_get_webpage
 import pytest
+
+pytestmark = pytest.mark.order(1)
 
 @pytest.mark.parametrize("PATH", [
     "/",

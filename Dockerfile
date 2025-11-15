@@ -1,25 +1,54 @@
+# -------------------------------
+# Base image: lightweight Python 3.12
+# -------------------------------
 FROM python:3.12-slim
-RUN mkdir /domain_monitoring_system
-RUN chmod 777 /domain_monitoring_system
 
+# -------------------------------
+# Environment variables
+# -------------------------------
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV DEBIAN_FRONTEND=noninteractive
 
-COPY . /domain_monitoring_system
+# -------------------------------
+# Pre-clean and install dependencies
+# -------------------------------
+# The cleanup before installation ensures minimal layer size
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && apt-get update && apt-get install -y --no-install-recommends \
+       chromium chromium-driver \
+       curl wget unzip gnupg ca-certificates \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# -------------------------------
+# Environment variables for Selenium
+# -------------------------------
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
-WORKDIR /domain_monitoring_system
+# -------------------------------
+# Set working directory
+# -------------------------------
+WORKDIR /app
 
-
-RUN apt-get update && apt-get install -y \
-    curl \
-    chromium-driver \
-    && rm -rf /var/lib/apt/lists/*
-
-
+# -------------------------------
+# Copy Python dependencies
+# -------------------------------
 COPY requirements.txt .
+
+# -------------------------------
+# Install Python packages (pytest, selenium, etc.)
+# -------------------------------
 RUN pip install --no-cache-dir -r requirements.txt
 
+# -------------------------------
+# Copy application code
+# -------------------------------
+COPY . .
 
-RUN pip install pytest selenium
-
-
+# -------------------------------
+# Default command
+# -------------------------------
+# Keeps container alive for Jenkins tests
 CMD ["python", "app.py"]
+

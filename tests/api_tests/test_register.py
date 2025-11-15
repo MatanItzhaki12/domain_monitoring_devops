@@ -1,8 +1,8 @@
-from .Aux_Library import check_get_webpage, check_register_user
+from .Aux_Library import check_get_webpage, check_register_user, get
 import pytest
 from UserManagementModule import UserManager as UM
 
-pytestmark = pytest.mark.order(1)
+pytestmark = pytest.mark.order(2)
 
 # Fixtures
 
@@ -150,3 +150,5 @@ def test_register_successful_registration(new_username):
     
     # Removing new test user
     UM().remove_user(new_username)
+    results = get("/reload_users_to_memory")
+
