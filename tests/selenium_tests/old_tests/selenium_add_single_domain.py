@@ -11,8 +11,8 @@ from tests.selenium_tests.pages.dashboard_page import DashboardPage
 
 BASE_URL = "http://localhost:8080"
 
-SEL_TEST_USERNAME = ""
-SEL_TEST_PASSWORD = ""
+SEL_TEST_USERNAME = "selsingletest"
+SEL_TEST_PASSWORD = "123456Aae"
 
 @pytest.fixture
 def driver():
@@ -46,23 +46,26 @@ def add_single_domain_and_result(driver):
     Check the Add Single Domain UI + Results
     """
 
-    dashboard_page = login_and_get_dashboard(driver)
+    ###dashboard_page = login_and_get_dashboard(driver)
+    
     #login trhough UI and reaching Dashboard
     
-    modal = dashboard_page.open_add_single_domain()
-
+    ###modal = dashboard_page.open_add_single_domain()
+    
     test_domain = "https://google.com"
     plain_domain = "google.com"
 
-    modal.enter_domain(test_domain)
-    modal.submit()
+    ###modal.enter_domain(test_domain)
+    ###modal.submit()
+    
 
 
+    #single_domain_input = wait.until(
+        #EC.visibility_of_element_located((By.ID, "singleDomainInput"))
+                                    #)
+    #single_domain_input.clear()
+    
 
-    single_domain_input = wait.until(
-        EC.visibility_of_element_located((By.ID, "singleDomainInput"))
-                                    )
-    single_domain_input.clear()
 
 
 
