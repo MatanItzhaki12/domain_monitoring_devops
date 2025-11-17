@@ -20,7 +20,7 @@ class DashboardPage(BasePage):
     def open_bulk_upload(self):
         self.click(locator=self.bulk_upload_button)
         self.wait_for(self.bulk_modal_form)
-        return BulkUploadModal(self.driver)
+        return BulkUploadModal(self.driver, self.base_url)
 
     # def open_add_single_domain(self):
     #     self.click(self.add_domain_button)
