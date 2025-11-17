@@ -32,8 +32,8 @@
   {
     "domain": "arxiv.org",
     "status": "Live",
-    "ssl_expiration": "2025-11-29",
-    "ssl_issuer": "Certainly"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "baike.baidu.com",
@@ -50,8 +50,8 @@
   {
     "domain": "bilibili.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-02",
-    "ssl_issuer": "GlobalSign nv-sa"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "booking.com",
@@ -104,7 +104,7 @@
   {
     "domain": "columbia.edu",
     "status": "Live",
-    "ssl_expiration": "2026-02-06",
+    "ssl_expiration": "2026-02-14",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -188,13 +188,13 @@
   {
     "domain": "google.co.uk",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "google.de",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -290,8 +290,8 @@
   {
     "domain": "livejournal.com",
     "status": "Live",
-    "ssl_expiration": "2026-03-23",
-    "ssl_issuer": "GlobalSign nv-sa"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "mailchi.mp",
@@ -362,7 +362,7 @@
   {
     "domain": "office365.com",
     "status": "Live",
-    "ssl_expiration": "2026-04-06",
+    "ssl_expiration": "2026-05-14",
     "ssl_issuer": "Microsoft Corporation"
   },
   {
@@ -374,7 +374,7 @@
   {
     "domain": "perfectdomain.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-18",
+    "ssl_expiration": "2026-02-15",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -386,8 +386,8 @@
   {
     "domain": "princeton.edu",
     "status": "Live",
-    "ssl_expiration": "2026-06-07",
-    "ssl_issuer": "Internet2"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "prnewswire.com",
@@ -422,8 +422,8 @@
   {
     "domain": "sagepub.com",
     "status": "Live",
-    "ssl_expiration": "2026-09-29",
-    "ssl_issuer": "DigiCert Inc"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "samsung.com",
@@ -434,7 +434,7 @@
   {
     "domain": "scholar.google.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -488,7 +488,7 @@
   {
     "domain": "techcrunch.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-15",
+    "ssl_expiration": "2026-02-15",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -512,7 +512,7 @@
   {
     "domain": "translate.google.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -524,7 +524,7 @@
   {
     "domain": "ubuntu.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-29",
+    "ssl_expiration": "2026-02-13",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -536,8 +536,8 @@
   {
     "domain": "usda.gov",
     "status": "Live",
-    "ssl_expiration": "2026-10-09",
-    "ssl_issuer": "DigiCert Inc"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "washington.edu",
@@ -548,7 +548,7 @@
   {
     "domain": "web.whatsapp.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-18",
+    "ssl_expiration": "2025-11-24",
     "ssl_issuer": "DigiCert Inc"
   },
   {

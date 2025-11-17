@@ -1,6 +1,7 @@
 from .Aux_Library import check_get_webpage, check_register_user, remove_user_from_running_app as remove_user
 import pytest
-from UserManagementModule import UserManager as UM
+from UserManagementModule import UserManager
+
 
 pytestmark = pytest.mark.order(2)
 

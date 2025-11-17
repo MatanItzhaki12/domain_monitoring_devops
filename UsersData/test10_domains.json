@@ -8,8 +8,8 @@
   {
     "domain": "aarp.org",
     "status": "Live",
-    "ssl_expiration": "N/A",
-    "ssl_issuer": "N/A"
+    "ssl_expiration": "2025-12-09",
+    "ssl_issuer": "DigiCert Inc"
   },
   {
     "domain": "ahrefs.com",
@@ -32,7 +32,7 @@
   {
     "domain": "analytics.google.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -50,8 +50,8 @@
   {
     "domain": "bluehost.com",
     "status": "Live",
-    "ssl_expiration": "2026-02-03",
-    "ssl_issuer": "Let's Encrypt"
+    "ssl_expiration": "2026-02-12",
+    "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "bostonglobe.com",
@@ -62,7 +62,7 @@
   {
     "domain": "caltech.edu",
     "status": "Live",
-    "ssl_expiration": "2026-08-21",
+    "ssl_expiration": "2026-11-11",
     "ssl_issuer": "Internet2"
   },
   {
@@ -170,7 +170,7 @@
   {
     "domain": "flaticon.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-22",
+    "ssl_expiration": "2026-02-13",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -188,7 +188,7 @@
   {
     "domain": "freedesktop.org",
     "status": "Live",
-    "ssl_expiration": "2025-12-16",
+    "ssl_expiration": "2026-02-14",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -230,7 +230,7 @@
   {
     "domain": "google.com.au",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -320,7 +320,7 @@
   {
     "domain": "lh3.googleusercontent.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -350,13 +350,13 @@
   {
     "domain": "medscape.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-13",
+    "ssl_expiration": "2026-02-10",
     "ssl_issuer": "Let's Encrypt"
   },
   {
     "domain": "meta.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-18",
+    "ssl_expiration": "2025-11-24",
     "ssl_issuer": "DigiCert Inc"
   },
   {
@@ -404,7 +404,7 @@
   {
     "domain": "ourworldindata.org",
     "status": "Live",
-    "ssl_expiration": "2025-12-16",
+    "ssl_expiration": "2026-02-13",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -452,7 +452,7 @@
   {
     "domain": "redis.io",
     "status": "Live",
-    "ssl_expiration": "2025-12-14",
+    "ssl_expiration": "2026-02-11",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -470,8 +470,8 @@
   {
     "domain": "service.weibo.com",
     "status": "Live",
-    "ssl_expiration": "N/A",
-    "ssl_issuer": "N/A"
+    "ssl_expiration": "2026-05-31",
+    "ssl_issuer": "DigiCert, Inc."
   },
   {
     "domain": "smugmug.com",
@@ -482,7 +482,7 @@
   {
     "domain": "snopes.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-14",
+    "ssl_expiration": "2026-02-11",
     "ssl_issuer": "Let's Encrypt"
   },
   {

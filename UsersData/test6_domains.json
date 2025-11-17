@@ -32,7 +32,7 @@
   {
     "domain": "appspot.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -56,7 +56,7 @@
   {
     "domain": "bigcartel.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-11",
+    "ssl_expiration": "2026-02-08",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -80,7 +80,7 @@
   {
     "domain": "chat.whatsapp.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-18",
+    "ssl_expiration": "2025-11-24",
     "ssl_issuer": "DigiCert Inc"
   },
   {
@@ -104,7 +104,7 @@
   {
     "domain": "doubleclick.net",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -128,8 +128,8 @@
   {
     "domain": "espn.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-14",
-    "ssl_issuer": "COMODO CA Limited"
+    "ssl_expiration": "2026-11-10",
+    "ssl_issuer": "Sectigo Limited"
   },
   {
     "domain": "euronews.com",
@@ -152,19 +152,19 @@
   {
     "domain": "feedburner.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "feeds.feedburner.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "freebsd.org",
     "status": "Live",
-    "ssl_expiration": "2025-12-15",
+    "ssl_expiration": "2026-02-13",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -176,7 +176,7 @@
   {
     "domain": "generatepress.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-18",
+    "ssl_expiration": "2026-02-15",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -194,19 +194,19 @@
   {
     "domain": "google.ca",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "google.co.jp",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "google.es",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -230,7 +230,7 @@
   {
     "domain": "heylink.me",
     "status": "Live",
-    "ssl_expiration": "2026-01-11",
+    "ssl_expiration": "2026-02-13",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -266,7 +266,7 @@
   {
     "domain": "jquery.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-13",
+    "ssl_expiration": "2026-02-10",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -344,7 +344,7 @@
   {
     "domain": "netscape.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-31",
+    "ssl_expiration": "2026-05-06",
     "ssl_issuer": "DigiCert Inc"
   },
   {
@@ -572,13 +572,13 @@
   {
     "domain": "withgoogle.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "wpengine.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-16",
+    "ssl_expiration": "2026-02-13",
     "ssl_issuer": "Google Trust Services"
   },
   {

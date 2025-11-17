@@ -56,7 +56,7 @@
   {
     "domain": "blogspot.ca",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -92,7 +92,7 @@
   {
     "domain": "coinbase.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-30",
+    "ssl_expiration": "2026-02-10",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -206,13 +206,13 @@
   {
     "domain": "google.be",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "googleadservices.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -236,7 +236,7 @@
   {
     "domain": "html5up.net",
     "status": "Live",
-    "ssl_expiration": "2025-12-16",
+    "ssl_expiration": "2026-02-13",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -248,13 +248,13 @@
   {
     "domain": "i.pinimg.com",
     "status": "Live",
-    "ssl_expiration": "2026-07-06",
+    "ssl_expiration": "2026-08-23",
     "ssl_issuer": "DigiCert Inc"
   },
   {
     "domain": "i.ytimg.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -320,7 +320,7 @@
   {
     "domain": "messenger.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-18",
+    "ssl_expiration": "2025-11-24",
     "ssl_issuer": "DigiCert Inc"
   },
   {
@@ -362,8 +362,8 @@
   {
     "domain": "norton.com",
     "status": "Live",
-    "ssl_expiration": "2026-03-27",
-    "ssl_issuer": "DigiCert Inc"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "note.com",
@@ -404,7 +404,7 @@
   {
     "domain": "qodeinteractive.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-17",
+    "ssl_expiration": "2026-02-14",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -488,7 +488,7 @@
   {
     "domain": "thinkwithgoogle.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -524,7 +524,7 @@
   {
     "domain": "uoregon.edu",
     "status": "Live",
-    "ssl_expiration": "2025-12-14",
+    "ssl_expiration": "2026-02-12",
     "ssl_issuer": "Let's Encrypt"
   },
   {

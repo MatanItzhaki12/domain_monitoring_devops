@@ -86,5 +86,17 @@
     {
         "username": "test_scan_user_978ee4c2",
         "password": "StrongPass12"
+    },
+    {
+        "username": "test_scan_user_387864ac",
+        "password": "StrongPass12"
+    },
+    {
+        "username": "test57",
+        "password": "Qwe12345"
+    },
+    {
+        "username": "test_scan_user_6f96782e",
+        "password": "StrongPass12"
     }
 ]

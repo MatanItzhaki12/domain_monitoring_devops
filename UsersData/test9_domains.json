@@ -50,7 +50,7 @@
   {
     "domain": "blogspot.co.uk",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -68,7 +68,7 @@
   {
     "domain": "centos.org",
     "status": "Live",
-    "ssl_expiration": "2025-12-08",
+    "ssl_expiration": "2026-02-12",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -170,25 +170,25 @@
   {
     "domain": "gmail.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "google.cn",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "google.co.in",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "google.ru",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -260,7 +260,7 @@
   {
     "domain": "ionos.de",
     "status": "Live",
-    "ssl_expiration": "2026-09-05",
+    "ssl_expiration": "2026-12-12",
     "ssl_issuer": "Sectigo Limited"
   },
   {
@@ -350,8 +350,8 @@
   {
     "domain": "mpg.de",
     "status": "Live",
-    "ssl_expiration": "2025-11-14",
-    "ssl_issuer": "GEANT Vereniging"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "nasdaq.com",
@@ -434,7 +434,7 @@
   {
     "domain": "paypal.me",
     "status": "Live",
-    "ssl_expiration": "2026-07-07",
+    "ssl_expiration": "2026-08-04",
     "ssl_issuer": "DigiCert Inc"
   },
   {
@@ -458,7 +458,7 @@
   {
     "domain": "square.site",
     "status": "Live",
-    "ssl_expiration": "2025-12-12",
+    "ssl_expiration": "2026-02-09",
     "ssl_issuer": "Let's Encrypt"
   },
   {

@@ -8,7 +8,7 @@
   {
     "domain": "altervista.org",
     "status": "Live",
-    "ssl_expiration": "2026-01-14",
+    "ssl_expiration": "2026-12-15",
     "ssl_issuer": "Amazon"
   },
   {
@@ -32,13 +32,13 @@
   {
     "domain": "archives.gov",
     "status": "Live",
-    "ssl_expiration": "2025-11-23",
-    "ssl_issuer": "Entrust, Inc."
+    "ssl_expiration": "2026-10-31",
+    "ssl_issuer": "Entrust Limited"
   },
   {
     "domain": "arizona.edu",
     "status": "Live",
-    "ssl_expiration": "2025-11-26",
+    "ssl_expiration": "2025-12-16",
     "ssl_issuer": "Certainly"
   },
   {
@@ -56,8 +56,8 @@
   {
     "domain": "binance.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-13",
-    "ssl_issuer": "DigiCert Inc"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "bitnami.com",
@@ -74,14 +74,14 @@
   {
     "domain": "blog.google",
     "status": "Live",
-    "ssl_expiration": "2025-12-14",
+    "ssl_expiration": "2026-02-11",
     "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "cctv.com",
     "status": "Live",
-    "ssl_expiration": "2026-05-03",
-    "ssl_issuer": "GlobalSign nv-sa"
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
   },
   {
     "domain": "chinadaily.com.cn",
@@ -98,7 +98,7 @@
   {
     "domain": "de-de.facebook.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-18",
+    "ssl_expiration": "2025-11-24",
     "ssl_issuer": "DigiCert Inc"
   },
   {
@@ -116,7 +116,7 @@
   {
     "domain": "earthlink.net",
     "status": "Live",
-    "ssl_expiration": "2026-02-05",
+    "ssl_expiration": "2026-02-13",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -158,7 +158,7 @@
   {
     "domain": "garmin.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-19",
+    "ssl_expiration": "2026-11-10",
     "ssl_issuer": "GoDaddy.com, Inc."
   },
   {
@@ -182,7 +182,7 @@
   {
     "domain": "google.it",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {
@@ -194,7 +194,7 @@
   {
     "domain": "history.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-11",
+    "ssl_expiration": "2026-02-08",
     "ssl_issuer": "Let's Encrypt"
   },
   {
@@ -302,7 +302,7 @@
   {
     "domain": "newscientist.com",
     "status": "Live",
-    "ssl_expiration": "2026-02-08",
+    "ssl_expiration": "2026-12-12",
     "ssl_issuer": "GlobalSign nv-sa"
   },
   {
@@ -380,7 +380,7 @@
   {
     "domain": "perl.org",
     "status": "Live",
-    "ssl_expiration": "2025-11-21",
+    "ssl_expiration": "2025-12-11",
     "ssl_issuer": "Certainly"
   },
   {
@@ -392,8 +392,8 @@
   {
     "domain": "podbean.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-25",
-    "ssl_issuer": "Let's Encrypt"
+    "ssl_expiration": "2026-02-09",
+    "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "privacyshield.gov",
@@ -572,13 +572,13 @@
   {
     "domain": "visualstudio.com",
     "status": "Live",
-    "ssl_expiration": "2026-03-13",
+    "ssl_expiration": "2026-02-09",
     "ssl_issuer": "Microsoft Corporation"
   },
   {
     "domain": "web.dev",
     "status": "Live",
-    "ssl_expiration": "2026-01-05",
+    "ssl_expiration": "2026-01-19",
     "ssl_issuer": "Google Trust Services"
   },
   {

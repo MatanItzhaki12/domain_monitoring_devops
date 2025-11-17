@@ -2,7 +2,7 @@ import os
 import requests
 import re
 import json
-from UserManagementModule import UserManager as UM
+from UserManagementModule import UserManager
 
 # -----------------------------------------------------
 # Global session and Base URL configuration
@@ -182,7 +182,7 @@ def remove_user_from_running_app(username):
     # User Logout
     get("/logout")
     # Removing new test user
-    UM().remove_user(username)
+    UserManager().remove_user(username)
     # Reloading users.json to memory
     result = get("/reload_users_to_memory")
     return result
