@@ -3,6 +3,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
+@pytest.fixture
+def base_url():
+    return "http://localhost:8080"
+
 @pytest.fixture(scope="session")
 def driver():
     chrome_options = Options()
