@@ -4,4 +4,4 @@ pytest
 pytest-order
 pytest-mock
 selenium
-webdriver_manager
+webdriver-manager
