@@ -26,6 +26,4 @@ class BulkUploadModal(BasePage):
             form_el
         )
 
-        # Return DashboardPage instance
-        from tests.selenium_tests.pages.dashboard_page import DashboardPage
-        return DashboardPage(self.driver)
+

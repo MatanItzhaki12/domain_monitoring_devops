@@ -20,7 +20,7 @@ class DashboardPage(BasePage):
     def open_bulk_upload(self):
         self.click(locator=self.bulk_upload_button)
         self.wait_for(self.bulk_modal_form)
-        return BulkUploadModal(self.driver)
+        return BulkUploadModal(self.driver, self.base_url)
 
     # def open_add_single_domain(self):
     #     self.click(self.add_domain_button)
@@ -34,3 +34,10 @@ class DashboardPage(BasePage):
 
     def scan_now(self):
         self.click(locator=self.scan_now_button)
+
+    def open_add_single_domain(self):
+        self.click(self.add_domain_button)
+        from tests.selenium_tests.pages.single_domain import SingleDomainModal
+        modal = SingleDomainModal(self.driver, self.base_url)
+        modal.wait_until_open()
+        return modal
