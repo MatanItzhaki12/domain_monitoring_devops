@@ -66,19 +66,23 @@ def register():
         password = registerInfo.get("password") or ""
         password_confirmation = registerInfo.get("password_confirmation")
         # Registering username and getting status message
-        register_status = user_manager.register_page_add_user(username, password, password_confirmation, domain_engine)
+        register_status = user_manager.register_page_add_user(
+            username, 
+            password, 
+            password_confirmation, 
+            domain_engine)
         # Return code, if:
         # 201 - username registered Succesfully
         # 400 - invalid fields
         # 409 - username already existing
         # 500 - internal server error
-        if "message" in register_status:
-            session["username"] = username
-            return jsonify(register_status), 201
-        elif "error" in register_status:
-            if register_status["error"] == "Username already taken.":
+        if "error" in register_status:
+            if "Username already taken." in register_status["error"]:
                 return jsonify(register_status), 409
             return jsonify(register_status), 400
+        # User registered successfully
+        session["username"] = username
+        return jsonify(register_status), 201
     except Exception as e:
         return jsonify({"error": f"User could not be registered: {str(e)}"}), 500
 
