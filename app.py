@@ -92,13 +92,22 @@ def register():
 
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
-    if "username" not in session:
+    """
+    Dashboard must:
+    - redirect to /login if NOT logged in
+    - redirect to /login if cookie is INVALID (BadSignature)
+    - return 200 OK with template if session is valid
+    """
+    try:
+        username = session.get("username")
+        if not username:
+            return redirect("/login")
+
+        domains = domain_engine.list_domains(username)
+        return render_template('dashboard.html', username=username, domains=domains)
+
+    except Exception:
         return redirect("/login")
-
-    username = session['username']
-    domains = domain_engine.list_domains(username)
-
-    return render_template('dashboard.html', username=username, domains=domains)
 
 
 @app.route('/logout', methods=['GET'])

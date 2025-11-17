@@ -164,7 +164,6 @@ def check_scan_domains(session_cookie: str | None = None):
     If a session_cookie is provided, sends it as a Flask 'session' cookie.
     Returns the response object from the requests library.
     """
-
     url = f"{BASE_URL}/scan_domains"
     cookies = {}
 
@@ -172,6 +171,7 @@ def check_scan_domains(session_cookie: str | None = None):
         cookies["session"] = session_cookie
 
     response = requests.get(url, cookies=cookies, timeout=5)
+    print_response(response)
     return response
 
 
@@ -179,10 +179,19 @@ def check_scan_domains(session_cookie: str | None = None):
 # Removing existing user
 # -----------------------------------------------------
 def remove_user_from_running_app(username):
-    # User Logout
-    get("/logout")
-    # Removing new test user
+    """
+    Removes the user from storage and reloads users.json into memory.
+    """
+    # Force logout for safety
+    try:
+        get("/logout")
+    except Exception:
+        pass
+
+    # Remove user via backend logic
     UserManager().remove_user(username)
-    # Reloading users.json to memory
+
+    # Reload users.json inside the running Flask app
     result = get("/reload_users_to_memory")
+    print_response(result)
     return result
