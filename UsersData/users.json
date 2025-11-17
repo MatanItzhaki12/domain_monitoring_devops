@@ -90,5 +90,9 @@
     {
         "username": "test_scan_user_978ee4c2",
         "password": "StrongPass12"
+    },
+    {
+        "username": "selsingletest",
+        "password": "123456Aae"
     }
 ]
