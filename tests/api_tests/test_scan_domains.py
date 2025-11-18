@@ -9,6 +9,7 @@ from app import app
 
 pytestmark = pytest.mark.order(6)
 
+@pytest.mark.order(21)
 def test_scan_domains_unauthorized():
 
     """
@@ -25,6 +26,8 @@ def test_scan_domains_unauthorized():
     assert data.get("ok") is False
     assert data.get("error") == "Unauthorized"
 
+
+@pytest.mark.order(22)
 def test_scan_domains_authorized():
     
     """

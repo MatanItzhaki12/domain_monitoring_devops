@@ -29,7 +29,7 @@ def clean_user():
 
 # Tests
 
-@pytest.mark.order(1)
+@pytest.mark.order(21)
 def test_click_here_to_login(driver, base_url):
     # Initializing and Loading Register Page
     register = RegisterPage(driver, base_url)
@@ -39,7 +39,7 @@ def test_click_here_to_login(driver, base_url):
     # After Failed Attempt, The Driver Should be in Register Page
     assert register.get_title() == "Login"
 
-@pytest.mark.order(2)
+@pytest.mark.order(22)
 @pytest.mark.parametrize(
         "username,password,password_confirmation,expected_message",
         [
@@ -80,7 +80,7 @@ def test_Invalid_registration(driver, base_url, username, password,
     assert register.get_error_message() == expected_message
     ##assert dashboard.get_welcome_message() == f"Hello {username}!"
 
-@pytest.mark.order(3)
+@pytest.mark.order(23)
 @pytest.mark.parametrize(
         "username,password,password_confirmation,expected_message",
         [

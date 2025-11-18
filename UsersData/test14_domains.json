@@ -1,0 +1,14 @@
+[
+  {
+    "domain": "facebook.com",
+    "status": "Live",
+    "ssl_expiration": "2025-11-25",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "google.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-19",
+    "ssl_issuer": "Google Trust Services"
+  }
+]

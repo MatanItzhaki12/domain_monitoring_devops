@@ -4,6 +4,7 @@ import pytest
 pytestmark = pytest.mark.order(3)
 
 # Check valid login
+@pytest.mark.order(22)
 def test_login_valid_and_logout():
     login_response = check_login_user("john_doe", "password")
     session_cookie = login_response.cookies.get("session")
@@ -15,7 +16,7 @@ def test_login_valid_and_logout():
     assert logout_response.cookies.get("session")== None
 
 
-
+@pytest.mark.order(21)
 @pytest.mark.parametrize("username,password", [
     ("JOHN_DOE", "PASSWORD"),        # case-sensitive mismatch
     ("john_doe", "wrong_password"),  # wrong password
@@ -24,7 +25,6 @@ def test_login_valid_and_logout():
     ("john_doe", ""),                # empty password
     ("", ""),                        # both empty
 ])
-
 # Check invalid login scenarios
 def test_login_invalid(username, password):
     login_response = check_login_user(username, password)

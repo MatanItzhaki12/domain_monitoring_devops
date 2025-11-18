@@ -1,11 +1,8 @@
+import os
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-
-@pytest.fixture
-def base_url():
-    return "http://localhost:8080"
 
 @pytest.fixture(scope="session")
 def driver():
@@ -24,3 +21,8 @@ def driver():
     driver = webdriver.Chrome(service=service, options=chrome_options)
     yield driver
     driver.quit()
+
+@pytest.fixture
+def base_url():
+    return os.getenv("BASE_URL", "http://localhost:8080")
+

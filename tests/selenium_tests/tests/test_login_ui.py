@@ -10,7 +10,7 @@ pytestmark = pytest.mark.order(8)
 # --------
 # Positive test: valid login
 # --------
-@pytest.mark.order(-1)
+@pytest.mark.order(22)
 def test_login_valid(driver, base_url):
     login_page = LoginPage(driver, base_url)
     dashboard_page = DashboardPage(driver, base_url)
@@ -28,6 +28,7 @@ def test_login_valid(driver, base_url):
 # --------
 # Negative tests: invalid login
 # --------
+@pytest.mark.order(21)
 @pytest.mark.parametrize(
     "username,password",
     [

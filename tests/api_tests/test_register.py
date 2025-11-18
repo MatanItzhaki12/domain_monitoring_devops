@@ -16,14 +16,14 @@ def new_username():
 
 # Tests
 
-@pytest.mark.order(1)
+@pytest.mark.order(21)
 def test_register_page_access():
     # Check if the /register page is accessible
     assert check_get_webpage("/register").ok == True
 
 # Invalid Username Tests
 
-@pytest.mark.order(2)
+@pytest.mark.order(22)
 @pytest.mark.parametrize(
     "username,password,password_confirmation",
     [
@@ -47,7 +47,7 @@ def test_register_invalid_username(username, password, password_confirmation):
     assert response.status_code == 400
     assert response.json() == expected_response
     
-@pytest.mark.order(3)
+@pytest.mark.order(23)
 @pytest.mark.parametrize(
     "password,password_confirmation",
     [
@@ -72,7 +72,7 @@ def test_register_existing_username(existing_username, password, password_confir
 
 # Invalid Password Confirmatiom Tests
 
-@pytest.mark.order(4)
+@pytest.mark.order(24)
 @pytest.mark.parametrize(
     "password,password_confirmation",
     [
@@ -96,7 +96,7 @@ def test_register_invalid_password_confirmation(new_username, password, password
     
 # Invalid Password Tests   
 
-@pytest.mark.order(5)
+@pytest.mark.order(25)
 @pytest.mark.parametrize(
     "password,password_confirmation,expected_response",
     [
@@ -138,7 +138,7 @@ def test_register_invalid_password(new_username, password, password_confirmation
     assert response.json() == expected_response
 
 
-@pytest.mark.order(-1)
+@pytest.mark.order(26)
 def test_register_successful_registration(new_username):
     # check the registration of fully valid users 
     expected_response = {"message" : "Registered Successfully."}

@@ -1,7 +1,6 @@
 import time
 from selenium.webdriver.common.by import By
 from tests.selenium_tests.pages.base_page import BasePage
-from tests.selenium_tests.pages.bulk_upload_modal import BulkUploadModal
 #from pages.single_domain_modal import SingleDomainModal
 
 class DashboardPage(BasePage):
@@ -9,18 +8,11 @@ class DashboardPage(BasePage):
     # Locators:
     welcome_message = (By.ID, "greeting")
     add_domain_button = (By.ID, "openAddDomain")
-    bulk_upload_button = (By.ID, "openBulkUpload")
-    bulk_modal_form = (By.ID, "bulkUploadForm")
     logout_button = (By.ID, "logoutBtn")
     scan_now_button = (By.ID, "scanNowBtn")
     # Actions:   
     def get_welcome_message(self):
         return self.get_text(locator=self.welcome_message)
-
-    def open_bulk_upload(self):
-        self.click(locator=self.bulk_upload_button)
-        self.wait_for(self.bulk_modal_form)
-        return BulkUploadModal(self.driver, self.base_url)
 
     # def open_add_single_domain(self):
     #     self.click(self.add_domain_button)
