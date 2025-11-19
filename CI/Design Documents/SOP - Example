@@ -63,7 +63,7 @@ The CI architecture includes:
 
 ### **3.1 Infrastructure - AWS Servers**
 
-* Two AWS EC2 instances: latest Ubuntu versions
+* Two AWS EC2 instances: Ubuntu 24.04 LTS version
   
   * **jenkins-master**
   * **jenkins-agent**

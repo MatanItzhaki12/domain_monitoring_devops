@@ -2,7 +2,6 @@ import time
 from selenium.webdriver.common.by import By
 from tests.selenium_tests.pages.base_page import BasePage
 from selenium.webdriver.support import expected_conditions as EC
-#from pages.single_domain_modal import SingleDomainModal
 
 class DashboardPage(BasePage):
     PATH = f"/dashboard"
@@ -20,11 +19,6 @@ class DashboardPage(BasePage):
     
     def wait_for_active_dashboard(self):
         self.wait.until(EC.element_to_be_clickable(self.add_domain_button))
-
-    # def open_add_single_domain(self):
-    #     self.click(self.add_domain_button)
-    #     from tests.selenium_tests.pages.single_domain_modal import SingleDomainModal
-    #     return SingleDomainModal(self.driver)
 
     def logout(self):
         time.sleep(0.5)
@@ -84,10 +78,3 @@ class DashboardPage(BasePage):
                 } )
 
         return domains_list
-
-    # def open_add_single_domain(self):
-    #     self.click(self.add_domain_button)
-    #     from tests.selenium_tests.pages.single_domain import SingleDomainModal
-    #     modal = SingleDomainModal(self.driver, self.base_url)
-    #     modal.wait_until_open()
-    #     return modal
