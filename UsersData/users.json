@@ -84,7 +84,19 @@
         "password": "StrongPass12"
     },
     {
+        "username": "Selenium_Tester_12345",
+        "password": "St87654321"
+    },
+    {
         "username": "test_scan_user_978ee4c2",
         "password": "StrongPass12"
+    },
+    {
+        "username": "selsingletest",
+        "password": "123456Aae"
+    },
+    {
+        "username": "test14",
+        "password": "Qwe12345"
     }
 ]

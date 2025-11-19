@@ -16,14 +16,12 @@ def new_username():
 
 # Tests
 
-@pytest.mark.order(1)
-def test_register_page_access():
+def test_1_register_page_access():
     # Check if the /register page is accessible
     assert check_get_webpage("/register").ok == True
 
 # Invalid Username Tests
 
-@pytest.mark.order(2)
 @pytest.mark.parametrize(
     "username,password,password_confirmation",
     [
@@ -39,7 +37,7 @@ def test_register_page_access():
         (" ", "Qwe12345", "Qwe12345")
     ]
 )
-def test_register_invalid_username(username, password, password_confirmation): 
+def test_2_register_invalid_username(username, password, password_confirmation): 
     # Invalid or empty username should be rejected
     expected_response = {"error": "Username invalid."} 
     response = check_register_user(username=username, password=password, 
@@ -47,7 +45,6 @@ def test_register_invalid_username(username, password, password_confirmation):
     assert response.status_code == 400
     assert response.json() == expected_response
     
-@pytest.mark.order(3)
 @pytest.mark.parametrize(
     "password,password_confirmation",
     [
@@ -61,7 +58,7 @@ def test_register_invalid_username(username, password, password_confirmation):
         ("Qwe12345!", "Qwe12345!")
     ]
 )
-def test_register_existing_username(existing_username, password, password_confirmation):
+def test_3_register_existing_username(existing_username, password, password_confirmation):
 
     # username already exists
     expected_response = {"error": "Username already taken."}
@@ -72,7 +69,6 @@ def test_register_existing_username(existing_username, password, password_confir
 
 # Invalid Password Confirmatiom Tests
 
-@pytest.mark.order(4)
 @pytest.mark.parametrize(
     "password,password_confirmation",
     [
@@ -86,7 +82,7 @@ def test_register_existing_username(existing_username, password, password_confir
         ("Qwe12345!", "Qwe12345")
     ]
 )
-def test_register_invalid_password_confirmation(new_username, password, password_confirmation):
+def test_4_register_invalid_password_confirmation(new_username, password, password_confirmation):
     # checking if password and password confirmation are the same
     expected_response = {"error": "Password and Password Confirmation are not the same."}
     response = check_register_user(username=new_username, password=password, 
@@ -96,7 +92,6 @@ def test_register_invalid_password_confirmation(new_username, password, password
     
 # Invalid Password Tests   
 
-@pytest.mark.order(5)
 @pytest.mark.parametrize(
     "password,password_confirmation,expected_response",
     [
@@ -130,7 +125,7 @@ def test_register_invalid_password_confirmation(new_username, password, password
     ]
 
 )
-def test_register_invalid_password(new_username, password, password_confirmation, expected_response):
+def test_5_register_invalid_password(new_username, password, password_confirmation, expected_response):
     # Invalid password formats should be rejected
     response = check_register_user(username=new_username, password=password, 
                                    password_confirmation=password_confirmation)
@@ -138,8 +133,7 @@ def test_register_invalid_password(new_username, password, password_confirmation
     assert response.json() == expected_response
 
 
-@pytest.mark.order(-1)
-def test_register_successful_registration(new_username):
+def test_6_register_successful_registration(new_username):
     # check the registration of fully valid users 
     expected_response = {"message" : "Registered Successfully."}
     # Test 1

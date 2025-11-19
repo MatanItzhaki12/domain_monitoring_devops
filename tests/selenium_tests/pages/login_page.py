@@ -10,6 +10,7 @@ class LoginPage(BasePage):
     password_input = (By.ID, "password")
     login_button = (By.CSS_SELECTOR, "input[type='submit'][value='Login']")
     register_button = (By.ID, "register")
+    error_locator = (By.ID, "failed-login")
     # Actions:
     def enter_username(self, username):
         self.type(self.username_input, username)

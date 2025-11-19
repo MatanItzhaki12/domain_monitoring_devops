@@ -4,10 +4,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-import time
 import pytest
 
+from tests.selenium_tests.pages.login_page import LoginPage
+from tests.selenium_tests.pages.dashboard_page import DashboardPage
+
 BASE_URL = "http://localhost:8080"
+
+SEL_TEST_USERNAME = "selsingletest"
+SEL_TEST_PASSWORD = "123456Aae"
 
 @pytest.fixture
 def driver():
@@ -22,30 +27,45 @@ def driver():
     yield driver
     driver.quit()
 
-def login(driver, username: str, password: str):
+def login_and_get_dash(driver):
     """
     Logging in through the UI so we can reach the Dashboard
+    ready to use and bring back DashboardPage object
     """
-    driver.get(f"{BASE_URL}/login")
+    login_page = LoginPage(driver, BASE_URL)
+    login_page.login(SEL_TEST_USERNAME, SEL_TEST_PASSWORD)
 
-    user_input = driver.find_element(By.ID, "username")
-    pass_input = driver.find_element(By.ID, "password")
-    login_submit = driver.find_element(By.CSS_SELECTOR, "input[type='submit']")
+    dashboard_page = DashboardPage(driver, BASE_URL)
+    dashboard_page.wait_for(dashboard_page.add_domain_button)
 
-    user_input.clear()
-    user_input.send_keys(username)
-
-    pass_input.clear()
-    pass_input.send_keys(password)
-
-    login_submit.click()
-
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "openAddDomain"))
-                                    )
+    return dashboard_page
+    
 
 def add_single_domain_and_result(driver):
-    pass
+    """
+    Check the Add Single Domain UI + Results
+    """
+
+    ###dashboard_page = login_and_get_dashboard(driver)
+    
+    #login trhough UI and reaching Dashboard
+    
+    ###modal = dashboard_page.open_add_single_domain()
+    
+    test_domain = "https://google.com"
+    plain_domain = "google.com"
+
+    ###modal.enter_domain(test_domain)
+    ###modal.submit()
+    
+
+
+    #single_domain_input = wait.until(
+        #EC.visibility_of_element_located((By.ID, "singleDomainInput"))
+                                    #)
+    #single_domain_input.clear()
+    
+
 
 
 

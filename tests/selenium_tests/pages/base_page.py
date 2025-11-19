@@ -8,7 +8,7 @@ class BasePage:
 
     def __init__(self, driver, base_url):
         self.driver = driver
-        self.wait = WebDriverWait(driver=self.driver, timeout=5)
+        self.wait = WebDriverWait(driver=self.driver, timeout=10)
         self.base_url = base_url
     # Actions:
     def load(self):
@@ -25,6 +25,16 @@ class BasePage:
     def wait_for(self, locator):
         return self.wait.until(EC.visibility_of_element_located(locator=locator))
 
+    def wait_for_multiple_elements(self, locator):
+        return self.wait.until(EC.visibility_of_all_elements_located(locator=locator))
+    
+    def wait_for_element_to_close(self, locator):
+        return self.wait.until(EC.invisibility_of_element_located(locator=locator))
+
+    def wait_for_specific_message(self, locator, message):
+        return self.wait.until(EC.text_to_be_present_in_element(
+            locator, message))
+    
     def type(self, locator, text):
         self.wait_for(locator=locator).send_keys(text)
     

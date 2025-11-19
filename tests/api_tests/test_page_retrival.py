@@ -9,7 +9,6 @@ pytestmark = pytest.mark.order(1)
     "/register",
     "/dashboard"
 ])
-
-def test_page_retrival(PATH):
+def test_1_page_retrival(PATH):
     response = check_get_webpage(PATH)
     assert response.status_code == 200

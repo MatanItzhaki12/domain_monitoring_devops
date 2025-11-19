@@ -9,7 +9,7 @@ from app import app
 
 pytestmark = pytest.mark.order(6)
 
-def test_scan_domains_unauthorized():
+def test_1_scan_domains_unauthorized():
 
     """
     Calls /scan_domains with NO session cookie.
@@ -25,7 +25,8 @@ def test_scan_domains_unauthorized():
     assert data.get("ok") is False
     assert data.get("error") == "Unauthorized"
 
-def test_scan_domains_authorized():
+
+def test_2_scan_domains_authorized():
     
     """
     Full flow:
@@ -64,3 +65,5 @@ def test_scan_domains_authorized():
     assert "updated" in data, f"'updated' key missing in response: {data}"
     assert isinstance(data["updated"], int), f"'updated' must be int, but got {type(data['updated'])}"
     assert data["updated"] >= 0, f"'updated' must be >= 0, but got {data['updated']}"
+
+    Aux_Library.remove_user_from_running_app(username=username)

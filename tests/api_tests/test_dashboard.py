@@ -72,8 +72,7 @@ def test_session_cookie():
 # -------------------------------
 # 1. Access Control & Auth Tests
 # -------------------------------
-
-def test_dashboard_redirect_when_not_logged_in(client):
+def test_1_dashboard_redirect_when_not_logged_in(client):
     """Unauthenticated users should be redirected to login."""
     r = client.get("/dashboard", follow_redirects=False)
     assert r.status_code in [302, 401, 200]
@@ -82,15 +81,13 @@ def test_dashboard_redirect_when_not_logged_in(client):
     else:
         assert "login" in r.data.decode().lower()
 
-
-def test_dashboard_invalid_cookie_redirects(client):
+def test_2_dashboard_invalid_cookie_redirects(client):
     """Invalid session cookie should redirect to login."""
     r = client.get("/dashboard", headers={"Cookie": "session=invalid_cookie"}, follow_redirects=False)
     assert r.status_code == 302
     assert "/login" in (r.location or "").lower()
 
-
-def test_dashboard_access(test_session_cookie):
+def test_3_dashboard_access(test_session_cookie):
     """Authenticated user can access dashboard via real HTTP."""
     r = requests.get(
         f"{BASE_URL}/dashboard",
@@ -103,8 +100,7 @@ def test_dashboard_access(test_session_cookie):
 # -------------------------------
 # 2. Dashboard Content Validation
 # -------------------------------
-
-def test_dashboard_greeting_shows_username(test_session_cookie):
+def test_4_dashboard_greeting_shows_username(test_session_cookie):
     """Dashboard should greet the logged-in user by name."""
     r = requests.get(
         f"{BASE_URL}/dashboard",
@@ -114,8 +110,7 @@ def test_dashboard_greeting_shows_username(test_session_cookie):
     body = r.text.lower()
     assert "hello" in body and "pytest_shared" in body, "Greeting or username missing on dashboard."
 
-
-def test_dashboard_shows_empty_state_for_new_user(test_session_cookie):
+def test_5_dashboard_shows_empty_state_for_new_user(test_session_cookie):
     """Authenticated user with no domains should see 'No domains added yet' message."""
     r = requests.get(
         f"{BASE_URL}/dashboard",
@@ -125,7 +120,7 @@ def test_dashboard_shows_empty_state_for_new_user(test_session_cookie):
     body = r.text.lower()
     assert "no domains added yet" in body or "use the buttons above" in body
 
-def test_dashboard_static_assets_load():
+def test_6_dashboard_static_assets_load():
     """Dashboard static CSS and JS should be accessible and non-empty."""
     assets = [
         "/static/dashboard/dashboard.css",
@@ -142,8 +137,7 @@ def test_dashboard_static_assets_load():
 # -------------------------------
 # 3. Dynamic Content Behavior
 # -------------------------------
-
-def test_dashboard_reflects_domain_add_remove(test_session_cookie):
+def test_7_dashboard_reflects_domain_add_remove(test_session_cookie):
     """Verify dashboard updates after adding and removing a domain."""
     test_domain = f"test{int(time.time())}.com"
 
