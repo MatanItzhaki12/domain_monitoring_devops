@@ -31,36 +31,27 @@ def test_bulk_upload_ui(driver, base_url, domain, status, ssl_issuer, ssl_expira
     single_modal = SingleDomainModal(driver=driver, base_url=base_url)
     single_modal.load()
     time.sleep(1)
-    #dashboard.wait_for(locator=dashboard.welcome_message)
+    # Check correct page 
     assert single_modal.get_title() == "Dashboard"
     # _modal inherit from DashboardPage
     assert "Selenium_Tester_12345" in single_modal.get_welcome_message()
     time.sleep(1)
-    # WebDriverWait(driver, 10).until(
-    #     EC.presence_of_element_located((By.ID, "greeting"))
-    # )
-
-    # dashboard = DashboardPage(driver, base_url)
 
     # =========================
-    #  BULK UPLOAD TEST
+    #  Add Single Domain TEST
     # =========================
 
     # Step 1: open modal
-
-    # dashboard.open_bulk_upload()
     single_modal.open_add_domain_modal()
     time.sleep(0.5)
-    # Step 2: CHEC domain file
-
-    # Step 3: add single domain to dashboard
+    # Step 2: add single domain to dashboard
     single_modal.add_single_domain(domain=domain)
     assert single_modal.wait_for_success()
     
-    # Step 4: wait until dashboard is active again
+    # Step 3: wait until dashboard is active again
     single_modal.wait_for_active_dashboard()
 
-    # Step 6: Verify results
+    # Step 4: Verify results
     domain_details_dashboard = single_modal.get_domain_data(domain=domain)
     # Validate domain exists
     assert domain_details_dashboard is not None
@@ -70,5 +61,3 @@ def test_bulk_upload_ui(driver, base_url, domain, status, ssl_issuer, ssl_expira
     assert domain_details_dashboard["ssl_issuer"].lower() == ssl_issuer.lower()
     # Validate Expiration - only not empty
     assert domain_details_dashboard["ssl_expiration"] and domain_details_dashboard["ssl_expiration"] != "None" 
-
-    # print("[OK] Bulk upload UI test passed.")
