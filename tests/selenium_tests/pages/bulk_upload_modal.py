@@ -2,10 +2,10 @@ import os
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from tests.selenium_tests.pages.base_page import BasePage
+from tests.selenium_tests.pages.dashboard_page import DashboardPage
 
 
-class BulkUploadModal(BasePage):
+class BulkUploadModal(DashboardPage):
     bulk_upload_button = (By.ID, "openBulkUpload")
     file_input = (By.CSS_SELECTOR, "#bulkUploadForm input[type='file']")
     upload_button = (By.CSS_SELECTOR, "#bulkUploadForm button[type='submit']")
