@@ -29,8 +29,7 @@ def clean_user():
 
 # Tests
 
-@pytest.mark.order(21)
-def test_click_here_to_login(driver, base_url):
+def test_1_click_here_to_login(driver, base_url):
     # Initializing and Loading Register Page
     register = RegisterPage(driver, base_url)
     register.load()
@@ -39,7 +38,6 @@ def test_click_here_to_login(driver, base_url):
     # After Failed Attempt, The Driver Should be in Register Page
     assert register.get_title() == "Login"
 
-@pytest.mark.order(22)
 @pytest.mark.parametrize(
         "username,password,password_confirmation,expected_message",
         [
@@ -63,7 +61,7 @@ def test_click_here_to_login(driver, base_url):
             (NEW_USERNAME, "Qwe12345!", "Qwe12345!", "Password should include only uppercase characters, lowercase characters and digits!")
         ]
 )
-def test_Invalid_registration(driver, base_url, username, password, 
+def test_2_Invalid_registration(driver, base_url, username, password, 
                               password_confirmation, expected_message):
     # Initializing and Loading Register Page
     register = RegisterPage(driver, base_url)
@@ -80,14 +78,13 @@ def test_Invalid_registration(driver, base_url, username, password,
     assert register.get_error_message() == expected_message
     ##assert dashboard.get_welcome_message() == f"Hello {username}!"
 
-@pytest.mark.order(23)
 @pytest.mark.parametrize(
         "username,password,password_confirmation,expected_message",
         [
             (NEW_USERNAME, "Qwe12345", "Qwe12345", "Registered Successfully.")
         ]
 )
-def test_valid_registration(driver, base_url, clean_user, username, password, 
+def test_3_valid_registration(driver, base_url, clean_user, username, password, 
                             password_confirmation, expected_message):
     # Adding user to cleanup list
     clean_user(username)

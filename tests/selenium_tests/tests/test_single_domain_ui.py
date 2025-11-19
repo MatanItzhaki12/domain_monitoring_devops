@@ -12,7 +12,6 @@ from tests.selenium_tests.pages.single_domain_modal import SingleDomainModal
 pytestmark = pytest.mark.order(9)
 THIS_DIR = os.path.dirname(__file__)
 
-@pytest.mark.order(21)
 @pytest.mark.parametrize(
     "domain,status,ssl_issuer,ssl_expiration", 
     [
@@ -22,7 +21,7 @@ THIS_DIR = os.path.dirname(__file__)
         ("httpforever.com", "Live", "N/A", "N/A"),
     ]
 )
-def test_bulk_upload_ui(driver, base_url, domain, status, ssl_issuer, ssl_expiration):
+def test_add_single_domain_ui(driver, base_url, domain, status, ssl_issuer, ssl_expiration):
     login_page = LoginPage(driver, base_url)
     login_page.load()
     login_page.login("Selenium_Tester_12345", "St87654321")

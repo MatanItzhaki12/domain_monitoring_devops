@@ -13,8 +13,8 @@ from tests.selenium_tests.utils.domain_factory import generate_fixed_domain_file
 pytestmark = pytest.mark.order(10)
 THIS_DIR = os.path.dirname(__file__)
 
-@pytest.mark.order(21)
-def test_bulk_upload_ui(driver, base_url):
+
+def test_1_bulk_upload_ui(driver, base_url):
     login_page = LoginPage(driver, base_url)
     login_page.load()
     login_page.login("Selenium_Tester_12345", "St87654321")

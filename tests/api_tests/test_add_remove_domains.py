@@ -40,8 +40,7 @@ def session_cookie():
     print(f"[INFO] Logged in as {user['username']}, session cookie: {cookie[:12]}...")
     return cookie
 
-@pytest.mark.order(21)
-def test_add_and_remove_domain(session_cookie):
+def test_1_add_and_remove_domain(session_cookie):
     """
     Full add/remove domain test:
     1. Add domain via /add_domain
@@ -87,8 +86,7 @@ def test_add_and_remove_domain(session_cookie):
 # -------------------------------
 # 2. Remove Domain Edge Cases (Planned Failure)
 # -------------------------------
-@pytest.mark.order(22)
-def test_remove_domain_without_auth():
+def test_2_remove_domain_without_auth():
     """Removing a domain without authentication should fail."""
     BASE_URL = aux.BASE_URL
     resp = requests.post(
@@ -98,8 +96,7 @@ def test_remove_domain_without_auth():
     )
     assert resp.status_code in (401, 302, 403), f"Unexpected code: {resp.status_code}"
 
-@pytest.mark.order(23)
-def test_remove_nonexistent_domain(session_cookie):
+def test_3_remove_nonexistent_domain(session_cookie):
     """Removing a non-existent domain should return a graceful error."""
     BASE_URL = aux.BASE_URL
     headers = {"Content-Type": "application/json", "Cookie": f"session={session_cookie}"}
@@ -114,8 +111,7 @@ def test_remove_nonexistent_domain(session_cookie):
     data = resp.json()
     assert "ok" in data
 
-@pytest.mark.order(24)
-def test_remove_domains_bulk(session_cookie):
+def test_4_remove_domains_bulk(session_cookie):
     """Add several domains and remove them all in one API call."""
     BASE_URL = aux.BASE_URL
     headers = {"Content-Type": "application/json", "Cookie": f"session={session_cookie}"}
@@ -137,8 +133,7 @@ def test_remove_domains_bulk(session_cookie):
     for d in domains:
         assert d not in str(list_resp.json()), f"{d} still present after bulk removal"
 
-@pytest.mark.order(25)
-def test_remove_domains_empty_payload(session_cookie):
+def test_5_remove_domains_empty_payload(session_cookie):
     """Removing domains with empty payload should return 400 or ok:false."""
     BASE_URL = aux.BASE_URL
     headers = {"Content-Type": "application/json", "Cookie": f"session={session_cookie}"}
