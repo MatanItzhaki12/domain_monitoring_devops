@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from tests.selenium_tests.pages.login_page import LoginPage
 from tests.selenium_tests.pages.single_domain_modal import SingleDomainModal
 
-pytestmark = pytest.mark.order(10)
+pytestmark = pytest.mark.order(9)
 THIS_DIR = os.path.dirname(__file__)
 
 @pytest.mark.order(21)
@@ -50,6 +50,7 @@ def test_bulk_upload_ui(driver, base_url, domain, status, ssl_issuer, ssl_expira
     
     # Step 3: wait until dashboard is active again
     single_modal.wait_for_active_dashboard()
+    time.sleep(5)
 
     # Step 4: Verify results
     domain_details_dashboard = single_modal.get_domain_data(domain=domain)
@@ -61,3 +62,8 @@ def test_bulk_upload_ui(driver, base_url, domain, status, ssl_issuer, ssl_expira
     assert domain_details_dashboard["ssl_issuer"].lower() == ssl_issuer.lower()
     # Validate Expiration - only not empty
     assert domain_details_dashboard["ssl_expiration"] and domain_details_dashboard["ssl_expiration"] != "None" 
+
+    # Clean User Domain
+    user_domains_path = "./UsersData/Selenium_Tester_12345_domains.json"
+    with open(user_domains_path, "w") as f:
+        json.dump([], f)

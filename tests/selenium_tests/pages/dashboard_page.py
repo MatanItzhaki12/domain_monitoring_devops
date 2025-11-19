@@ -38,7 +38,7 @@ class DashboardPage(BasePage):
         return self.wait_for_multiple_elements(self.table_rows)
 
     def get_row_columns(self, row):
-        return self.wait_for.until(
+        return self.wait.until(
             lambda driver: row.find_elements(*self.row_data)
         )
 
@@ -47,7 +47,7 @@ class DashboardPage(BasePage):
         for row in rows:
             columns = self.get_row_columns(row)
             # Skip for empty column or invalid column
-            if not columns or len(columns):
+            if not columns or len(columns) != 6:
                 continue
             # Extract Domain from row
             row_domain = columns[1].text.strip()

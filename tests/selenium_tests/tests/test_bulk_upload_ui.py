@@ -55,7 +55,7 @@ def test_bulk_upload_ui(driver, base_url):
     # bulk_modal.wait.until(
     #     EC.element_to_be_clickable((By.ID, "openAddDomain"))
     # )
-
+    time.sleep(5)
     # Step 5: ensure domains appear in page source
     assert bulk_modal.wait.until(
         lambda d: all(domain in d.page_source.lower() for domain in domains)
@@ -67,7 +67,9 @@ def test_bulk_upload_ui(driver, base_url):
         check_domains_details_list = json.load(f)
     # Iterate through all domains in file, and validate:
     for domain_to_check in check_domains_details_list:
+        print(domain_to_check)
         domain_details_dashboard = bulk_modal.get_domain_data(domain=domain_to_check["domain"])
+        print(domain_details_dashboard)
         # Validate domain exists
         assert domain_details_dashboard is not None
         # Validate status
@@ -84,3 +86,7 @@ def test_bulk_upload_ui(driver, base_url):
         check_file=check_domains_json_path,
         domains_file=domains_file_path
     )
+    # Clean User Domain
+    user_domains_path = "./UsersData/Selenium_Tester_12345_domains.json"
+    with open(user_domains_path, "w") as f:
+        json.dump([], f)
