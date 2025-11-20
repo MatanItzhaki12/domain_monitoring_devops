@@ -14,7 +14,7 @@ pipeline {
 
         stage('Checkout Source Code') {
             steps {
-                echo "Cloning repository from GitHub..."
+                echo "Cloning repository..."
                 git branch: 'main', url: "${REPO_URL}"
             }
         }
@@ -23,22 +23,17 @@ pipeline {
             steps {
                 script {
                     def commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                    echo "Commit ID: ${commit}"
+                    echo "Commit: ${commit}"
 
-                    def buildNum = BUILD_NUMBER.toInteger()
                     def shortTag = commit.take(8)
-
-                    env.VERSION_TAG = "build-${buildNum}-${shortTag}"
                     env.TAG = shortTag
-
-                    echo "Build version: ${env.VERSION_TAG}"
+                    echo "TAG: ${env.TAG}"
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image: ${REGISTRY}/${IMAGE_NAME}:${env.TAG}"
                 sh """
                     docker build -t ${REGISTRY}/${IMAGE_NAME}:${env.TAG} .
                 """
@@ -47,7 +42,6 @@ pipeline {
 
         stage('Run Container for Tests') {
             steps {
-                echo "Starting temp container..."
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
                     docker run -d --name ${CONTAINER_NAME} ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
@@ -60,7 +54,6 @@ pipeline {
 
                 stage('Backend API Tests') {
                     steps {
-                        echo "Running API tests..."
                         sh """
                             docker exec ${CONTAINER_NAME} pytest tests/api_tests --maxfail=1 --disable-warnings -q
                         """
@@ -69,7 +62,6 @@ pipeline {
 
                 stage('Selenium UI Tests') {
                     steps {
-                        echo "Running UI tests..."
                         sh """
                             docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q
                         """
@@ -81,28 +73,38 @@ pipeline {
 
         stage('Promote and Push Image') {
             when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
-
             steps {
                 script {
 
-                    echo "Promoting version tag..."
+                    echo "Detecting latest version tag..."
 
                     def currentVersion = sh(
-                        script: "git tag --sort=-v:refname | grep -Eo 'v[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1 || echo 'v0.0.0'",
+                        script: """
+                            git tag --sort=-v:refname | grep -E 'v[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1
+                        """,
                         returnStdout: true
                     ).trim()
 
-                    def parts = currentVersion.replace('v', '').tokenize('.')
-                    def major = parts[0].toInteger()
-                    def minor = parts[1].toInteger()
-                    def patch = parts[2].toInteger() + 1
+                    if (!currentVersion) {
+                        currentVersion = "v0.0.0"
+                        echo "No tags found — starting from v0.0.0"
+                    }
 
-                    def newVersion = "v${major}.${minor}.${patch}"
+                    echo "Current version: ${currentVersion}"
+
+                    def parts = currentVersion.replace("v","").split("\\.")
+                    def major = parts[0] as Integer
+                    def minor = parts[1] as Integer
+                    def patch = parts[2] as Integer
+
+                    def newVersion = "v${major}.${minor}.${patch + 1}"
                     echo "New version: ${newVersion}"
 
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
-                                                     usernameVariable: 'DOCKER_USER',
-                                                     passwordVariable: 'DOCKER_PASS')]) {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )]) {
 
                         sh """
                             echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
@@ -114,31 +116,32 @@ pipeline {
                         """
                     }
 
-                    withCredentials([usernamePassword(credentialsId: 'github-token',
-                                                     usernameVariable: 'GIT_USER',
-                                                     passwordVariable: 'GIT_TOKEN')]) {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-token',
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_TOKEN'
+                    )]) {
 
                         sh """
                             git config --global user.email "jenkins@ci.local"
                             git config --global user.name "Jenkins CI"
-
                             git tag -a ${newVersion} -m 'Release ${newVersion}'
-                            git push https://${GIT_USER}:${GIT_TOKEN}@github.com/MatanItzhaki12/domain_monitoring_devops.git ${newVersion}
+                            git push https://${GIT_USER}:${GIT_TOKEN}@github.com/cerform/domain_monitoring_devops.git ${newVersion}
                         """
                     }
                 }
             }
         }
+
     }
 
     post {
         failure {
-            echo "Tests failed — printing container logs..."
+            echo "Tests failed — showing logs"
             sh "docker logs ${CONTAINER_NAME} || true"
         }
 
         always {
-            echo "Cleaning up..."
             sh """
                 docker rm -f ${CONTAINER_NAME} || true
                 docker rmi ${REGISTRY}/${IMAGE_NAME}:${env.TAG} || true
