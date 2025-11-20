@@ -22,23 +22,32 @@ pipeline {
         stage('Get Commit ID') {
             steps {
                 script {
-                    // Retrieve commit hash
                     def commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                     echo "Commit ID: ${commit}"
 
-                    // Prepare version tag
                     def b = BUILD_NUMBER.toInteger()
-                    def shortTag = commit.take(8)
+                    def short = commit.take(8)
 
-                    env.VERSION_TAG = "build-${b}-${shortTag}"
-                    env.TAG = shortTag
+                    env.TAG = short
+                    env.VERSION_TAG = "build-${b}-${short}"
 
                     echo "Build version: ${env.VERSION_TAG}"
                 }
             }
         }
 
-        stage('Build Docker Image (temp)') {
+        stage('Prepare Test Environment') {
+            steps {
+                echo "Cleaning UsersData before tests..."
+                sh """
+                    mkdir -p UsersData
+                    echo "[]" > UsersData/users.json
+                    find UsersData -name "*_domains.json" -delete || true
+                """
+            }
+        }
+
+        stage('Build Docker Image') {
             steps {
                 echo "Building Docker image: ${REGISTRY}/${IMAGE_NAME}:${env.TAG}"
                 sh """
@@ -52,15 +61,18 @@ pipeline {
                 echo "Starting temporary container..."
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
+                    docker run -d --name ${CONTAINER_NAME} -p 8080:8080 ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
                 """
+
+                echo "Waiting for Flask backend to start..."
+                sh "sleep 5"
             }
         }
 
-        stage('Execute Test Suite') {
+        stage('Execute Tests') {
             parallel {
 
-                stage('Backend API Tests') {
+                stage('API Tests') {
                     steps {
                         echo "Running backend API tests..."
                         sh """
@@ -71,7 +83,7 @@ pipeline {
 
                 stage('UI Selenium Tests') {
                     steps {
-                        echo "Running Selenium UI tests..."
+                        echo "Running UI Selenium tests..."
                         sh """
                             docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q
                         """
@@ -81,15 +93,12 @@ pipeline {
             }
         }
 
-        stage('Promote Version and Push to DockerHub') {
+        stage('Promote Version & Push') {
             when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
-
             steps {
                 script {
 
-                    echo "Promoting version..."
-
-                    // Detect latest tag
+                    // detect latest version
                     def currentVersion = sh(
                         script: "git tag --sort=-v:refname | grep -Eo 'v[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1 || echo 'v0.0.0'",
                         returnStdout: true
@@ -97,21 +106,16 @@ pipeline {
 
                     echo "Current version: ${currentVersion}"
 
-                    def parts = currentVersion.replace('v', '').tokenize('.')
-                    def major = parts.size() > 0 ? parts[0].toInteger() : 0
-                    def minor = parts.size() > 1 ? parts[1].toInteger() : 0
-                    def patch = parts.size() > 2 ? parts[2].toInteger() : 0
-
+                    def (major, minor, patch) = currentVersion.replace('v', '').tokenize('.').collect { it.toInteger() }
                     def newVersion = "v${major}.${minor}.${patch + 1}"
+
                     echo "New version: ${newVersion}"
 
-                    // DockerHub Authentication and Push
                     withCredentials([usernamePassword(
                         credentialsId: 'dockerhub-creds',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )]) {
-
                         sh """
                             echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
                             docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${newVersion}
@@ -122,13 +126,11 @@ pipeline {
                         """
                     }
 
-                    // GitHub Tagging
                     withCredentials([usernamePassword(
                         credentialsId: 'github-token',
                         usernameVariable: 'GIT_USER',
                         passwordVariable: 'GIT_TOKEN'
                     )]) {
-
                         sh """
                             git config --global user.email "jenkins@ci.local"
                             git config --global user.name "Jenkins CI"
@@ -140,17 +142,17 @@ pipeline {
             }
         }
 
-    }
+    } // stages
 
     post {
 
         failure {
-            echo "Tests failed. Showing container logs..."
+            echo "Tests FAILED — printing logs..."
             sh "docker logs ${CONTAINER_NAME} || true"
         }
 
         always {
-            echo "Cleaning up environment..."
+            echo "Cleaning temp containers & images..."
             sh """
                 docker rm -f ${CONTAINER_NAME} || true
                 docker rmi ${REGISTRY}/${IMAGE_NAME}:${env.TAG} || true
