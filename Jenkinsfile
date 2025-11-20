@@ -1,20 +1,24 @@
 pipeline {
+
     agent { label 'Slave' }
 
-    environment {
-        REGISTRY = "symmetramain"
-        IMAGE_NAME = "etcsys"
-        REPO_URL = "https://github.com/cerform/domain_monitoring_devops.git"
-        CONTAINER_NAME = "temp_container_${BUILD_NUMBER}"
+    options {
+        timestamps()
+        disableRestartFromStage()   // ❗ запрещает Restart from Stage
     }
 
-    options { timestamps() }
+    environment {
+        REGISTRY        = "symmetramain"
+        IMAGE_NAME      = "etcsys"
+        REPO_URL        = "https://github.com/cerform/domain_monitoring_devops.git"
+        CONTAINER_NAME  = "temp_container_${BUILD_NUMBER}"
+    }
 
     stages {
 
         stage('Checkout Source Code') {
             steps {
-                echo "Cloning repository from GitHub..."
+                echo "Cloning repository..."
                 git branch: 'main', url: "${REPO_URL}"
             }
         }
@@ -23,23 +27,25 @@ pipeline {
             steps {
                 script {
                     def commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                    def shortTag = commit.take(8)
-                    env.TAG = shortTag
-                    echo "Using commit tag: ${env.TAG}"
+                    echo "Commit ID: ${commit}"
+                    env.TAG = commit.take(8)
+                    echo "Docker tag: ${env.TAG}"
                 }
             }
         }
 
-        stage('Build Docker Image (temp)') {
+        stage('Build Docker Image') {
             steps {
-                echo "Building Docker image: ${REGISTRY}/${IMAGE_NAME}:${env.TAG}"
-                sh "docker build -t ${REGISTRY}/${IMAGE_NAME}:${env.TAG} ."
+                echo "Building Docker image..."
+                sh """
+                    docker build -t ${REGISTRY}/${IMAGE_NAME}:${env.TAG} .
+                """
             }
         }
 
         stage('Run Container for Tests') {
             steps {
-                echo "Starting temporary container..."
+                echo "Starting container for tests..."
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
                     docker run -d --name ${CONTAINER_NAME} ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
@@ -47,63 +53,55 @@ pipeline {
             }
         }
 
-        stage('Execute Test Suite') {
+        stage('Execute Tests') {
             parallel {
 
                 stage('Backend API Tests') {
                     steps {
-                        echo "Running backend API tests..."
-                        sh "docker exec ${CONTAINER_NAME} pytest tests/api_tests --maxfail=1 --disable-warnings -q"
+                        echo "Running API tests..."
+                        sh """
+                            docker exec ${CONTAINER_NAME} pytest tests/api_tests \
+                                --maxfail=1 --disable-warnings -q
+                        """
                     }
                 }
 
-                stage('UI Selenium Tests') {
+                stage('Selenium UI Tests') {
                     steps {
-                        echo "Running Selenium UI tests..."
-                        sh "docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q"
+                        echo "Running Selenium tests..."
+                        sh """
+                            docker exec ${CONTAINER_NAME} pytest tests/selenium_tests \
+                                --maxfail=1 --disable-warnings -q
+                        """
                     }
                 }
 
             }
         }
 
-        stage('Promote Version and Push') {
-            when {
-                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
-            }
-
+        stage('Promote and Push Image') {
             steps {
                 script {
 
-                    echo "Promoting version..."
+                    echo "Detecting latest version tag..."
 
-                    // Fetch latest tag or fallback to v0.0.0
-                    def currentVersion = sh(
-                        script: """
-                            git fetch --tags
-                            git tag --sort=-v:refname \
-                            | grep -E 'v[0-9]+\\.[0-9]+\\.[0-9]+' \
-                            | head -n 1
-                        """,
+                    def lastTag = sh(
+                        script: "git tag --sort=-v:refname | grep -Eo 'v[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1 || true",
                         returnStdout: true
                     ).trim()
 
-                    if (!currentVersion) {
-                        currentVersion = "v0.0.0"
-                        echo "No version tags found, starting from ${currentVersion}"
+                    if (!lastTag) {
+                        echo "No tags found — starting from v0.0.0"
+                        lastTag = "v0.0.0"
                     }
 
-                    echo "Current version: ${currentVersion}"
+                    echo "Current version: ${lastTag}"
 
-                    def parts = currentVersion.substring(1).tokenize('.')
-                    def major = parts[0].toInteger()
-                    def minor = parts[1].toInteger()
-                    def patch = parts[2].toInteger()
-
+                    def (major, minor, patch) = lastTag.replace("v", "").tokenize('.').collect { it.toInteger() }
                     def newVersion = "v${major}.${minor}.${patch + 1}"
+
                     echo "New version: ${newVersion}"
 
-                    // DockerHub Push
                     withCredentials([usernamePassword(
                         credentialsId: 'dockerhub-creds',
                         usernameVariable: 'DOCKER_USER',
@@ -111,7 +109,7 @@ pipeline {
                     )]) {
 
                         sh """
-                            echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                            echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
                             docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${newVersion}
                             docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:latest
                             docker push \$DOCKER_USER/${IMAGE_NAME}:${newVersion}
@@ -120,15 +118,17 @@ pipeline {
                         """
                     }
 
-                    // GitHub tag push
-                    withCredentials([string(credentialsId: 'github-token', variable: 'GIT_TOKEN')]) {
-
+                    // Push GitHub tag
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-token',
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_TOKEN'
+                    )]) {
                         sh """
                             git config --global user.email "jenkins@ci.local"
                             git config --global user.name "Jenkins CI"
-
-                            git tag -a ${newVersion} -m "Release ${newVersion}" || true
-                            git push https://cerform:\$GIT_TOKEN@github.com/cerform/domain_monitoring_devops.git ${newVersion}
+                            git tag -a ${newVersion} -m 'Release ${newVersion}'
+                            git push https://\${GIT_USER}:\${GIT_TOKEN}@github.com/cerform/domain_monitoring_devops.git ${newVersion}
                         """
                     }
                 }
@@ -140,7 +140,7 @@ pipeline {
     post {
 
         failure {
-            echo "Tests failed. Showing container logs..."
+            echo "Tests failed — showing container logs"
             sh "docker logs ${CONTAINER_NAME} || true"
         }
 
