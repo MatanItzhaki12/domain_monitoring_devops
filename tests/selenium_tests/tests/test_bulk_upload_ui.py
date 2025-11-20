@@ -12,9 +12,8 @@ from tests.selenium_tests.utils.domain_factory import generate_fixed_domain_file
 
 pytestmark = pytest.mark.order(10)
 
-# Get temp directory
-CHROME_PROFILE_DIR = "/tmp/chrome-profile"
-TEMP_DIR = os.path.join(CHROME_PROFILE_DIR, "uploads")
+# Get this directory
+TEMP_DIR = "/tmp/chrome-uploads"
 os.makedirs(TEMP_DIR, exist_ok=True)
 
 
