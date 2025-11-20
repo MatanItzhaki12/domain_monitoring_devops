@@ -5,10 +5,12 @@ ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y \
     wget unzip gnupg ca-certificates curl \
-    xvfb libxi6 libgconf-2-4 gcc g++ make \
-    libnss3 libgdk-pixbuf2.0-0 libxss1 libasound2 \
+    xvfb libxi6 gcc g++ make \
+    libnss3 libgdk-pixbuf-2.0-0 libxss1 libasound2 \
     libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 \
-    libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1
+    libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
+    && rm -rf /var/lib/apt/lists/*
+
 
 # Install Chrome
 RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
@@ -33,3 +35,4 @@ COPY . .
 
 RUN chmod +x entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
+
