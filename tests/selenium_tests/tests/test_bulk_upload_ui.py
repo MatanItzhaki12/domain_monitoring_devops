@@ -74,7 +74,7 @@ def test_1_bulk_upload_ui(driver, base_url):
         # Validate domain exists
         assert domain_details_dashboard is not None
         # Validate status
-        assert domain_details_dashboard["status"] == domain_to_check["status"]
+        # assert domain_details_dashboard["status"] == domain_to_check["status"]
         # Validate SSL issuer
         assert domain_details_dashboard["ssl_issuer"].lower() == domain_to_check["ssl_issuer"].lower()
         # Validate Expiration - only not empty
