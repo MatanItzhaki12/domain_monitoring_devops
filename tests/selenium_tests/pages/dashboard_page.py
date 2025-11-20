@@ -62,7 +62,7 @@ class DashboardPage(BasePage):
         for row in rows:
             columns = self.get_row_columns(row)
             # Skip for empty column or invalid column
-            if not columns or len(columns):
+            if not columns or len(columns)!=6:
                 continue
             # Extract Domain from row
             row_domain = columns[1].text.strip()

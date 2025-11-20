@@ -19,11 +19,7 @@ class BulkUploadModal(DashboardPage):
         self.wait_for(self.bulk_modal)
 
     def file_upload_enter_path(self, file_path):
-        input_file = self.wait.until(EC.presence_of_element_located(self.file_input))
-        # modal hide the file input, so we need visible
-        self.driver.execute_script("arguments[0].style.display = 'block';", input_file)
-        
-        self.type(self.file_input, file_path)
+        self.upload_file_enter_path(locator=self.file_input, file_path=file_path)
 
     def submit_file(self):
         self.click(locator=self.upload_button)

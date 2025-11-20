@@ -52,15 +52,17 @@ def generate_fixed_domain_file(directory):
     ]
     # Creating domains' file
     domains_file_path = os.path.join(directory, "test_fixed_domains.txt")
+    domains_file_path = os.path.abspath(domains_file_path) 
     with open(domains_file_path, "w") as f:
         f.write("\n".join(domains))
 
     # Creating check domains' file
-    check_domain_file_path = os.path.join(directory, "check_fixed_domains.txt")
-    with open(check_domain_file_path, "w") as f:
+    check_domains_file_path = os.path.join(directory, "check_fixed_domains.txt")
+    check_domains_file_path = os.path.abspath(check_domains_file_path) 
+    with open(check_domains_file_path, "w") as f:
         json.dump(domains_details, f)
 
-    return domains_file_path, check_domain_file_path, domains
+    return domains_file_path, check_domains_file_path, domains
 
 def remove_file(file_path):
     if os.path.exists(file_path):

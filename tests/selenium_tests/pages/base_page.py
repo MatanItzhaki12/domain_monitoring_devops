@@ -1,3 +1,4 @@
+import os
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
@@ -47,3 +48,14 @@ class BasePage:
             return True
         except Exception as e:
             return False
+        
+    def upload_file_enter_path(self, locator, file_path):
+        # 1. Convert to absolute path
+        abs_file_path =os.path.abspath(file_path)
+        # 2. Verify file exists locally before trying to upload
+        if not os.path.exists(abs_file_path):
+            raise FileNotFoundError(f"File not found: {abs_file_path}")
+        # 3. Use presence_of_element_located instead of visibility (input is hidden)
+        element = self.wait.until(EC.presence_of_element_located(locator))
+        # 4. Send the keys
+        element.send_keys(abs_file_path)

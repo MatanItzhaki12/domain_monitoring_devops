@@ -1,5 +1,5 @@
+import tempfile
 import pytest
-import os
 import time
 import json
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,7 +11,9 @@ from tests.selenium_tests.pages.bulk_upload_modal import BulkUploadModal
 from tests.selenium_tests.utils.domain_factory import generate_fixed_domain_file, remove_fixed_file_path
 
 pytestmark = pytest.mark.order(10)
-THIS_DIR = os.path.dirname(__file__)
+
+# Get temp directory
+TEMP_DIR = tempfile.gettempdir()
 
 
 def test_1_bulk_upload_ui(driver, base_url):
@@ -28,11 +30,6 @@ def test_1_bulk_upload_ui(driver, base_url):
     # bulk_upload_modal inherit from DashboardPage
     assert "Selenium_Tester_12345" in bulk_modal.get_welcome_message()
     time.sleep(1)
-    # WebDriverWait(driver, 10).until(
-    #     EC.presence_of_element_located((By.ID, "greeting"))
-    # )
-
-    # dashboard = DashboardPage(driver, base_url)
 
     # =========================
     #  BULK UPLOAD TEST
@@ -43,8 +40,9 @@ def test_1_bulk_upload_ui(driver, base_url):
     # dashboard.open_bulk_upload()
     bulk_modal.open_bulk_upload()
     time.sleep(0.5)
+    
     # Step 2: create domain file
-    domains_file_path, check_domains_json_path, domains = generate_fixed_domain_file(THIS_DIR)
+    domains_file_path, check_domains_json_path, domains = generate_fixed_domain_file(TEMP_DIR)
 
     # Step 3: upload file
     bulk_modal.upload_bulk(file_path=domains_file_path)

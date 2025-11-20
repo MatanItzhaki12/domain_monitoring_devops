@@ -12,7 +12,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 def driver():
 
     options = Options()
-    # options.add_argument("--headless=new")  # optional
+    options.add_argument("--headless=new")  # optional
 
     os_name = platform.system()
 
