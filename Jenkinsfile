@@ -4,7 +4,7 @@ pipeline {
     environment {
         REGISTRY = "symmetramain"
         IMAGE_NAME = "etcsys"
-        REPO_URL = "https://github.com/MatanItzhaki12/domain_monitoring_devops.git"
+        REPO_URL = "https://github.com/cerform/domain_monitoring_devops.git"
         CONTAINER_NAME = "temp_container_${BUILD_NUMBER}"
     }
 
