@@ -4,7 +4,7 @@ pipeline {
     environment {
         REGISTRY = "symmetramain"
         IMAGE_NAME = "etcsys"
-        REPO_URL = "https://github.com/MatanItzhaki12/domain_monitoring_devops.git"
+        REPO_URL = "https://github.com/cerform/domain_monitoring_devops.git"
         CONTAINER_NAME = "temp_container_${BUILD_NUMBER}"
     }
 
@@ -14,7 +14,7 @@ pipeline {
 
         stage('Checkout Source Code') {
             steps {
-                echo "Cloning repository..."
+                echo "Cloning repository from GitHub..."
                 git branch: 'main', url: "${REPO_URL}"
             }
         }
@@ -23,25 +23,23 @@ pipeline {
             steps {
                 script {
                     def commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                    echo "Commit: ${commit}"
-
                     def shortTag = commit.take(8)
                     env.TAG = shortTag
-                    echo "TAG: ${env.TAG}"
+                    echo "Using commit tag: ${env.TAG}"
                 }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Image (temp)') {
             steps {
-                sh """
-                    docker build -t ${REGISTRY}/${IMAGE_NAME}:${env.TAG} .
-                """
+                echo "Building Docker image: ${REGISTRY}/${IMAGE_NAME}:${env.TAG}"
+                sh "docker build -t ${REGISTRY}/${IMAGE_NAME}:${env.TAG} ."
             }
         }
 
         stage('Run Container for Tests') {
             steps {
+                echo "Starting temporary container..."
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
                     docker run -d --name ${CONTAINER_NAME} ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
@@ -49,57 +47,63 @@ pipeline {
             }
         }
 
-        stage('Execute Tests') {
+        stage('Execute Test Suite') {
             parallel {
 
                 stage('Backend API Tests') {
                     steps {
-                        sh """
-                            docker exec ${CONTAINER_NAME} pytest tests/api_tests --maxfail=1 --disable-warnings -q
-                        """
+                        echo "Running backend API tests..."
+                        sh "docker exec ${CONTAINER_NAME} pytest tests/api_tests --maxfail=1 --disable-warnings -q"
                     }
                 }
 
-                stage('Selenium UI Tests') {
+                stage('UI Selenium Tests') {
                     steps {
-                        sh """
-                            docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q
-                        """
+                        echo "Running Selenium UI tests..."
+                        sh "docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q"
                     }
                 }
 
             }
         }
 
-        stage('Promote and Push Image') {
-            when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
+        stage('Promote Version and Push') {
+            when {
+                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+            }
+
             steps {
                 script {
 
-                    echo "Detecting latest version tag..."
+                    echo "Promoting version..."
 
+                    // Fetch latest tag or fallback to v0.0.0
                     def currentVersion = sh(
                         script: """
-                            git tag --sort=-v:refname | grep -E 'v[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1
+                            git fetch --tags
+                            git tag --sort=-v:refname \
+                            | grep -E 'v[0-9]+\\.[0-9]+\\.[0-9]+' \
+                            | head -n 1
                         """,
                         returnStdout: true
                     ).trim()
 
                     if (!currentVersion) {
                         currentVersion = "v0.0.0"
-                        echo "No tags found — starting from v0.0.0"
+                        echo "No version tags found, starting from ${currentVersion}"
                     }
 
                     echo "Current version: ${currentVersion}"
 
-                    def parts = currentVersion.replace("v","").split("\\.")
-                    def major = parts[0] as Integer
-                    def minor = parts[1] as Integer
-                    def patch = parts[2] as Integer
+                    def parts = currentVersion.substring(1).tokenize('.')
+                    def major = parts[0].toInteger()
+                    def minor = parts[1].toInteger()
+                    def patch = parts[2].toInteger()
 
                     def newVersion = "v${major}.${minor}.${patch + 1}"
                     echo "New version: ${newVersion}"
 
+                    // DockerHub Push
                     withCredentials([usernamePassword(
                         credentialsId: 'dockerhub-creds',
                         usernameVariable: 'DOCKER_USER',
@@ -116,17 +120,15 @@ pipeline {
                         """
                     }
 
-                    withCredentials([usernamePassword(
-                        credentialsId: 'github-token',
-                        usernameVariable: 'GIT_USER',
-                        passwordVariable: 'GIT_TOKEN'
-                    )]) {
+                    // GitHub tag push
+                    withCredentials([string(credentialsId: 'github-token', variable: 'GIT_TOKEN')]) {
 
                         sh """
                             git config --global user.email "jenkins@ci.local"
                             git config --global user.name "Jenkins CI"
-                            git tag -a ${newVersion} -m 'Release ${newVersion}'
-                            git push https://${GIT_USER}:${GIT_TOKEN}@github.com/cerform/domain_monitoring_devops.git ${newVersion}
+
+                            git tag -a ${newVersion} -m "Release ${newVersion}" || true
+                            git push https://cerform:\$GIT_TOKEN@github.com/cerform/domain_monitoring_devops.git ${newVersion}
                         """
                     }
                 }
@@ -136,12 +138,14 @@ pipeline {
     }
 
     post {
+
         failure {
-            echo "Tests failed — showing logs"
+            echo "Tests failed. Showing container logs..."
             sh "docker logs ${CONTAINER_NAME} || true"
         }
 
         always {
+            echo "Cleaning up environment..."
             sh """
                 docker rm -f ${CONTAINER_NAME} || true
                 docker rmi ${REGISTRY}/${IMAGE_NAME}:${env.TAG} || true
