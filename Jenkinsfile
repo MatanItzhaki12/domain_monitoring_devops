@@ -73,13 +73,13 @@ pipeline {
                         echo "Running STUB Selenium tests..."
 
                         sh """
-                            # создаём директорию тестов внутри контейнера
+                           
                             docker exec ${CONTAINER_NAME} sh -c "mkdir -p /app/tests/selenium_tests"
 
-                            # создаём файл заглушки теста
+                           
                             docker exec ${CONTAINER_NAME} sh -c "echo 'def test_stub(): assert True' > /app/tests/selenium_tests/test_stub.py"
 
-                            # выполняем только заглушку
+                           
                             docker exec ${CONTAINER_NAME} pytest /app/tests/selenium_tests/test_stub.py -q
                         """
                     }
