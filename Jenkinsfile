@@ -4,7 +4,7 @@ pipeline {
     environment {
         REGISTRY = "symmetramain"
         IMAGE_NAME = "etcsys"
-        REPO_URL = "https://github.com/cerform/domain_monitoring_devops.git"
+        REPO_URL = "https://github.com/MatanItzhaki12/domain_monitoring_devops.git"
         CONTAINER_NAME = "temp_container_${BUILD_NUMBER}"
     }
 
@@ -25,25 +25,14 @@ pipeline {
                     def commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                     echo "Commit ID: ${commit}"
 
-                    def b = BUILD_NUMBER.toInteger()
-                    def short = commit.take(8)
+                    def buildNum = BUILD_NUMBER.toInteger()
+                    def shortTag = commit.take(8)
 
-                    env.TAG = short
-                    env.VERSION_TAG = "build-${b}-${short}"
+                    env.VERSION_TAG = "build-${buildNum}-${shortTag}"
+                    env.TAG = shortTag
 
                     echo "Build version: ${env.VERSION_TAG}"
                 }
-            }
-        }
-
-        stage('Prepare Test Environment') {
-            steps {
-                echo "Cleaning UsersData before tests..."
-                sh """
-                    mkdir -p UsersData
-                    echo "[]" > UsersData/users.json
-                    find UsersData -name "*_domains.json" -delete || true
-                """
             }
         }
 
@@ -58,32 +47,29 @@ pipeline {
 
         stage('Run Container for Tests') {
             steps {
-                echo "Starting temporary container..."
+                echo "Starting temp container..."
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} -p 8080:8080 ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
+                    docker run -d --name ${CONTAINER_NAME} ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
                 """
-
-                echo "Waiting for Flask backend to start..."
-                sh "sleep 5"
             }
         }
 
         stage('Execute Tests') {
             parallel {
 
-                stage('API Tests') {
+                stage('Backend API Tests') {
                     steps {
-                        echo "Running backend API tests..."
+                        echo "Running API tests..."
                         sh """
                             docker exec ${CONTAINER_NAME} pytest tests/api_tests --maxfail=1 --disable-warnings -q
                         """
                     }
                 }
 
-                stage('UI Selenium Tests') {
+                stage('Selenium UI Tests') {
                     steps {
-                        echo "Running UI Selenium tests..."
+                        echo "Running UI tests..."
                         sh """
                             docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q
                         """
@@ -93,29 +79,31 @@ pipeline {
             }
         }
 
-        stage('Promote Version & Push') {
+        stage('Promote and Push Image') {
             when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
+
             steps {
                 script {
 
-                    // detect latest version
+                    echo "Promoting version tag..."
+
                     def currentVersion = sh(
                         script: "git tag --sort=-v:refname | grep -Eo 'v[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1 || echo 'v0.0.0'",
                         returnStdout: true
                     ).trim()
 
-                    echo "Current version: ${currentVersion}"
+                    def parts = currentVersion.replace('v', '').tokenize('.')
+                    def major = parts[0].toInteger()
+                    def minor = parts[1].toInteger()
+                    def patch = parts[2].toInteger() + 1
 
-                    def (major, minor, patch) = currentVersion.replace('v', '').tokenize('.').collect { it.toInteger() }
-                    def newVersion = "v${major}.${minor}.${patch + 1}"
-
+                    def newVersion = "v${major}.${minor}.${patch}"
                     echo "New version: ${newVersion}"
 
-                    withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub-creds',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )]) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
+                                                     usernameVariable: 'DOCKER_USER',
+                                                     passwordVariable: 'DOCKER_PASS')]) {
+
                         sh """
                             echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
                             docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${newVersion}
@@ -126,33 +114,31 @@ pipeline {
                         """
                     }
 
-                    withCredentials([usernamePassword(
-                        credentialsId: 'github-token',
-                        usernameVariable: 'GIT_USER',
-                        passwordVariable: 'GIT_TOKEN'
-                    )]) {
+                    withCredentials([usernamePassword(credentialsId: 'github-token',
+                                                     usernameVariable: 'GIT_USER',
+                                                     passwordVariable: 'GIT_TOKEN')]) {
+
                         sh """
                             git config --global user.email "jenkins@ci.local"
                             git config --global user.name "Jenkins CI"
+
                             git tag -a ${newVersion} -m 'Release ${newVersion}'
-                            git push https://${GIT_USER}:${GIT_TOKEN}@github.com/cerform/domain_monitoring_devops.git ${newVersion}
+                            git push https://${GIT_USER}:${GIT_TOKEN}@github.com/MatanItzhaki12/domain_monitoring_devops.git ${newVersion}
                         """
                     }
                 }
             }
         }
-
-    } // stages
+    }
 
     post {
-
         failure {
-            echo "Tests FAILED — printing logs..."
+            echo "Tests failed — printing container logs..."
             sh "docker logs ${CONTAINER_NAME} || true"
         }
 
         always {
-            echo "Cleaning temp containers & images..."
+            echo "Cleaning up..."
             sh """
                 docker rm -f ${CONTAINER_NAME} || true
                 docker rmi ${REGISTRY}/${IMAGE_NAME}:${env.TAG} || true
