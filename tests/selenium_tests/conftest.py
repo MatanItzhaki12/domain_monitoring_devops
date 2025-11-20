@@ -30,10 +30,6 @@ def driver():
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--window-size=1920,1080")
 
-    # # Required for Linux stability
-    # chrome_options.add_argument("--no-sandbox")
-    # chrome_options.add_argument("--disable-dev-shm-usage")
-    # chrome_options.add_argument("--disable-gpu")
 
     chrome_options.add_argument("--allow-file-access-from-files")
     chrome_options.add_argument("--disable-web-security")

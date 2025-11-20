@@ -12,11 +12,12 @@ from tests.selenium_tests.utils.domain_factory import generate_fixed_domain_file
 
 pytestmark = pytest.mark.order(10)
 
-# Get this directory
-TEMP_DIR = "/tmp/chrome-uploads"
+# Directory of this test file
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Temp directory inside the test folder
+TEMP_DIR = os.path.join(TEST_DIR, "selenium_temp")
 os.makedirs(TEMP_DIR, exist_ok=True)
-
-
 
 def test_1_bulk_upload_ui(driver, base_url):
     login_page = LoginPage(driver, base_url)
