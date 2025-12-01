@@ -1,0 +1,19 @@
+---
+plugin: aws_ec2
+
+regions:
+  - us-east-2
+
+filters:
+  # instance-state-name: running
+  tag:Group: Group2
+hostname_variable: public_ip_address
+
+compose:
+  ansible_host: public_ip_address
+  ansible_host_private: private_ip_address
+
+keyed_groups:
+  - key: tags.Purpose
+    prefix: master
+    

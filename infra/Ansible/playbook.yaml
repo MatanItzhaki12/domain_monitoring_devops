@@ -1,0 +1,101 @@
+---
+- name: Configure Jenkins Master on AWS EC2
+  hosts: all          # or the correct group from your aws_ec2 inventory
+  become: yes
+
+  collections:
+    - community.docker
+
+  vars:
+    ADMIN_PASSWORD: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
+    DOCKERHUB_USER: "{{ lookup('env', 'DOCKERHUB_USER') }}"
+    DOCKERHUB_PASS: "{{ lookup('env', 'DOCKERHUB_PASS') }}"
+    GITHUB_USER: "{{ lookup('env', 'GITHUB_USER') }}"
+    GITHUB_TOKEN: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+    jenkins_home: /var/jenkins_home
+    jenkins_container_name: jenkins-master
+    JCasC_url: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/infra/Ansible/jenkins.yaml"
+    ansible_user: ubuntu
+    ansible_ssh_private_key_file: "~/.ssh/keys/Group2-KeyPair.pem"  # Update with your key path
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Docker and curl
+      apt:
+        name:
+          - docker.io
+          - curl
+          - python3-docker     # for docker_container module
+        state: present
+
+    - name: Create jenkins home directory
+      file:
+        path: "{{ jenkins_home }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0777'
+
+    - name: Create casc_configs directory
+      file:
+        path: "{{ jenkins_home }}/casc_configs"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Download JCasC configuration file
+      get_url:
+        url: "{{ JCasC_url }}"
+        dest: "{{ jenkins_home }}/casc_configs/jenkins.yaml"
+        mode: '0644'
+
+    - name: Make dockerfile with JCasC extention
+      copy:
+        dest: "{{ jenkins_home }}/Dockerfile"
+        content: |
+          FROM jenkins/jenkins:lts
+          USER root
+          RUN jenkins-plugin-cli --plugins configuration-as-code:latest
+          USER jenkins
+          COPY jenkins.yaml /var/jenkins_home/casc_configs/jenkins.yaml
+          ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
+    - name: Build Jenkins Docker image
+      docker_image:
+        name: jenkins/jenkins:lts
+        build:
+          path: "{{ jenkins_home }}"
+  
+    - name: Run dockerfile container
+      docker_container:
+        name: "{{ jenkins_container_name }}"
+        image: jenkins/jenkins:lts
+        state: started
+        restart_policy: always
+        ports:
+          - "8080:8080"
+          - "50000:50000"
+        volumes:
+          - "{{ jenkins_home }}:/var/jenkins_home"
+        env:
+          JENKINS_OPTS: "--argumentsRealm.passwd.admin={{ ADMIN_PASSWORD }} --argumentsRealm.roles.admin=admin --httpPort=8080 --prefix=/"
+          CASC_JENKINS_CONFIG: "/var/jenkins_home/casc_configs/jenkins.yaml"
+
+
+
+    - name: Wait for Jenkins to be up
+      uri:
+        url: "http://localhost:8080/login"
+        status_code: 200
+      register: jenkins_up
+      retries: 10
+      delay: 15
+      until: jenkins_up.status == 200
+
+    - name: Get initial admin password
+      command: "cat {{ jenkins_home }}/secrets/initialAdminPassword"
+      register: admin_password
