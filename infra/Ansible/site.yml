@@ -1,0 +1,15 @@
+---
+name: Configure Jenkins Master on AWS EC2
+hosts: all
+become: yes
+vars:
+  ADMIN_PASSWORD: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
+  DOCKERHUB_USER: "{{ lookup('env', 'DOCKERHUB_USER') }}"
+  DOCKERHUB_PASS: "{{ lookup('env', 'DOCKERHUB_PASS') }}"
+  GITHUB_USER: "{{ lookup('env', 'GITHUB_USER') }}"
+  GITHUB_TOKEN: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+
+  roles:
+    
+jenkins-master
+ansible-inventory -i infra/Ansible/inventory/inventory.aws_ec2.yml --graph
