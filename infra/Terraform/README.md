@@ -4,7 +4,7 @@ remote-tfstate-bucket:
     - this file should be ran only once, before actual infra deployment
     purpose: to manage tfstate remotely and have multiple people run terraform commands to this enviroment in a nondestructive manner
 
-env:
+environment:
      - this terraform folder is separated into tf files (networking,compute,providers,etc..)
      - main.tf acts as glue and can stay empty - mandatory for tf to run correctly!
      - tfstate file and lock will be written to the S3 buckjet and DynamoDB table using "backend.tf"
