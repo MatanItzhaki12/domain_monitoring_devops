@@ -10,7 +10,7 @@ terraform {
 #     bucket         = "group2-terraform-bucket-2025-774411"
 #     key            = "terraform.tfstate"
 #     region         = "us-east-2"
-#     dynamodb_table = "terraform-state-locking"
+#     dynamodb_table = "group2-terraform-state-locking"
 #     encrypt        = true
 #  }
 
@@ -39,7 +39,7 @@ resource "aws_s3_bucket_versioning" "terraform_bucket_versioning" {
 }
 
 resource "aws_dynamodb_table" "terraform_locks" {
-  name         = "terraform-state-locking"
+  name         = "group2-terraform-state-locking"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
   attribute {
