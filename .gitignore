@@ -51,7 +51,6 @@ override.tf.json
 # IDE and Backup Files
 #--------------------------
 
-
 # IDE/editor specific files
 .vscode/
 .idea/
