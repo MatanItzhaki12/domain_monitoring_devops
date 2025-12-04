@@ -1,0 +1,22 @@
+# JCasC
+configuration-as-code
+
+# Credentials
+credentials
+plain-credentials
+ssh-credentials
+
+# Git + SCM
+git
+git-client
+
+# Pipeline
+workflow-aggregator
+pipeline-utility-steps
+
+# Job DSL (אם אתה מגדיר ג'ובים בקבצי YAML/DSL)
+job-dsl
+
+# Docker (אם תבנה/תריץ קונטיינרים מתוך הג'ובים)
+docker-workflow
+docker
