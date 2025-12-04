@@ -59,3 +59,4 @@ override.tf.json
 # Optional: ignore backup files
 # *.bak
 *.swp
+.env/

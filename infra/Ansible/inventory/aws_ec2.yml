@@ -1,13 +1,12 @@
----
-plugin: amazon.aws.aws_ec2   # safer to be explicit
+plugin: amazon.aws.aws_ec2
 
 regions:
   - us-east-2
 
 filters:
   instance-state-name: running
+  tag:Name: "group2-*"
 
-# What becomes inventory_hostname
 hostnames:
   - public_ip_address
   - private_ip_address
@@ -18,4 +17,4 @@ compose:
 
 keyed_groups:
   - key: tags.Name
-    prefix: group2-
+    prefix: ""
