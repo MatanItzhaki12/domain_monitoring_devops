@@ -1,0 +1,57 @@
+# Jenkins Plugin Installation Configuration
+# Plugins to be installed automatically via jenkins-plugin-cli
+
+plugins:
+  # Core JCasC
+  - configuration-as-code
+  - configuration-as-code-support
+  
+  # SCM
+  - git
+  - github
+  - github-branch-source
+  
+  # Pipeline
+  - workflow-aggregator
+  - pipeline-stage-view
+  - pipeline-graph-analysis
+  
+  # Docker
+  - docker-plugin
+  - docker-workflow
+  - docker-commons
+  
+  # Credentials
+  - credentials
+  - credentials-binding
+  - plain-credentials
+  
+  # Agent/Node
+  - ssh-slaves
+  - jnlp-slaves
+  
+  # UI
+  - blueocean
+  - dashboard-view
+  - cloudbees-folder
+  
+  # Build/Test
+  - junit
+  - htmlpublisher
+  - cobertura
+  - warnings-ng
+  
+  # Notifications
+  - email-ext
+  - mailer
+  
+  # Security
+  - matrix-auth
+  - role-strategy
+  
+  # Utilities
+  - timestamper
+  - build-timeout
+  - ws-cleanup
+  - pipeline-utility-steps
+  - ansicolor
