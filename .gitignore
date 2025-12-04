@@ -12,6 +12,7 @@ _venv_/
 *.log
 logs/*
 !logs/.gitkeep_
+*.pem
 
 # OS-specific
 .DS_Store
