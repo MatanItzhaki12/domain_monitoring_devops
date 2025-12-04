@@ -14,9 +14,9 @@ git-client
 workflow-aggregator
 pipeline-utility-steps
 
-# Job DSL (אם אתה מגדיר ג'ובים בקבצי YAML/DSL)
+# Job DSL 
 job-dsl
 
-# Docker (אם תבנה/תריץ קונטיינרים מתוך הג'ובים)
+# Docker 
 docker-workflow
 docker
