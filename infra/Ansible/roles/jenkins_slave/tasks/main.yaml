@@ -1,0 +1,106 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+# --- BASIC INSTALLATION ---
+
+- name: Install Java 17
+  apt:
+    name: openjdk-17-jdk
+    state: present
+
+- name: Install Docker and Curl
+  apt:
+    name: 
+      - docker.io
+      - curl
+    state: present
+
+- name: Add ubuntu user to docker group
+  user:
+    name: ubuntu
+    groups: docker
+    append: yes
+
+- name: Create Jenkins Agent Workspace
+  file:
+    path: "/home/jenkins"
+    state: directory
+    mode: '0777'
+    owner: ubuntu
+    group: ubuntu
+
+# --- CONNECTION & SECRET RETRIEVAL ---
+
+- name: Set Jenkins Master URL variable
+  set_fact:
+    # Dynamically find the Master IP
+    jenkins_master_url: "http://{{ hostvars[groups['_group2_jenkins_master'][0]]['ansible_host'] }}:8080"
+
+- name: Wait for Jenkins Master to be fully up
+  uri:
+    url: "{{ jenkins_master_url }}/jnlpJars/agent.jar"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 10
+
+- name: Download agent.jar
+  get_url:
+    url: "{{ jenkins_master_url }}/jnlpJars/agent.jar"
+    dest: "/home/jenkins/agent.jar"
+    mode: '0644'
+
+- name: Retrieve Node Secret from Master
+  #use shell to curl the JNLP file and extract the secret using regex
+  # use the credentials passed from the playbook
+  shell: |
+    curl -s -u "{{ ADMIN_USER }}:{{ ADMIN_PASSWORD }}" \
+    "{{ jenkins_master_url }}/computer/{{ NODE_NAME }}/jenkins-agent.jnlp" | \
+    sed -n 's/.*<argument>\([a-z0-9]*\)<\/argument>.*/\1/p' | head -n 1
+  register: node_secret_output
+  changed_when: false
+
+- name: Debug Secret (Optional - remove in production)
+  debug:
+    msg: "Found secret: {{ node_secret_output.stdout }}"
+
+# --- SYSTEMD SERVICE SETUP ---
+
+- name: Create Systemd Service File
+  copy:
+    dest: /etc/systemd/system/jenkins-worker.service
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Jenkins Worker Agent
+      After=docker.service network.target
+      Requires=docker.service
+
+      [Service]
+      Type=simple
+      User=ubuntu
+      Group=ubuntu
+      WorkingDirectory=/home/jenkins
+      # The command connects to the master using the secret we fetched
+      ExecStart=/usr/bin/java -jar /home/jenkins/agent.jar \
+          -url {{ jenkins_master_url }} \
+          -secret {{ node_secret_output.stdout }} \
+          -name "{{ NODE_NAME }}" \
+          -workDir "/home/jenkins"
+      
+      Restart=always
+      RestartSec=10
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Reload Systemd and Start Agent
+  systemd:
+    name: jenkins-worker
+    state: started
+    enabled: yes
+    daemon_reload: yes
