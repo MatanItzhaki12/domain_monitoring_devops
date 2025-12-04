@@ -1,0 +1,58 @@
+# Core Jenkins plugins
+configuration-as-code:latest
+configuration-as-code-support:latest
+
+# Git and GitHub
+git:latest
+github:latest
+github-branch-source:latest
+
+# Pipeline and Workflow
+workflow-aggregator:latest
+pipeline-stage-view:latest
+pipeline-graph-analysis:latest
+
+# Docker
+docker-plugin:latest
+docker-workflow:latest
+docker-commons:latest
+
+# Credentials
+credentials:latest
+credentials-binding:latest
+plain-credentials:latest
+
+# Node and Agent management
+ssh-slaves:latest
+jnlp-slaves:latest
+
+# UI and visualization
+blueocean:latest
+dashboard-view:latest
+cloudbees-folder:latest
+
+# Build and Testing
+junit:latest
+htmlpublisher:latest
+cobertura:latest
+warnings-ng:latest
+
+# Notification and Integration
+email-ext:latest
+slack:latest
+telegram-notifications:latest
+
+# Security
+matrix-auth:latest
+role-strategy:latest
+
+# Utilities
+timestamper:latest
+build-timeout:latest
+ws-cleanup:latest
+pipeline-utility-steps:latest
+http_request:latest
+ansicolor:latest
+
+# Metrics and Monitoring
+prometheus:latest

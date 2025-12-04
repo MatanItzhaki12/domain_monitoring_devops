@@ -1,0 +1,32 @@
+---
+# Main playbook for deploying Jenkins infrastructure on AWS EC2
+
+- name: Deploy Jenkins Master
+  hosts: jenkins_master
+  become: yes
+  gather_facts: yes
+
+  vars_files:
+    - group_vars/all/vars.yml
+
+  roles:
+    - jenkins_master
+
+  tags:
+    - master
+    - jenkins
+
+- name: Deploy Jenkins Slaves
+  hosts: jenkins_slave
+  become: yes
+  gather_facts: yes
+
+  vars_files:
+    - group_vars/all/vars.yml
+
+  roles:
+    - jenkins_slave
+
+  tags:
+    - slave
+    - jenkins

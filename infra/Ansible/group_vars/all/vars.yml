@@ -1,0 +1,36 @@
+---
+# Jenkins configuration variables
+
+# Jenkins Admin credentials
+jenkins_admin_password: "{{ lookup('env', 'JENKINS_ADMIN_PASSWORD') | default('admin123', true) }}"
+jenkins_devops_password: "{{ lookup('env', 'JENKINS_DEVOPS_PASSWORD') | default('devops123', true) }}"
+jenkins_dev_password: "{{ lookup('env', 'JENKINS_DEV_PASSWORD') | default('dev123', true) }}"
+
+# Jenkins URL configuration
+jenkins_url: "{{ lookup('env', 'JENKINS_URL') | default('localhost', true) }}"
+jenkins_admin_email: "{{ lookup('env', 'JENKINS_ADMIN_EMAIL') | default('admin@example.com', true) }}"
+
+# Docker Hub credentials
+dockerhub_user: "{{ lookup('env', 'DOCKERHUB_USER') | default('your-dockerhub-user', true) }}"
+dockerhub_pass: "{{ lookup('env', 'DOCKERHUB_PASS') | default('your-dockerhub-password', true) }}"
+
+# GitHub credentials
+github_user: "{{ lookup('env', 'GITHUB_USER') | default('MatanItzhaki12', true) }}"
+github_token: "{{ lookup('env', 'GITHUB_TOKEN') | default('your-github-token', true) }}"
+
+# AWS credentials (for Terraform)
+aws_access_key_id: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') | default('', true) }}"
+aws_secret_access_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') | default('', true) }}"
+
+# Repository URL
+repo_url: "{{ lookup('env', 'REPO_URL') | default('https://github.com/MatanItzhaki12/domain_monitoring_devops.git', true) }}"
+
+# Jenkins Master URL (for slave connection)
+jenkins_master_url: "{{ hostvars[groups['jenkins_master'][0]]['ansible_default_ipv4']['address'] | default('localhost') }}"
+
+# Jenkins Agent name
+jenkins_agent_name: "docker-slave-1"
+
+# SSH settings
+ansible_user: ubuntu
+ansible_ssh_private_key_file: "~/.ssh/Group2-KeyPair.pem"

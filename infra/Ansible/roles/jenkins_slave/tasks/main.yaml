@@ -1,0 +1,98 @@
+---
+# tasks file for jenkins_slave
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+
+- name: Install required packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - python3-pip
+      - openjdk-17-jdk
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Ensure Docker service is started and enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Create jenkins user
+  user:
+    name: jenkins
+    home: /home/jenkins
+    shell: /bin/bash
+    groups: docker
+    append: yes
+
+- name: Create Jenkins agent directory
+  file:
+    path: /home/jenkins
+    state: directory
+    owner: jenkins
+    group: jenkins
+    mode: '0755'
+
+- name: Download Jenkins agent JAR
+  get_url:
+    url: "http://{{ jenkins_master_url }}:8080/jnlpJars/agent.jar"
+    dest: /home/jenkins/agent.jar
+    owner: jenkins
+    group: jenkins
+    mode: '0644'
+  register: agent_jar
+  until: agent_jar is succeeded
+  retries: 10
+  delay: 10
+
+- name: Create systemd service for Jenkins agent
+  template:
+    src: jenkins-agent.service.j2
+    dest: /etc/systemd/system/jenkins-agent.service
+    mode: '0644'
+  notify: restart jenkins-agent
+
+- name: Enable and start Jenkins agent service
+  systemd:
+    name: jenkins-agent
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Display agent information
+  debug:
+    msg:
+      - "Jenkins agent installed successfully"
+      - "Agent connects to: http://{{ jenkins_master_url }}:8080"
+      - "Agent name: {{ jenkins_agent_name | default('docker-slave-1') }}"

@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  jenkins-master:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins-master
+    restart: unless-stopped
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./jenkins.yaml:/var/jenkins_home/casc_configs/jenkins.yaml:ro
+      - ./init-scripts:/usr/share/jenkins/ref/init.groovy.d:ro
+    environment:
+      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD:-admin123}
+      - JENKINS_DEVOPS_PASSWORD=${JENKINS_DEVOPS_PASSWORD:-devops123}
+      - JENKINS_DEV_PASSWORD=${JENKINS_DEV_PASSWORD:-dev123}
+      - JENKINS_URL=${JENKINS_URL:-http://localhost:8080}
+      - JENKINS_ADMIN_EMAIL=${JENKINS_ADMIN_EMAIL:-admin@example.com}
+      - DOCKERHUB_USER=${DOCKERHUB_USER:-your-dockerhub-user}
+      - DOCKERHUB_PASS=${DOCKERHUB_PASS:-your-dockerhub-password}
+      - GITHUB_USER=${GITHUB_USER:-MatanItzhaki12}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-your-github-token}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - REPO_URL=${REPO_URL:-https://github.com/MatanItzhaki12/domain_monitoring_devops.git}
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Dorg.apache.commons.jelly.tags.fmt.timeZone=UTC
+      - CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
+    networks:
+      - jenkins-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/login || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  jenkins-slave:
+    image: jenkins/inbound-agent:latest-jdk17
+    container_name: jenkins-slave-1
+    restart: unless-stopped
+    privileged: true
+    user: root
+    depends_on:
+      jenkins-master:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - jenkins_slave_home:/home/jenkins
+    environment:
+      - JENKINS_URL=http://jenkins-master:8080
+      - JENKINS_AGENT_NAME=docker-slave-1
+      - JENKINS_AGENT_WORKDIR=/home/jenkins
+      - JENKINS_SECRET=${JENKINS_AGENT_SECRET:-}
+      - JENKINS_WEB_SOCKET=true
+    networks:
+      - jenkins-network
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        # Install Docker CLI
+        apt-get update && apt-get install -y \
+          apt-transport-https \
+          ca-certificates \
+          curl \
+          gnupg \
+          lsb-release \
+          python3 \
+          python3-pip && \
+        curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+        echo "deb [arch=$$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+        apt-get update && \
+        apt-get install -y docker-ce-cli && \
+        
+        # Wait for Jenkins Master to start
+        echo "Waiting for Jenkins Master to be ready..."
+        until curl -s http://jenkins-master:8080/login > /dev/null 2>&1; do
+          echo "Jenkins Master is not ready yet, waiting..."
+          sleep 5
+        done
+        
+        echo "Jenkins Master is ready!"
+        
+        # Start agent (it will connect automatically via JNLP)
+        exec jenkins-agent
+
+volumes:
+  jenkins_home:
+    driver: local
+  jenkins_slave_home:
+    driver: local
+
+networks:
+  jenkins-network:
+    driver: bridge

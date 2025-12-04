@@ -1,0 +1,214 @@
+jenkins:
+  systemMessage: "Jenkins CI/CD - Domain Monitoring DevOps (Fully Automated Setup)"
+  
+  # Security settings
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          name: "Administrator"
+          password: "${JENKINS_ADMIN_PASSWORD:-admin123}"
+        - id: "devops"
+          name: "DevOps Engineer"
+          password: "${JENKINS_DEVOPS_PASSWORD:-devops123}"
+        - id: "developer"
+          name: "Developer"
+          password: "${JENKINS_DEV_PASSWORD:-dev123}"
+
+  # Authorization strategy
+  authorizationStrategy:
+    roleBased:
+      roles:
+        global:
+          - name: "admin"
+            description: "Jenkins administrators"
+            permissions:
+              - "Overall/Administer"
+            assignments:
+              - "admin"
+          - name: "devops"
+            description: "DevOps engineers"
+            permissions:
+              - "Overall/Read"
+              - "Job/Build"
+              - "Job/Cancel"
+              - "Job/Read"
+              - "Job/Workspace"
+              - "View/Read"
+              - "Run/Replay"
+              - "Run/Update"
+            assignments:
+              - "devops"
+          - name: "developer"
+            description: "Developers with read access"
+            permissions:
+              - "Overall/Read"
+              - "Job/Read"
+              - "View/Read"
+            assignments:
+              - "developer"
+
+  # Security settings
+  remotingSecurity:
+    enabled: true
+
+  # Number of executors on master
+  numExecutors: 0
+  
+  # Usage mode
+  mode: EXCLUSIVE
+
+  # Agent (slave) configuration
+  nodes:
+    - permanent:
+        name: "docker-slave-1"
+        labelString: "docker linux slave"
+        remoteFS: "/home/jenkins"
+        numExecutors: 3
+        mode: NORMAL
+        retentionStrategy: always
+        launcher:
+          jnlp:
+            webSocket: true
+            workDirSettings:
+              disabled: false
+              workDirPath: "/home/jenkins"
+              internalDir: "remoting"
+
+  # Global settings
+  globalNodeProperties:
+    - envVars:
+        env:
+          - key: "JENKINS_HOME"
+            value: "/var/jenkins_home"
+          - key: "DOCKER_HOST"
+            value: "unix:///var/run/docker.sock"
+
+# Credentials
+credentials:
+  system:
+    domainCredentials:
+      - domain:
+          name: "_"
+          description: "Global credentials"
+        credentials:
+          # Docker Hub
+          - usernamePassword:
+              id: "dockerhub-creds"
+              scope: GLOBAL
+              username: "${DOCKERHUB_USER:-your-dockerhub-user}"
+              password: "${DOCKERHUB_PASS:-your-dockerhub-password}"
+              description: "Docker Hub credentials"
+          
+          # GitHub
+          - usernamePassword:
+              id: "github-token"
+              scope: GLOBAL
+              username: "${GITHUB_USER:-MatanItzhaki12}"
+              password: "${GITHUB_TOKEN:-your-github-token}"
+              description: "GitHub access token"
+          
+          # AWS (if needed)
+          - aws:
+              id: "aws-credentials"
+              scope: GLOBAL
+              accessKey: "${AWS_ACCESS_KEY_ID:-}"
+              secretKey: "${AWS_SECRET_ACCESS_KEY:-}"
+              description: "AWS credentials for Terraform"
+          
+          # SSH key for agents
+          - basicSSHUserPrivateKey:
+              id: "jenkins-ssh-key"
+              scope: GLOBAL
+              username: "jenkins"
+              description: "SSH key for Jenkins agents"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${JENKINS_AGENT_SSH_KEY:-}"
+
+# System settings
+unclassified:
+  location:
+    url: "${JENKINS_URL:-http://localhost:8080/}"
+    adminAddress: "${JENKINS_ADMIN_EMAIL:-admin@example.com}"
+
+  # JCasC configuration
+  casc:
+    configurationPath: "/var/jenkins_home/casc_configs/jenkins.yaml"
+
+  # Git settings
+  gitSCM:
+    globalConfigName: "Jenkins"
+    globalConfigEmail: "${JENKINS_ADMIN_EMAIL:-jenkins@example.com}"
+    createAccountBasedOnEmail: false
+
+  # Docker settings
+  dockerBuilder:
+    dockerInstallations:
+      - name: "docker"
+        properties:
+          - installSource:
+              installers:
+                - fromDocker:
+                    version: "latest"
+
+  # Shell settings
+  shell:
+    shell: "/bin/bash"
+
+  # Timestamper
+  timestamperConfig:
+    allPipelines: true
+    elapsedTimeFormat: "'<b>'HH:mm:ss.S'</b> '"
+    systemTimeFormat: "'<b>'HH:mm:ss'</b> '"
+
+  # Theme (if plugin is installed)
+  themeManager:
+    disableUserThemes: false
+    theme: "default"
+
+# Pipeline Libraries (if shared libraries are needed)
+jobs:
+  - script: |
+      folder('DevOps') {
+        description('DevOps related jobs')
+      }
+  
+  - script: |
+      pipelineJob('DevOps/domain-monitoring-pipeline') {
+        description('Main CI/CD pipeline for domain monitoring system')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('${REPO_URL:-https://github.com/MatanItzhaki12/domain_monitoring_devops.git}')
+                  credentials('github-token')
+                }
+                branch('*/main')
+              }
+            }
+            scriptPath('Jenkinsfile')
+          }
+        }
+        triggers {
+          githubPush()
+        }
+      }
+
+# Tool installations
+tool:
+  git:
+    installations:
+      - name: "Default"
+        home: "git"
+  
+  docker:
+    installations:
+      - name: "docker"
+        properties:
+          - installSource:
+              installers:
+                - fromDocker:
+                    version: "latest"

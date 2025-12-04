@@ -1,0 +1,17 @@
+[Unit]
+Description=Jenkins Agent
+After=network.target
+
+[Service]
+Type=simple
+User=jenkins
+WorkingDirectory=/home/jenkins
+ExecStart=/usr/bin/java -jar /home/jenkins/agent.jar \
+    -jnlpUrl http://{{ jenkins_master_url }}:8080/computer/{{ jenkins_agent_name | default('docker-slave-1') }}/jenkins-agent.jnlp \
+    -workDir /home/jenkins \
+    -webSocket
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

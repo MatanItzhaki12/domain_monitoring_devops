@@ -1,0 +1,135 @@
+---
+# tasks file for jenkins_master
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+
+- name: Install required packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - python3-pip
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install Docker Compose standalone
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-x86_64"
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'
+
+- name: Ensure Docker service is started and enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Add current user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+
+- name: Create Jenkins directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/jenkins
+    - /opt/jenkins/casc_configs
+    - /opt/jenkins/init-scripts
+
+- name: Copy Jenkins Dockerfile
+  copy:
+    src: "{{ playbook_dir }}/../../Jenkins/Dockerfile"
+    dest: /opt/jenkins/Dockerfile
+    mode: '0644'
+
+- name: Copy Jenkins plugins.txt
+  copy:
+    src: "{{ playbook_dir }}/../../Jenkins/plugins.txt"
+    dest: /opt/jenkins/plugins.txt
+    mode: '0644'
+
+- name: Copy Jenkins JCasC configuration
+  template:
+    src: jenkins.yaml.j2
+    dest: /opt/jenkins/jenkins.yaml
+    mode: '0644'
+
+- name: Copy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/jenkins/docker-compose.yml
+    mode: '0644'
+
+- name: Copy .env file
+  template:
+    src: env.j2
+    dest: /opt/jenkins/.env
+    mode: '0600'
+
+- name: Pull Jenkins images
+  community.docker.docker_image:
+    name: "{{ item }}"
+    source: pull
+  loop:
+    - jenkins/jenkins:lts-jdk17
+    - jenkins/inbound-agent:latest-jdk17
+
+- name: Start Jenkins with docker-compose
+  community.docker.docker_compose:
+    project_src: /opt/jenkins
+    state: present
+    pull: yes
+  register: jenkins_output
+
+- name: Wait for Jenkins to start
+  uri:
+    url: "http://{{ jenkins_url | default('localhost') }}:8080/login"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 30
+  delay: 10
+
+- name: Display Jenkins access information
+  debug:
+    msg:
+      - "Jenkins is ready!"
+      - "URL: http://{{ jenkins_url | default('localhost') }}:8080"
+      - "Admin user: admin"
+      - "Admin password: {{ jenkins_admin_password }}"
+      - "DevOps user: devops"
+      - "Developer user: developer"

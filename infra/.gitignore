@@ -1,0 +1,21 @@
+# Environment files with secrets
+.env
+env.sh
+
+# SSH Keys
+*.pem
+*.key
+id_rsa*
+
+# Terraform state
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Ansible
+*.retry
+.vault_pass
+
+# Jenkins home (if running locally)
+jenkins_home/
