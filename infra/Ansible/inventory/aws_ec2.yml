@@ -5,7 +5,7 @@ regions:
 
 filters:
   instance-state-name: running
-  tag:Name: "group2-*"
+  tag:Name: "Group2-*"
 
 hostnames:
   - public_ip_address
@@ -14,7 +14,6 @@ hostnames:
 compose:
   ansible_host: public_ip_address
   ansible_host_private: private_ip_address
-
 keyed_groups:
   - key: tags.Name
     prefix: ""

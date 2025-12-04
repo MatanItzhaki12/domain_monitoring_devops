@@ -1,6 +1,6 @@
 ---
 - name: Configure Jenkins Master on AWS EC2
-  hosts: _group2_jenkins_master
+  hosts: _Group2_jenkins_master
   become: yes
 
   collections:
@@ -18,3 +18,4 @@
     Plugin_configuration_file: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/infra/Ansible/plugins.yaml"
   roles:
     - jenkins_master
+    

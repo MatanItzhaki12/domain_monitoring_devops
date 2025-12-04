@@ -134,9 +134,9 @@
       # Switch back to jenkins user
       USER jenkins
       
-      # Copy plugins list and install all plugins
+      # Copy plugins list and install all plugins (quietly, log to file)
       COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-      RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt --verbose
+      RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt > /var/jenkins_home/plugin-install.log 2>&1
       
       # Copy JCasC configuration
       COPY jenkins.yaml /var/jenkins_home/casc_configs/jenkins.yaml
@@ -151,16 +151,21 @@
       
       # Expose ports
       EXPOSE 8080 50000
+
 - name: Build Jenkins Docker image
-  docker_image:
-    name: jenkins_with_jcasc/jenkins:lts
+  community.docker.docker_image:
+    name: group2-jenkins:lts          # custom image tag so you don't overwrite the official one
+    source: build
     build:
       path: "{{ jenkins_home }}"
+  environment:
+    DOCKER_BUILDKIT: "1"
+    BUILDKIT_PROGRESS: "plain"
 
 - name: Run fully automated Jenkins container
-  docker_container:
+  community.docker.docker_container:
     name: "{{ jenkins_container_name }}"
-    image: jenkins_with_jcasc/jenkins:lts
+    image: group2-jenkins:lts
     state: started
     restart_policy: always
     privileged: yes
@@ -175,22 +180,22 @@
       # Skip setup wizard completely
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Djenkins.CLI.disabled=false -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true"
       CASC_JENKINS_CONFIG: "/var/jenkins_home/casc_configs/jenkins.yaml"
-      
+
       # User credentials
       ADMIN_PASSWORD: "{{ ADMIN_PASSWORD }}"
       DEVOPS_PASSWORD: "{{ lookup('env', 'DEVOPS_PASSWORD') | default('devops123', true) }}"
-      
+
       # External service credentials
       DOCKERHUB_USER: "{{ DOCKERHUB_USER }}"
       DOCKERHUB_PASS: "{{ DOCKERHUB_PASS }}"
       GITHUB_USER: "{{ GITHUB_USER }}"
       GITHUB_TOKEN: "{{ GITHUB_TOKEN }}"
-      
+
       # Jenkins configuration
       JENKINS_URL: "{{ lookup('env', 'JENKINS_URL') | default('http://localhost:8080', true) }}"
       ADMIN_EMAIL: "{{ lookup('env', 'ADMIN_EMAIL') | default('admin@example.com', true) }}"
       REPO_URL: "{{ lookup('env', 'REPO_URL') | default('https://github.com/MatanItzhaki12/domain_monitoring_devops.git', true) }}"
-      
+
       # AWS credentials for Terraform
       AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') | default('', true) }}"
       AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') | default('', true) }}"
@@ -200,8 +205,6 @@
       timeout: 10s
       retries: 5
       start_period: 180s
-
-
 
 - name: Wait for Jenkins container to be healthy
   command: docker inspect --format='{{`{{.State.Health.Status}}`}}' {{ jenkins_container_name }}
