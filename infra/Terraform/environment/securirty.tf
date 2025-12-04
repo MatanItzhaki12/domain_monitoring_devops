@@ -1,9 +1,3 @@
-# Determine OS
-
-locals {
-    is_windows = lower(var.os_type) == "windows"
-}
-
 # Generate SSH key
 
 resource "tls_private_key" "group2_generated_keys" {
@@ -14,7 +8,7 @@ resource "tls_private_key" "group2_generated_keys" {
 # Upload public key to AWS
 
 resource "aws_key_pair" "group2_tf_public_key" {
-    key_name = "group2_tf_dms_pubkey"
+    key_name = var.ssh_public_key_name
     public_key = tls_private_key.group2_generated_keys.public_key_openssh
 }
 
@@ -22,26 +16,19 @@ resource "aws_key_pair" "group2_tf_public_key" {
 
 resource "local_file" "group2_tf_private_key" {
     content = tls_private_key.group2_generated_keys.private_key_pem
-    filename = (
-        local.is_windows ? "${path.module}\\generated_key.pem"
-        : "${path.module}/generated_key.pem"
-    )
-    file_permission = local.is_windows ? null : "0400"
+    filename = "${path.root}/keys/${var.ssh_private_key_name}.pem"
+    file_permission = "0400"
 
-    provisioner "local-exec" {
-        when = create
-        command = (
-            local.is_windows ? 
-            "attrib +R \"${path.module}\\generated_key.pem\"" :
-            "chmod 400 \"${path.module}/generated_key.pem\""
-        )
-    }
+    # provisioner "local-exec" {
+    #     when = create
+    #     command = "chmod 400 \"${path.module}/generated_key.pem\""
+    # }
 }
 
 # Create The Security group
 
 resource "aws_security_group" "group2_tf_security_group" {
-    name = "group2_tf_security_group"
+    name = "${var.group_name}-TF-SG"
     vpc_id = aws_vpc.group2_vpc.id
     # Inbound Rules
     ingress {
@@ -72,6 +59,6 @@ resource "aws_security_group" "group2_tf_security_group" {
         cidr_blocks = ["0.0.0.0/0"]
     }
     tags = {
-        Name = "Group2_TF_SG"
+        Name = "${var.group_name}_TF_SG"
     }
 }

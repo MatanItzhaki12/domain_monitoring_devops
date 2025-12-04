@@ -1,12 +1,12 @@
 # VPC
 
 resource "aws_vpc" "group2_vpc" {
-    cidr_block = "10.11.0.0/16"
-    enable_dns_support = true
-    enable_dns_hostnames = true
+    cidr_block = var.vpc_cidr
+    enable_dns_support = var.enable_dns_support
+    enable_dns_hostnames = var.enable_dns_hostnames
 
     tags = {
-        Name = "group2_vpc"
+        Name = "${var.group_name}_vpc"
     }
 }
 
@@ -14,11 +14,11 @@ resource "aws_vpc" "group2_vpc" {
 
 resource "aws_subnet" "public" {
     vpc_id = aws_vpc.group2_vpc.id
-    cidr_block = "10.11.1.0/24"
+    cidr_block = var.public_subnet_cidr
     map_public_ip_on_launch = true
 
     tags = {
-        Name = "group2_subnet"
+        Name = "${var.group_name}_subnet"
     }
 }
 
@@ -28,7 +28,7 @@ resource "aws_internet_gateway" "group2_igw" {
     vpc_id = aws_vpc.group2_vpc.id
 
     tags = {
-        Name = "group2_igw"
+        Name = "${var.group_name}_igw"
     }
 }
 
@@ -42,7 +42,7 @@ resource "aws_route_table" "group2_public_rt" {
     }
 
     tags = {
-        Name = "group2_public_rt"
+        Name = "${var.group_name}_public_rt"
     }
 }
 
