@@ -19,3 +19,14 @@
   roles:
     - jenkins_master
     
+- name: Configure Jenkins Agent on AWS EC2
+  hosts: _group2_jenkins_agent
+  become: yes
+
+  vars:
+    ADMIN_USER: "admin"
+    ADMIN_PASSWORD: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
+    NODE_NAME: "docker-slave-1"
+
+  roles:
+    - jenkins_slave

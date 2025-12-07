@@ -18,6 +18,12 @@
       - curl
     state: present
 
+- name: Ensure Docker service is running
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
 - name: Add ubuntu user to docker group
   user:
     name: ubuntu
@@ -28,7 +34,7 @@
   file:
     path: "/home/jenkins"
     state: directory
-    mode: '0777'
+    mode: '0755'
     owner: ubuntu
     group: ubuntu
 
@@ -60,7 +66,7 @@
   shell: |
     curl -s -u "{{ ADMIN_USER }}:{{ ADMIN_PASSWORD }}" \
     "{{ jenkins_master_url }}/computer/{{ NODE_NAME }}/jenkins-agent.jnlp" | \
-    sed -n 's/.*<argument>\([a-z0-9]*\)<\/argument>.*/\1/p' | head -n 1
+    sed -n 's/.*<argument>\([^<]*\)<\/argument>.*/\1/p' | head -n 1
   register: node_secret_output
   changed_when: false
 

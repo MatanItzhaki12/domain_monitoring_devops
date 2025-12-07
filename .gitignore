@@ -60,4 +60,11 @@ override.tf.json
 # Optional: ignore backup files
 # *.bak
 *.swp
-.env/
+# Environment files
+.env
+*.env
+
+# Private keys
+*.pem
+*.key
+*.crt
