@@ -1,5 +1,9 @@
+###Jenkins Plugin Installation Configuration###
+###Plugins to be installed automatically via jenkins-plugin-cli###
+
 # JCasC
 configuration-as-code
+configuration-as-code-support
 
 # Credentials
 credentials
@@ -8,7 +12,9 @@ ssh-credentials
 
 # Git + SCM
 git
+github
 git-client
+github-branch-source
 
 # Pipeline
 workflow-aggregator
@@ -20,3 +26,35 @@ job-dsl
 # Docker 
 docker-workflow
 docker
+docker-plugin
+docker-commons
+
+# Notifications
+email-ext
+mailer
+
+# Utilities
+timestamper
+build-timeout
+ws-cleanup
+pipeline-utility-steps
+ansicolor
+
+# Build/Test
+junit
+htmlpublisher
+cobertura
+warnings-ng
+
+# UI
+blueocean
+dashboard-view
+cloudbees-folder
+
+# Agent/Node
+ssh-slaves
+jnlp-slaves
+
+# Security
+matrix-auth
+role-strategy
