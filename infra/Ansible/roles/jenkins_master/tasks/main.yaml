@@ -108,7 +108,7 @@
       ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false \
                       -Djenkins.CLI.disabled=false \
                       -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true"
-      ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
+      ENV CASC_JENKINS_CONFIG={{ jenkins_home }}/casc_configs/jenkins.yaml
       
       USER root
       
