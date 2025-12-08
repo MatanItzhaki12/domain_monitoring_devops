@@ -20,7 +20,7 @@
     - jenkins_master
     
 - name: Configure Jenkins Agent on AWS EC2
-  hosts: _group2_jenkins_agent
+  hosts: _Group2_jenkins_agent
   become: yes
 
   vars:
