@@ -136,7 +136,7 @@
       
       # Copy plugins list and install all plugins (quietly, log to file)
       COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-      RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt > /var/jenkins_home/plugin-install.log 2>&1
+      RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
       
       # Copy JCasC configuration
       COPY jenkins.yaml /var/jenkins_home/casc_configs/jenkins.yaml

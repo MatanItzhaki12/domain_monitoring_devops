@@ -1,6 +1,3 @@
-###Jenkins Plugin Installation Configuration###
-###Plugins to be installed automatically via jenkins-plugin-cli###
-
 # JCasC
 configuration-as-code
 configuration-as-code-support
@@ -23,11 +20,11 @@ pipeline-utility-steps
 # Job DSL 
 job-dsl
 
-# Docker 
+# Docker (modern working set)
 docker-workflow
-docker
-docker-plugin
 docker-commons
+docker-build-step
+cloudbees-docker-workflow
 
 # Notifications
 email-ext
@@ -37,13 +34,11 @@ mailer
 timestamper
 build-timeout
 ws-cleanup
-pipeline-utility-steps
 ansicolor
 
 # Build/Test
 junit
 htmlpublisher
-cobertura
 warnings-ng
 
 # UI
@@ -51,10 +46,6 @@ blueocean
 dashboard-view
 cloudbees-folder
 
-# Agent/Node
-ssh-slaves
-jnlp-slaves
-
-# Security
-matrix-auth
-role-strategy
+# Agents
+ssh-connection       # replaces ssh-slaves
+agent-server         # replaces jnlp-slaves functionality
