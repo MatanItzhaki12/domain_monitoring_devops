@@ -1,159 +1,139 @@
 ---
-- name: Fully Automated Jenkins Deployment (Fixed)
-  hosts: all
-  become: true
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
 
-  vars:
-    jenkins_home: /opt/jenkins
-    jenkins_container_name: group2-jenkins
+- name: Install Docker & dependencies
+  apt:
+    name:
+      - docker.io
+      - curl
+      - python3-docker
+    state: present
 
-  tasks:
+- name: Ensure Docker is running
+  service:
+    name: docker
+    state: started
+    enabled: true
 
-  - name: Update apt cache
-    apt:
-      update_cache: yes
-      cache_valid_time: 3600
+- name: Create Jenkins directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0777'
+  loop:
+    - "{{ jenkins_home }}"
+    - "{{ jenkins_home }}/casc_configs"
+    - "{{ jenkins_home }}/init.groovy.d"
 
-  - name: Install Docker & dependencies
-    apt:
-      name:
-        - docker.io
-        - curl
-        - python3-docker
-      state: present
+- name: Download JCasC config
+  get_url:
+    url: "{{ JCasC_url }}"
+    dest: "{{ jenkins_home }}/casc_configs/jenkins.yaml"
+    mode: '0644'
 
-  - name: Ensure Docker is running
-    service:
-      name: docker
-      state: started
-      enabled: true
+- name: Download plugins.yaml
+  get_url:
+    url: "{{ Plugin_configuration_file }}"
+    dest: "{{ jenkins_home }}/plugins.yaml"
+    mode: '0644'
 
-  - name: Create Jenkins directories
-    file:
-      path: "{{ item }}"
-      state: directory
-      owner: root
-      group: root
-      mode: '0777'
-    loop:
-      - "{{ jenkins_home }}"
-      - "{{ jenkins_home }}/casc_configs"
-      - "{{ jenkins_home }}/init.groovy.d"
+- name: Generate plugins.txt
+  copy:
+    dest: "{{ jenkins_home }}/plugins.txt"
+    content: |
+      configuration-as-code
+      configuration-as-code-support
+      job-dsl
+      git
+      git-client
+      github
+      github-branch-source
+      workflow-aggregator
+      pipeline-stage-view
+      pipeline-graph-analysis
+      pipeline-utility-steps
+      docker-workflow
+      docker-commons
+      credentials
+      credentials-binding
+      plain-credentials
+      ssh-credentials
+      cloudbees-folder
+      dashboard-view
+      junit
+      htmlpublisher
+      cobertura
+      warnings-ng
+      email-ext
+      mailer
+      matrix-auth
+      role-strategy
+      timestamper
+      build-timeout
+      ws-cleanup
+      ansicolor
 
-  - name: Download JCasC config
-    get_url:
-      url: "{{ JCasC_url }}"
-      dest: "{{ jenkins_home }}/casc_configs/jenkins.yaml"
-      mode: '0644'
+- name: Skip setup wizard script
+  copy:
+    dest: "{{ jenkins_home }}/init.groovy.d/01-skip-setup.groovy"
+    content: |
+      import jenkins.install.InstallState
+      Jenkins.instance.setInstallState(InstallState.INITIAL_SETUP_COMPLETED)
 
-  - name: Download plugins.yaml
-    get_url:
-      url: "{{ Plugin_configuration_file }}"
-      dest: "{{ jenkins_home }}/plugins.yaml"
-      mode: '0644'
+- name: Auto approve scripts
+  copy:
+    dest: "{{ jenkins_home }}/init.groovy.d/02-approve.groovy"
+    content: |
+      import org.jenkinsci.plugins.scriptsecurity.scripts.ScriptApproval
+      ScriptApproval.get().getPendingSignatures().each {
+          ScriptApproval.get().approveSignature(it.signature)
+      }
 
-  - name: Generate plugins.txt SAFELY
-    copy:
-      dest: "{{ jenkins_home }}/plugins.txt"
-      content: |
-        configuration-as-code
-        configuration-as-code-support
-        job-dsl
-        git
-        git-client
-        github
-        github-branch-source
-        workflow-aggregator
-        pipeline-stage-view
-        pipeline-graph-analysis
-        pipeline-utility-steps
-        docker-workflow
-        docker-commons
-        credentials
-        credentials-binding
-        plain-credentials
-        ssh-credentials
-        cloudbees-folder
-        dashboard-view
-        junit
-        htmlpublisher
-        cobertura
-        warnings-ng
-        email-ext
-        mailer
-        matrix-auth
-        role-strategy
-        timestamper
-        build-timeout
-        ws-cleanup
-        ansicolor
+- name: Create Dockerfile for Jenkins
+  copy:
+    dest: "{{ jenkins_home }}/Dockerfile"
+    content: |
+      FROM jenkins/jenkins:lts-jdk17
+      USER root
+      ENV SECURITY_SCRIPTING_DISABLED=true
+      ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
+      ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
+      COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+      COPY jenkins.yaml /var/jenkins_home/casc_configs/jenkins.yaml
+      COPY init.groovy.d/ /usr/share/jenkins/ref/init.groovy.d/
+      RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+      USER jenkins
+      EXPOSE 8080 50000
 
-  - name: Skip setup wizard script
-    copy:
-      dest: "{{ jenkins_home }}/init.groovy.d/01-skip-setup.groovy"
-      mode: '0644'
-      content: |
-        import jenkins.model.*
-        import jenkins.install.*
-        Jenkins.instance.setInstallState(InstallState.INITIAL_SETUP_COMPLETED)
+- name: Build Jenkins Docker image
+  community.docker.docker_image:
+    name: group2-jenkins:lts
+    source: build
+    build:
+      path: "{{ jenkins_home }}"
+      nocache: true
 
-  - name: Auto approve scripts
-    copy:
-      dest: "{{ jenkins_home }}/init.groovy.d/02-approve.groovy"
-      mode: '0644'
-      content: |
-        import org.jenkinsci.plugins.scriptsecurity.scripts.ScriptApproval
-        ScriptApproval.get().getPendingSignatures().each {
-            ScriptApproval.get().approveSignature(it.signature)
-        }
-
-  - name: Create FIXED Dockerfile for Jenkins
-    copy:
-      dest: "{{ jenkins_home }}/Dockerfile"
-      content: |
-        FROM jenkins/jenkins:lts-jdk17
-
-        USER root
-
-        ENV SECURITY_SCRIPTING_DISABLED=true
-        ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
-        ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
-
-        COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-        COPY jenkins.yaml /var/jenkins_home/casc_configs/jenkins.yaml
-        COPY init.groovy.d/ /usr/share/jenkins/ref/init.groovy.d/
-
-        RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
-
-        USER jenkins
-
-        EXPOSE 8080 50000
-
-  - name: Build Jenkins Docker image (NO CACHE)
-    community.docker.docker_image:
-      name: group2-jenkins:lts
-      source: build
-      build:
-        path: "{{ jenkins_home }}"
-        nocache: true
-
-  - name: Run Jenkins container
-    community.docker.docker_container:
-      name: "{{ jenkins_container_name }}"
-      image: group2-jenkins:lts
-      state: started
-      restart_policy: always
-      privileged: yes
-      ports:
-        - "8080:8080"
-        - "50000:50000"
-      volumes:
-        - "{{ jenkins_home }}:/var/jenkins_home"
-        - "/var/run/docker.sock:/var/run/docker.sock"
-      env:
-        ADMIN_PASSWORD: "{{ ADMIN_PASSWORD }}"
-        DOCKERHUB_USER: "{{ DOCKERHUB_USER }}"
-        DOCKERHUB_PASS: "{{ DOCKERHUB_PASS }}"
-        GITHUB_USER: "{{ GITHUB_USER }}"
-        GITHUB_TOKEN: "{{ GITHUB_TOKEN }}"
-
+- name: Run Jenkins container
+  community.docker.docker_container:
+    name: "{{ jenkins_container_name }}"
+    image: group2-jenkins:lts
+    state: started
+    restart_policy: always
+    privileged: yes
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - "{{ jenkins_home }}:/var/jenkins_home"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    env:
+      ADMIN_PASSWORD: "{{ ADMIN_PASSWORD }}"
+      DOCKERHUB_USER: "{{ DOCKERHUB_USER }}"
+      DOCKERHUB_PASS: "{{ DOCKERHUB_PASS }}"
+      GITHUB_USER: "{{ GITHUB_USER }}"
+      GITHUB_TOKEN: "{{ GITHUB_TOKEN }}"
