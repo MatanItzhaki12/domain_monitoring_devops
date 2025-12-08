@@ -15,7 +15,7 @@
     jenkins_home: /var/jenkins_home
     jenkins_container_name: jenkins-master
     JCasC_url: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/infra/Ansible/jenkins.yaml"
-    Plugin_configuration_file: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/infra/Ansible/plugins.yaml"
+    Plugin_configuration_file: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/infra/Ansible/plugins.txt"
   roles:
     - jenkins_master
     
