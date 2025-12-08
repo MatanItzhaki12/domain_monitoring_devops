@@ -1,174 +1,77 @@
-jenkins:
-  systemMessage: "Jenkins CI/CD - Domain Monitoring DevOps (Fully Automated)"
-  
-  # Disable executors on master
-  numExecutors: 0
-  mode: EXCLUSIVE
-  
-  # Skip initial setup wizard
-  disabledAdministrativeMonitors:
-    - "jenkins.diagnostics.SecurityIsOffMonitor"
-    - "jenkins.security.UpdateSiteWarningsMonitor"
-  
-  # Install plugins automatically without restart prompt
-  installStateBehavior:
-    name: "RestartUnstartedOnly"
-  
-  # Quiet period for builds
-  quietPeriod: 5
-  
-  # SCM checkout retry count
-  scmCheckoutRetryCount: 3
-  
-  # Security configuration
-  securityRealm:
-    local:
-      allowsSignup: false
-      users:
-        - id: "admin"
-          name: "Administrator"
-          password: "${ADMIN_PASSWORD:-admin123}"
-        - id: "devops"
-          name: "DevOps Engineer"
-          password: "${DEVOPS_PASSWORD:-devops123}"
+# ================================
+# Jenkins Plugins Configuration
+# Compatible with Jenkins LTS
+# ================================
 
-  # Authorization strategy with role-based access
-  authorizationStrategy:
-    roleBased:
-      roles:
-        global:
-          - name: "admin"
-            description: "Jenkins administrators"
-            permissions:
-              - "Overall/Administer"
-            assignments:
-              - "admin"
-          - name: "developer"
-            description: "Developers with build access"
-            permissions:
-              - "Overall/Read"
-              - "Job/Build"
-              - "Job/Cancel"
-              - "Job/Read"
-              - "Job/Workspace"
-              - "View/Read"
-            assignments:
-              - "devops"
+plugins:
 
-  # Enable remoting security
-  remotingSecurity:
-    enabled: true
+  # ================================
+  # Core / JCasC
+  # ================================
+  - configuration-as-code
+  - configuration-as-code-support
+  - job-dsl
 
-  # Configure agent nodes
-  nodes:
-    - permanent:
-        name: "docker-slave-1"
-        labelString: "docker linux slave"
-        remoteFS: "/home/jenkins"
-        numExecutors: 3
-        mode: NORMAL
-        retentionStrategy: always
-        launcher:
-          jnlp:
-            webSocket: true
-            workDirSettings:
-              disabled: false
-              workDirPath: "/home/jenkins"
-              internalDir: "remoting"
+  # ================================
+  # SCM / GitHub
+  # ================================
+  - git
+  - git-client
+  - github
+  - github-branch-source
 
-  # Global environment variables
-  globalNodeProperties:
-    - envVars:
-        env:
-          - key: "DOCKER_HOST"
-            value: "unix:///var/run/docker.sock"
+  # ================================
+  # Pipeline
+  # ================================
+  - workflow-aggregator
+  - pipeline-stage-view
+  - pipeline-utility-steps
+  - pipeline-graph-analysis
 
-# Credentials configuration
-credentials:
-  system:
-    domainCredentials:
-      - domain:
-          name: "_"
-          description: "Global credentials"
-        credentials:
-          # Docker Hub
-          - usernamePassword:
-              id: "dockerhub-creds"
-              scope: GLOBAL
-              username: "${DOCKERHUB_USER:-dockerhub-user}"
-              password: "${DOCKERHUB_PASS:-dockerhub-pass}"
-              description: "Docker Hub credentials"
-          
-          # GitHub
-          - usernamePassword:
-              id: "github-token"
-              scope: GLOBAL
-              username: "${GITHUB_USER:-github-user}"
-              password: "${GITHUB_TOKEN:-github-token}"
-              description: "GitHub access token"
-          
-          # AWS (optional)
-          - aws:
-              id: "aws-credentials"
-              scope: GLOBAL
-              accessKey: "${AWS_ACCESS_KEY_ID:-}"
-              secretKey: "${AWS_SECRET_ACCESS_KEY:-}"
-              description: "AWS credentials for Terraform"
+  # ================================
+  # Docker
+  # ================================
+  - docker-workflow
+  - docker-commons
 
-# System configuration
-unclassified:
-  location:
-    url: "${JENKINS_URL:-http://localhost:8080}"
-    adminAddress: "${ADMIN_EMAIL:-admin@example.com}"
+  # ================================
+  # Credentials
+  # ================================
+  - credentials
+  - credentials-binding
+  - plain-credentials
+  - ssh-credentials
 
-  # JCasC configuration path
-  casc:
-    configurationPath: "/var/jenkins_home/casc_configs/jenkins.yaml"
+  # ================================
+  # UI / Folders / Views
+  # ================================
+  - cloudbees-folder
+  - dashboard-view
 
-  # Git configuration
-  gitSCM:
-    globalConfigName: "Jenkins"
-    globalConfigEmail: "${ADMIN_EMAIL:-jenkins@example.com}"
-    createAccountBasedOnEmail: false
+  # ================================
+  # Build / Test / Reports
+  # ================================
+  - junit
+  - htmlpublisher
+  - cobertura
+  - warnings-ng
 
-  # Timestamper for all pipelines
-  timestamperConfig:
-    allPipelines: true
-    elapsedTimeFormat: "'<b>'HH:mm:ss.S'</b> '"
-    systemTimeFormat: "'<b>'HH:mm:ss'</b> '"
+  # ================================
+  # Notifications
+  # ================================
+  - email-ext
+  - mailer
 
-# Auto-create jobs
-jobs:
-  - script: |
-      folder('DevOps') {
-        description('DevOps related jobs')
-      }
-  
-  - script: |
-      pipelineJob('DevOps/domain-monitoring-pipeline') {
-        description('Main CI/CD pipeline for domain monitoring system')
-        definition {
-          cpsScm {
-            scm {
-              git {
-                remote {
-                  url('${REPO_URL:-https://github.com/MatanItzhaki12/domain_monitoring_devops.git}')
-                  credentials('github-token')
-                }
-                branch('*/main')
-              }
-            }
-            scriptPath('Jenkinsfile')
-          }
-        }
-        triggers {
-          githubPush()
-        }
-      }
+  # ================================
+  # Security / Authorization
+  # ================================
+  - matrix-auth
+  - role-strategy
 
-# Tool installations
-tool:
-  git:
-    installations:
-      - name: "Default"
-        home: "git"
+  # ================================
+  # Utilities
+  # ================================
+  - timestamper
+  - build-timeout
+  - ws-cleanup
+  - ansicolor
