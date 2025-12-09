@@ -4,22 +4,23 @@
 # Infra Setup Script - Step 1
 # ------------------------------------------
 # This script performs the first step of the infrastructure setup process.
-# It verifies that Python3, Terraform, and Ansible are installed on the system.
-# If any of these tools are missing, the script installs them automatically.
+# It verifies that Python, Terraform, and Ansible are installed on the system.
+# If missing, the script installs them automatically.
 #
 # Tools Checked:
 #   - Python3
-#   - Terraform (via HashiCorp official repository)
+#   - Terraform 
 #   - Ansible
 #
-# This script is intended to run on a Linux environment (Ubuntu/Debian-based).
+# This script is intended to run on a Linux environment.
 # It stops execution immediately if any command fails (set -e).
 #
 # After completing Step 1, the system will be ready for the next phases:
-# AWS credentials setup, Terraform execution, SSH key handling, and Ansible deployment.
-#
-# Author: Oz Efraty
-# Date: 2025
+
+# AWS credentials setup 
+# Terraform execution 
+# SSH key handling 
+# Ansible deployment
 
 set -e
 
@@ -64,4 +65,63 @@ check_installations() {
     echo "Step 1 is Completed."
 }
 
+# Step 2: AWS Credentials Setup
+# ------------------------------------------
+# This step verifies that the AWS credentials file exists on the system.
+# If the file ~/.aws/credentials does not exist, the script prompts the user
+# to enter an AWS Access Key ID and Secret Access Key, creates the directory
+# structure, generates the credentials file in the required format, and sets
+# secure file permissions (chmod 400).
+#
+# File created:
+#   ~/.aws/credentials
+#
+# Format:
+#   [default]
+#   aws_access_key_id=YOUR_KEY
+#   aws_secret_access_key=YOUR_SECRET
+#
+# Step 2 ensures Terraform&Ansible can authenticate against AWS in later phases of the infrastructure setup.
+
+check_aws_credentials() {
+    echo "----------STEP 2-----------"
+    echo "Checking AWS credentials file"
+
+    AWS_DIR="$HOME/.aws"
+    CRED_FILE="$AWS_DIR/credentials"
+
+    if [ -f "$CRED_FILE" ]; then
+        echo "AWS credentials file already exists at: $CRED_FILE"
+    else
+        echo "AWS credentials file not found."
+        echo "Creating AWS credentials file in: $CRED_FILE"
+        echo
+
+        # Ensure the directory exists
+        mkdir -p "$AWS_DIR"
+
+        echo "Please enter your AWS credentials (values without quotes):"
+        read -r -p "AWS Access Key ID: " AWS_ACCESS_KEY_ID
+        read -r -s -p "AWS Secret Access Key: " AWS_SECRET_ACCESS_KEY
+        echo
+
+        # Create the credentials file
+        cat > "$CRED_FILE" <<EOF
+[default]
+aws_access_key_id=${AWS_ACCESS_KEY_ID}
+aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
+EOF
+
+        # Set file permissions to read-only for the user
+        chmod 400 "$CRED_FILE"
+
+        echo "AWS credentials file created successfully at: $CRED_FILE"
+        echo "File permissions set to 400 (read-only for owner)."
+    fi
+
+    echo "Step 2 is Completed."
+    
+                        }
+
 check_installations
+check_aws_credentials
