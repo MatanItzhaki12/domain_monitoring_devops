@@ -111,7 +111,6 @@ EOF
     fi
 
     echo "Step 2 is Completed"
-    
                         }
 
 # STEP 3:
@@ -266,7 +265,6 @@ run_ansible_playbook() {
     fi
 
     echo "STEP 6 is Completed"
-    
                         }
 
 # Calling functions:
