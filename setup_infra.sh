@@ -29,7 +29,7 @@ check_installations() {
     echo "----------STEP 1-----------"
     echo "Checking Python, Terraform, and Ansible installations"
 
-    # Python
+    #Python
     if command -v python3 >/dev/null 2>&1; then
         echo "Python3 is installed."
     else
@@ -38,7 +38,7 @@ check_installations() {
         sudo apt install -y python3
     fi
 
-    # Terraform
+    #Terraform
     if command -v terraform >/dev/null 2>&1; then
         echo "Terraform is installed."
     else
@@ -51,7 +51,7 @@ check_installations() {
         sudo apt install -y terraform
     fi
 
-    # Ansible
+    #Ansible
     if command -v ansible >/dev/null 2>&1; then
         echo "Ansible is installed."
     else
@@ -60,7 +60,7 @@ check_installations() {
         sudo apt install -y ansible
     fi
 
-    echo "Step 1 is Completed."
+    echo "Step 1 is Completed"
 }
 
 # This step verifies that the AWS credentials file exists on the system.
@@ -93,7 +93,7 @@ check_aws_credentials() {
         echo "Creating AWS credentials file in: $CRED_FILE"
         echo
 
-        # Ensure the directory exists
+        #Ensure the directory exists
         mkdir -p "$AWS_DIR"
 
         echo "Please enter your AWS credentials (values without quotes):"
@@ -101,26 +101,26 @@ check_aws_credentials() {
         read -r -s -p "AWS Secret Access Key: " AWS_SECRET_ACCESS_KEY
         echo
 
-        # Create the credentials file
+        #Create the credentials file
         cat > "$CRED_FILE" <<EOF
 [default]
 aws_access_key_id=${AWS_ACCESS_KEY_ID}
 aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
 EOF
 
-        # Set file permissions to read-only for the user
+        #Set file permissions to read-only for the user
         chmod 400 "$CRED_FILE"
 
         echo "AWS credentials file created successfully at: $CRED_FILE"
         echo "File permissions set to 400 (read-only for owner)."
     fi
 
-    echo "Step 2 is Completed."
+    echo "Step 2 is Completed"
     
                         }
-# This step verifies that the Terraform folder structure required for the
-# infrastructure setup exists and is valid.
 
+#This step verifies that the Terraform folder structure required for the
+#infrastructure setup exists and is valid.
 check_terraform_structure() {
     echo "----------STEP 3-----------"
     echo "Verifying Terraform folder structure and main.tf files"
@@ -130,13 +130,13 @@ check_terraform_structure() {
     REMOTE_DIR="$INFRA_TF_DIR/remote-tfstate-bucket"
     ENV_DIR="$INFRA_TF_DIR/environment"
 
-    # Check base Terraform directory
+    #Check base Terraform directory
     if [ ! -d "$INFRA_TF_DIR" ]; then
         echo "ERROR: Base Terraform directory not found: $INFRA_TF_DIR"
         exit 1
     fi
 
-    # Array of directories to validate
+    #Array of directories to validate
     for dir in "$REMOTE_DIR" "$ENV_DIR"; do
         if [ ! -d "$dir" ]; then
             echo "ERROR: Terraform directory not found: $dir"
@@ -149,8 +149,43 @@ check_terraform_structure() {
         fi
     done
 
-    echo "Terraform folder structure and main.tf files are valid- Step 3 is completed."
+    echo "Terraform folder structure and main.tf files are valid"
+    echo "Step 3 is completed"
                             }
+
+# This step runs Terraform in the required directories to provision the infrastructure resources.
+run_terraform() {
+    echo "----------STEP 4-----------"
+    echo "Running Terraform in required directories"
+
+    PROJECT_ROOT="./domain_monitoring_system"
+    INFRA_TF_DIR="$PROJECT_ROOT/Infra/Terraform"
+    REMOTE_DIR="$INFRA_TF_DIR/remote-tfstate-bucket"
+    ENV_DIR="$INFRA_TF_DIR/environment"
+
+    #Run Terraform in remote-tfstate-bucket
+    echo "-> Executing Terraform in: $REMOTE_DIR"
+    cd "$REMOTE_DIR"
+
+    terraform init
+    terraform validate
+    terraform apply --auto-approve
+
+    echo "Terraform apply completed for remote-tfstate-bucket."
+
+    #Run Terraform in environment
+    echo "-> Executing Terraform in: $ENV_DIR"
+    cd "$ENV_DIR"
+
+    terraform init
+    terraform validate
+    terraform apply --auto-approve
+
+    echo "Terraform apply completed for environment."
+    echo "STEP 4 is Completed"
+                }
+
 check_installations
 check_aws_credentials
 check_terraform_structure
+run_terraform
