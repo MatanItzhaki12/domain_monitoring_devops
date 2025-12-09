@@ -59,7 +59,7 @@ check_installations() {
     echo "Step 1 is Completed"
                     }
 
-#STEP 2:
+# STEP 2:
 # Verifies that the AWS credentials file exists on the system.
 # If the file ~/.aws/credentials does not exist, the script prompts the user
 # to enter an AWS Access Key ID and Secret Access Key, creates the directory
