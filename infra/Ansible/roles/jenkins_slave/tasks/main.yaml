@@ -47,11 +47,11 @@
 
 - name: Wait for Jenkins Master to be fully up
   uri:
-    url: "{{ jenkins_master_url }}/jnlpJars/agent.jar"
+    url: "{{ jenkins_master_url }}/login"
     status_code: 200
   register: result
   until: result.status == 200
-  retries: 60
+  retries: 40
   delay: 10
 
 - name: Download agent.jar
@@ -60,13 +60,15 @@
     dest: "/home/jenkins/agent.jar"
     mode: '0644'
 
-- name: Retrieve Node Secret from Master
-  #use shell to curl the JNLP file and extract the secret using regex
-  # use the credentials passed from the playbook
+- name: Retrieve Node Secret from Master (API Method)
   shell: |
-    curl -s -u "{{ ADMIN_USER }}:{{ ADMIN_PASSWORD }}" \
-    "{{ jenkins_master_url }}/computer/{{ NODE_NAME }}/jenkins-agent.jnlp" | \
-    sed -n 's/.*<argument>\([^<]*\)<\/argument>.*/\1/p' | head -n 1
+    CRUMB=$(curl -s '{{ jenkins_master_url }}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)' -u "admin:{{ ADMIN_PASSWORD }}" -c /tmp/cookies)
+    
+    curl -s -X POST '{{ jenkins_master_url }}/scriptText' \
+         -u "admin:{{ ADMIN_PASSWORD }}" \
+         -b /tmp/cookies \
+         -H "$CRUMB" \
+         --data-urlencode "script=println(jenkins.model.Jenkins.instance.getNode('{{ NODE_NAME }}')?.computer?.jnlpMac)"
   register: node_secret_output
   changed_when: false
 
