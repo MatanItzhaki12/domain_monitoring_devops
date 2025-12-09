@@ -1,77 +1,50 @@
-# ================================
-# Jenkins Plugins Configuration
-# Compatible with Jenkins LTS
-# ================================
+jenkins:
+  systemMessage: "Jenkins CI/CD - Domain Monitoring DevOps"
+  numExecutors: 0
+  mode: EXCLUSIVE
+  quietPeriod: 5
+  scmCheckoutRetryCount: 3
 
-plugins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "${ADMIN_PASSWORD}"
 
-  # ================================
-  # Core / JCasC
-  # ================================
-  - configuration-as-code
-  - configuration-as-code-support
-  - job-dsl
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
 
-  # ================================
-  # SCM / GitHub
-  # ================================
-  - git
-  - git-client
-  - github
-  - github-branch-source
+  remotingSecurity:
+    enabled: true
 
-  # ================================
-  # Pipeline
-  # ================================
-  - workflow-aggregator
-  - pipeline-stage-view
-  - pipeline-utility-steps
-  - pipeline-graph-analysis
+credentials:
+  system:
+    domainCredentials:
+      - domain:
+          name: "_"
+        credentials:
+          - usernamePassword:
+              id: "dockerhub-creds"
+              scope: GLOBAL
+              username: "${DOCKERHUB_USER}"
+              password: "${DOCKERHUB_PASS}"
 
-  # ================================
-  # Docker
-  # ================================
-  - docker-workflow
-  - docker-commons
+          - usernamePassword:
+              id: "github-token"
+              scope: GLOBAL
+              username: "${GITHUB_USER}"
+              password: "${GITHUB_TOKEN}"
 
-  # ================================
-  # Credentials
-  # ================================
-  - credentials
-  - credentials-binding
-  - plain-credentials
-  - ssh-credentials
+unclassified:
+  location:
+    url: "${JENKINS_URL}"
 
-  # ================================
-  # UI / Folders / Views
-  # ================================
-  - cloudbees-folder
-  - dashboard-view
-
-  # ================================
-  # Build / Test / Reports
-  # ================================
-  - junit
-  - htmlpublisher
-  - cobertura
-  - warnings-ng
-
-  # ================================
-  # Notifications
-  # ================================
-  - email-ext
-  - mailer
-
-  # ================================
-  # Security / Authorization
-  # ================================
-  - matrix-auth
-  - role-strategy
-
-  # ================================
-  # Utilities
-  # ================================
-  - timestamper
-  - build-timeout
-  - ws-cleanup
-  - ansicolor
+securityRealm:
+  local:
+    allowsSignup: false
+    users:
+      
+    - id: "admin"
+      password: "${ADMIN_PASSWORD}"
