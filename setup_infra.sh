@@ -1,8 +1,6 @@
 
 #!/bin/bash
 #
-# Infra Setup Script - Step 1
-# ------------------------------------------
 # This script performs the first step of the infrastructure setup process.
 # It verifies that Python, Terraform, and Ansible are installed on the system.
 # If missing, the script installs them automatically.
@@ -65,8 +63,6 @@ check_installations() {
     echo "Step 1 is Completed."
 }
 
-# Step 2: AWS Credentials Setup
-# ------------------------------------------
 # This step verifies that the AWS credentials file exists on the system.
 # If the file ~/.aws/credentials does not exist, the script prompts the user
 # to enter an AWS Access Key ID and Secret Access Key, creates the directory
@@ -122,6 +118,39 @@ EOF
     echo "Step 2 is Completed."
     
                         }
+# This step verifies that the Terraform folder structure required for the
+# infrastructure setup exists and is valid.
 
+check_terraform_structure() {
+    echo "----------STEP 3-----------"
+    echo "Verifying Terraform folder structure and main.tf files"
+
+    PROJECT_ROOT="./domain_monitoring_system"
+    INFRA_TF_DIR="$PROJECT_ROOT/Infra/Terraform"
+    REMOTE_DIR="$INFRA_TF_DIR/remote-tfstate-bucket"
+    ENV_DIR="$INFRA_TF_DIR/environment"
+
+    # Check base Terraform directory
+    if [ ! -d "$INFRA_TF_DIR" ]; then
+        echo "ERROR: Base Terraform directory not found: $INFRA_TF_DIR"
+        exit 1
+    fi
+
+    # Array of directories to validate
+    for dir in "$REMOTE_DIR" "$ENV_DIR"; do
+        if [ ! -d "$dir" ]; then
+            echo "ERROR: Terraform directory not found: $dir"
+            exit 1
+        fi
+
+        if [ ! -f "$dir/main.tf" ]; then
+            echo "ERROR: main.tf file not found in directory: $dir"
+            exit 1
+        fi
+    done
+
+    echo "Terraform folder structure and main.tf files are valid- Step 3 is completed."
+                            }
 check_installations
 check_aws_credentials
+check_terraform_structure
