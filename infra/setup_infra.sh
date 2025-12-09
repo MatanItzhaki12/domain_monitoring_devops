@@ -152,6 +152,7 @@ check_terraform_structure() {
 
 # STEP 4:
 # Runs Terraform in the required directories to provision the infrastructure resources.
+
 run_terraform() {
     echo "----------STEP 4-----------"
     echo "Running Terraform in required directories"
@@ -216,6 +217,7 @@ copy_ssh_key() {
 
 # Step 6:
 # Verifies that the Ansible playbook exists and then runs it
+
 run_ansible_playbook() {
     echo "----------STEP 6-----------"
     echo "Running Ansible playbook"
