@@ -30,10 +30,66 @@
     - "{{ jenkins_home }}/casc_configs"
     - "{{ jenkins_home }}/init.groovy.d"
 
-- name: Download JCasC config
-  get_url:
-    url: "{{ JCasC_url }}"
+# - name: Download JCasC config
+#   get_url:
+#     url: "{{ JCasC_url }}"
+#     dest: "{{ jenkins_home }}/casc_configs/jenkins.yaml"
+#     mode: '0644'
+
+- name: Create JCasC config
+  copy:
     dest: "{{ jenkins_home }}/casc_configs/jenkins.yaml"
+    content: |
+      jenkins:
+        systemMessage: "Jenkins CI/CD - Domain Monitoring DevOps"
+        numExecutors: 0
+        mode: EXCLUSIVE
+        quietPeriod: 5
+        scmCheckoutRetryCount: 3
+
+        securityRealm:
+          local:
+            allowsSignup: false
+            users:
+              - id: "admin"
+                password: "${ADMIN_PASSWORD}"
+
+        authorizationStrategy:
+          loggedInUsersCanDoAnything:
+            allowAnonymousRead: false
+
+        remotingSecurity:
+          enabled: true
+
+      credentials:
+        system:
+          domainCredentials:
+            - domain:
+                name: "_"
+              credentials:
+                - usernamePassword:
+                    id: "dockerhub-creds"
+                    scope: GLOBAL
+                    username: "${DOCKERHUB_USER}"
+                    password: "${DOCKERHUB_PASS}"
+
+                - usernamePassword:
+                    id: "github-token"
+                    scope: GLOBAL
+                    username: "${GITHUB_USER}"
+                    password: "${GITHUB_TOKEN}"
+
+      unclassified:
+        location:
+          url: "${JENKINS_URL}"
+
+      securityRealm:
+        local:
+          allowsSignup: false
+          users:
+            
+          - id: "admin"
+            password: "${ADMIN_PASSWORD}"
     mode: '0644'
 
 - name: Download plugins.yaml
@@ -82,7 +138,6 @@
   copy:
     dest: "{{ jenkins_home }}/init.groovy.d/01-skip-setup.groovy"
     content: |
-      import jenkins.model.Jenkins
       import jenkins.install.InstallState
       Jenkins.instance.setInstallState(InstallState.INITIAL_SETUP_COMPLETED)
 
