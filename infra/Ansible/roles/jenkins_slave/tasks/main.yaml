@@ -43,7 +43,7 @@
 - name: Set Jenkins Master URL variable
   set_fact:
     # Dynamically find the Master IP
-    jenkins_master_url: "http://{{ hostvars[groups['tag_Name_Group2_jenkins_master'][0]]['ansible_host'] }}:8080"
+    jenkins_master_url: "http://{{ hostvars[groups['_master'][0]]['ansible_host'] }}:8080"
 
 - name: Wait for Jenkins Master to be fully up
   uri:
