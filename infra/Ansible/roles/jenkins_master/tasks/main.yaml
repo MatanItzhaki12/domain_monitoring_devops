@@ -82,6 +82,7 @@
   copy:
     dest: "{{ jenkins_home }}/init.groovy.d/01-skip-setup.groovy"
     content: |
+      import jenkins.model.Jenkins
       import jenkins.install.InstallState
       Jenkins.instance.setInstallState(InstallState.INITIAL_SETUP_COMPLETED)
 

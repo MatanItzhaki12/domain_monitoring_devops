@@ -9,6 +9,7 @@ resource "aws_instance" "group2-jenkins-master" {
     vpc_security_group_ids = [aws_security_group.group2_tf_security_group.id]
     tags = {
         Name = "${var.group_name}-jenkins-master"
+        Purpose = "master"
     }
 }   
 
@@ -21,5 +22,6 @@ resource "aws_instance" "group2-jenkins-agent" {
     vpc_security_group_ids = [aws_security_group.group2_tf_security_group.id]
     tags = {
         Name = "${var.group_name}-jenkins-agent"
+        Purpose = "agent"
     }
 }   

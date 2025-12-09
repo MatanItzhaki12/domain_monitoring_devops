@@ -4,6 +4,19 @@ jenkins:
   mode: EXCLUSIVE
   quietPeriod: 5
   scmCheckoutRetryCount: 3
+  nodes:
+    - permanent:
+        name: "docker-slave-1" # Must match playbook NODE_NAME
+        remoteFS: "/home/jenkins"
+        numExecutors: 2
+        labelString: "Slave docker"
+        mode: NORMAL
+        launcher:
+          inbound:
+            workDirSettings:
+              disabled: false
+              internalDir: "remoting"
+              failIfWorkDirIsMissing: false
 
   securityRealm:
     local:
@@ -40,11 +53,3 @@ credentials:
 unclassified:
   location:
     url: "${JENKINS_URL}"
-
-securityRealm:
-  local:
-    allowsSignup: false
-    users:
-      
-    - id: "admin"
-      password: "${ADMIN_PASSWORD}"
