@@ -1,20 +1,16 @@
 
 #!/bin/bash
 #
-# This script performs the first step of the infrastructure setup process.
-# It verifies that Python, Terraform, and Ansible are installed on the system.
+# STEP 1:
+# Verifies that Python, Terraform, and Ansible are installed on the system.
 # If missing, the script installs them automatically.
 #
-# Tools Checked:
-#   - Python3
-#   - Terraform 
-#   - Ansible
+# Tools Checked: (Python, Terraform, Ansible)
 #
-# This script is intended to run on a Linux environment.
+# It is intended to run on a Linux environment.
 # It stops execution immediately if any command fails (set -e).
 #
 # After completing Step 1, the system will be ready for the next phases:
-
 # AWS credentials setup 
 # Terraform execution 
 # SSH key handling 
@@ -29,7 +25,7 @@ check_installations() {
     echo "----------STEP 1-----------"
     echo "Checking Python, Terraform, and Ansible installations"
 
-    #Python
+    # Python
     if command -v python3 >/dev/null 2>&1; then
         echo "Python3 is installed."
     else
@@ -38,7 +34,7 @@ check_installations() {
         sudo apt install -y python3
     fi
 
-    #Terraform
+    # Terraform
     if command -v terraform >/dev/null 2>&1; then
         echo "Terraform is installed."
     else
@@ -51,7 +47,7 @@ check_installations() {
         sudo apt install -y terraform
     fi
 
-    #Ansible
+    # Ansible
     if command -v ansible >/dev/null 2>&1; then
         echo "Ansible is installed."
     else
@@ -61,13 +57,14 @@ check_installations() {
     fi
 
     echo "Step 1 is Completed"
-}
+                    }
 
-# This step verifies that the AWS credentials file exists on the system.
+#STEP 2:
+# Verifies that the AWS credentials file exists on the system.
 # If the file ~/.aws/credentials does not exist, the script prompts the user
 # to enter an AWS Access Key ID and Secret Access Key, creates the directory
 # structure, generates the credentials file in the required format, and sets
-# secure file permissions (chmod 400).
+# secure file permissions.
 #
 # File created:
 #   ~/.aws/credentials
@@ -76,8 +73,6 @@ check_installations() {
 #   [default]
 #   aws_access_key_id=YOUR_KEY
 #   aws_secret_access_key=YOUR_SECRET
-#
-# Step 2 ensures Terraform&Ansible can authenticate against AWS in later phases of the infrastructure setup.
 
 check_aws_credentials() {
     echo "----------STEP 2-----------"
@@ -93,7 +88,7 @@ check_aws_credentials() {
         echo "Creating AWS credentials file in: $CRED_FILE"
         echo
 
-        #Ensure the directory exists
+        # Ensure the directory exists
         mkdir -p "$AWS_DIR"
 
         echo "Please enter your AWS credentials (values without quotes):"
@@ -101,14 +96,14 @@ check_aws_credentials() {
         read -r -s -p "AWS Secret Access Key: " AWS_SECRET_ACCESS_KEY
         echo
 
-        #Create the credentials file
+        # Create the credentials file
         cat > "$CRED_FILE" <<EOF
 [default]
 aws_access_key_id=${AWS_ACCESS_KEY_ID}
 aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
 EOF
 
-        #Set file permissions to read-only for the user
+        # Set file permissions to read-only for the user
         chmod 400 "$CRED_FILE"
 
         echo "AWS credentials file created successfully at: $CRED_FILE"
@@ -119,8 +114,9 @@ EOF
     
                         }
 
-#This step verifies that the Terraform folder structure required for the
-#infrastructure setup exists and is valid.
+# STEP 3:
+# Verifies that the Terraform folder structure required for the infrastructure setup exists and is valid.
+
 check_terraform_structure() {
     echo "----------STEP 3-----------"
     echo "Verifying Terraform folder structure and main.tf files"
@@ -130,13 +126,13 @@ check_terraform_structure() {
     REMOTE_DIR="$INFRA_TF_DIR/remote-tfstate-bucket"
     ENV_DIR="$INFRA_TF_DIR/environment"
 
-    #Check base Terraform directory
+    # Check base Terraform directory
     if [ ! -d "$INFRA_TF_DIR" ]; then
         echo "ERROR: Base Terraform directory not found: $INFRA_TF_DIR"
         exit 1
     fi
 
-    #Array of directories to validate
+    # Array of directories to validate
     for dir in "$REMOTE_DIR" "$ENV_DIR"; do
         if [ ! -d "$dir" ]; then
             echo "ERROR: Terraform directory not found: $dir"
@@ -153,7 +149,8 @@ check_terraform_structure() {
     echo "Step 3 is completed"
                             }
 
-# This step runs Terraform in the required directories to provision the infrastructure resources.
+# STEP 4:
+# Runs Terraform in the required directories to provision the infrastructure resources.
 run_terraform() {
     echo "----------STEP 4-----------"
     echo "Running Terraform in required directories"
@@ -163,7 +160,7 @@ run_terraform() {
     REMOTE_DIR="$INFRA_TF_DIR/remote-tfstate-bucket"
     ENV_DIR="$INFRA_TF_DIR/environment"
 
-    #Run Terraform in remote-tfstate-bucket
+    # Run Terraform in remote-tfstate-bucket
     echo "-> Executing Terraform in: $REMOTE_DIR"
     cd "$REMOTE_DIR"
 
@@ -173,7 +170,7 @@ run_terraform() {
 
     echo "Terraform apply completed for remote-tfstate-bucket."
 
-    #Run Terraform in environment
+    # Run Terraform in environment
     echo "-> Executing Terraform in: $ENV_DIR"
     cd "$ENV_DIR"
 
@@ -185,7 +182,98 @@ run_terraform() {
     echo "STEP 4 is Completed"
                 }
 
+# STEP 5:
+# Copies the SSH private key generated by Terraform from:
+# ./domain_monitoring_system/Infra/Terraform/environment/keys/ to: $HOME/.ssh/keys/
+
+copy_ssh_key() {
+    echo "----------STEP 5-----------"
+    echo "Copying SSH key to \$HOME/.ssh/keys/"
+
+    PROJECT_ROOT="./domain_monitoring_system"
+    ENV_KEYS_DIR="$PROJECT_ROOT/Infra/Terraform/environment/keys"
+    SSH_KEYS_DIR="$HOME/.ssh/keys"
+
+    # Verify that the Terraform keys directory exists
+    if [ ! -d "$ENV_KEYS_DIR" ]; then
+        echo "ERROR: Terraform keys directory not found: $ENV_KEYS_DIR"
+        exit 1
+    fi
+
+    # Check for .pem files
+    PEM_FILES=("$ENV_KEYS_DIR"/*.pem)
+
+    if [ ! -e "${PEM_FILES[0]}" ]; then
+        echo "ERROR: No .pem files found in: $ENV_KEYS_DIR"
+        exit 1
+    fi
+
+    # Ensure target directory exists
+    mkdir -p "$SSH_KEYS_DIR"
+
+    # Copy .pem files
+    cp "$ENV_KEYS_DIR"/*.pem "$SSH_KEYS_DIR"/
+
+    # Set secure permissions
+    chmod 400 "$SSH_KEYS_DIR"/*.pem
+
+    echo "SSH key(s) copied to: $SSH_KEYS_DIR"
+    echo "Permissions set to 400 on copied .pem files."
+    echo "STEP 5 is Completed"
+                }
+
+# Step 6:
+# Verifies that the Ansible playbook exists and then runs it
+run_ansible_playbook() {
+    echo "----------STEP 6-----------"
+    echo "Running Ansible playbook"
+
+    PROJECT_ROOT="./domain_monitoring_system"
+    ANSIBLE_DIR="$PROJECT_ROOT/Infra/Ansible"
+    PLAYBOOK_FILE="$ANSIBLE_DIR/playbook.yaml"
+    REQUIREMENTS_FILE="$ANSIBLE_DIR/requirements.yml"
+    INVENTORY_FILE="$ANSIBLE_DIR/inventory"
+
+    # Check that Ansible directory exists
+    if [ ! -d "$ANSIBLE_DIR" ]; then
+        echo "ERROR: Ansible directory not found: $ANSIBLE_DIR"
+        exit 1
+    fi
+
+    # Check that playbook file exists
+    if [ ! -f "$PLAYBOOK_FILE" ]; then
+        echo "ERROR: Ansible playbook not found: $PLAYBOOK_FILE"
+        exit 1
+    fi
+
+    cd "$ANSIBLE_DIR"
+
+    # If requirements.yml exists, install roles
+    if [ -f "$REQUIREMENTS_FILE" ]; then
+        echo "requirements.yml found. Installing Ansible roles..."
+        ansible-galaxy install -r "$REQUIREMENTS_FILE"
+    else
+        echo "No requirements.yml file found. Skipping Ansible Galaxy roles installation."
+    fi
+
+    # Check inventory file
+    if [ -f "$INVENTORY_FILE" ]; then
+        echo "Inventory file found. Running Ansible playbook..."
+        ansible-playbook "$(basename "$PLAYBOOK_FILE")" -i "$(basename "$INVENTORY_FILE")"
+    else
+        echo "ERROR: Inventory file not found at: $INVENTORY_FILE"
+        exit 1
+    fi
+
+    echo "STEP 6 is Completed"
+    
+                        }
+
+# Calling functions:
+
 check_installations
 check_aws_credentials
 check_terraform_structure
 run_terraform
+copy_ssh_key
+run_ansible_playbook
