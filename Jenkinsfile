@@ -101,7 +101,9 @@ pipeline {
                     ).trim()
 
                     echo "Current version: ${latestTag}"
-
+                    if (latestTag == '') {
+                        latestTag = 'v0.0.0'
+                    }
                     def parts = latestTag.replace('v','').tokenize('.')
                     def major = parts[0].toInteger()
                     def minor = parts[1].toInteger()
