@@ -147,7 +147,7 @@
   copy:
     dest: "{{ jenkins_home }}/Dockerfile"
     content: |
-      FROM jenkins/jenkins:lts-jdk17
+      FROM jenkins/jenkins:lts-jdk21
       USER root
       ENV SECURITY_SCRIPTING_DISABLED=true
       ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
