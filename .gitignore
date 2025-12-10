@@ -61,8 +61,8 @@ override.tf.json
 # *.bak
 *.swp
 # Environment files
-.env
-*.env
+.vault_pass
+*.vault_pass
 
 # Private keys
 *.pem

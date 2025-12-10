@@ -7,11 +7,6 @@
     - community.docker
 
   vars:
-    ADMIN_PASSWORD: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
-    DOCKERHUB_USER: "{{ lookup('env', 'DOCKERHUB_USER') }}"
-    DOCKERHUB_PASS: "{{ lookup('env', 'DOCKERHUB_PASS') }}"
-    GITHUB_USER: "{{ lookup('env', 'GITHUB_USER') }}"
-    GITHUB_TOKEN: "{{ lookup('env', 'GITHUB_TOKEN') }}"
     jenkins_home: /var/jenkins_home
     jenkins_container_name: jenkins-master
     JCasC_url: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/infra/Ansible/jenkins.yaml"
@@ -25,7 +20,6 @@
 
   vars:
     ADMIN_USER: "admin"
-    ADMIN_PASSWORD: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
     NODE_NAME: "docker-slave-1"
 
   roles:
