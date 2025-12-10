@@ -7,6 +7,7 @@
     - community.docker
 
   vars:
+    JENKINS_URL: "http://{{ hostvars[groups['_master'][0]]['ansible_host'] }}:8080"
     jenkins_home: /var/jenkins_home
     jenkins_container_name: jenkins-master
     JCasC_url: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/infra/Ansible/jenkins.yaml"

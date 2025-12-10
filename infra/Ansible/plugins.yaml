@@ -1,6 +1,5 @@
 # JCasC
 configuration-as-code
-configuration-as-code-support
 
 # Credentials
 credentials
@@ -24,7 +23,6 @@ job-dsl
 docker-workflow
 docker-commons
 docker-build-step
-cloudbees-docker-workflow
 
 # Notifications
 email-ext
@@ -45,7 +43,3 @@ warnings-ng
 blueocean
 dashboard-view
 cloudbees-folder
-
-# Agents
-ssh-connection       # replaces ssh-slaves
-agent-server         # replaces jnlp-slaves functionality
