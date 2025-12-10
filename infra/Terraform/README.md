@@ -13,3 +13,4 @@ useful commands:
     - terraform state push errored.tfstate - for resyncing remote tf state with local tfstate file if its curropted or did not update properly
     - terraform state list - to confirm the current resources in tfstate
     
+test
