@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  backend:
+    image: domain-monitoring-backend:local
+    build:
+      context: ../../
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../UsersData:/app/UsersData
+    environment:
+      - FLASK_SECRET_KEY=group2_devops_project
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
