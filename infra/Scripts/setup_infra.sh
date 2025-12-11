@@ -72,7 +72,7 @@ check_installations() {
     fi
     
     # Upgrade modules, if needed
-    python3 -m pip install --user --upgrade boto3 botocore &>/dev/null
+    python3 -m pip install --user --upgrade boto3 botocore --break-system-packages &>/dev/null
 
     # # Install boto3 and botocore for AWS Ansible modules
     # echo "Installing boto3 and botocore for Ansible AWS integration..."
