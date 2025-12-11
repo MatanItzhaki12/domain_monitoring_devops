@@ -1,0 +1,33 @@
+---
+- name: Deploy backend service (Docker) on host
+  hosts: backend
+  become: yes
+
+  collections:
+    - community.docker
+
+  vars:
+    image_name: backend-service:latest
+    container_name: domain-monitoring-backend
+    backend_source_path: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/backend"
+  tasks:
+    - name: Clone repository to temporary path
+      ansible.builtin.git:
+        repo: 'https://github.com/MatanItzhaki12/domain_monitoring_devops.git'
+        dest: /tmp/backend_source
+        version: main
+
+    - name: Ensure Docker image present
+      community.docker.docker_image:
+        name: "{{ image_name }}"
+        build:
+          path: /tmp/backend_source
+
+    - name: Run backend container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: "{{ image_name }}"
+        state: started
+        restart_policy: unless-stopped
+        published_ports:
+          - "8080:8080"
