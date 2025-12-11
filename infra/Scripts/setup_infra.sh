@@ -277,7 +277,7 @@ copy_ssh_key() {
     DEST_KEY="$SSH_KEYS_DIR/$(basename "$SRC_KEY")"
 
     # Copy the key
-    cp "$SRC_KEY" "$DEST_KEY"
+    sudo cp "$SRC_KEY" "$DEST_KEY"
 
     # Set secure permissions
     chmod 400 "$DEST_KEY"
