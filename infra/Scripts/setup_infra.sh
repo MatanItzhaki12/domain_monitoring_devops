@@ -275,9 +275,14 @@ copy_ssh_key() {
     mkdir -p "$SSH_KEYS_DIR"
 
     DEST_KEY="$SSH_KEYS_DIR/$(basename "$SRC_KEY")"
+    
+    # Check if a key exist, and remove it:
+    if [ -f "$DEST_KEY" ]; then
+        rm -f "$DEST_KEY"
+    fi
 
     # Copy the key
-    sudo cp "$SRC_KEY" "$DEST_KEY"
+    cp "$SRC_KEY" "$DEST_KEY"
 
     # Set secure permissions
     chmod 400 "$DEST_KEY"
