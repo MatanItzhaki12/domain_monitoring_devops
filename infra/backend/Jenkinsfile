@@ -1,0 +1,31 @@
+pipeline {
+  agent any
+  parameters {
+    string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'The backend docker image tag (e.g. 1.0.0 or latest)')
+    string(name: 'INSTANCES', defaultValue: '1', description: 'Number of backend container instances (notional)')
+    string(name: 'CUSTOMER', defaultValue: 'default', description: 'Customer name to tag or pass to deployment')
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+    stage('Build Docker image') {
+      steps {
+        sh "docker build -t domain-monitoring-backend:${params.IMAGE_TAG} -f backend/Dockerfile ."
+      }
+    }
+    stage('Deploy') {
+      steps {
+        // Runs the Ansible playbook; ensure the Jenkins node has ansible installed and credentials to manage hosts
+        sh "ansible-playbook infra/backend/Ansible/playbook.yaml -i infra/Ansible/inventory.ini --extra-vars \"image_tag=${params.IMAGE_TAG} instances=${params.INSTANCES} customer=${params.CUSTOMER}\""
+      }
+    }
+    stage('Health check') {
+      steps {
+        sh "curl -sSf http://localhost:8080/health || exit 1"
+      }
+    }
+  }
+}
