@@ -1,51 +1,9 @@
 [
   {
-    "domain": "digitalocean.com",
-    "status": "Live",
-    "ssl_expiration": "2025-12-21",
-    "ssl_issuer": "Google Trust Services"
-  },
-  {
     "domain": "cloudflare.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-09",
+    "ssl_expiration": "2026-02-12",
     "ssl_issuer": "Google Trust Services"
-  },
-  {
-    "domain": "int-college.co.il",
-    "status": "Live",
-    "ssl_expiration": "2025-12-15",
-    "ssl_issuer": "Google Trust Services"
-  },
-  {
-    "domain": "openai.com",
-    "status": "Live",
-    "ssl_expiration": "2025-12-26",
-    "ssl_issuer": "Let's Encrypt"
-  },
-  {
-    "domain": "hackernews.com",
-    "status": "Live",
-    "ssl_expiration": "2026-07-15",
-    "ssl_issuer": "Amazon"
-  },
-  {
-    "domain": "stackoverflow.com",
-    "status": "Live",
-    "ssl_expiration": "2025-11-24",
-    "ssl_issuer": "Let's Encrypt"
-  },
-  {
-    "domain": "udemy.com",
-    "status": "Live",
-    "ssl_expiration": "2025-12-21",
-    "ssl_issuer": "Google Trust Services"
-  },
-  {
-    "domain": "espn.com",
-    "status": "Live",
-    "ssl_expiration": "2025-11-14",
-    "ssl_issuer": "COMODO CA Limited"
   },
   {
     "domain": "coursera.org",
@@ -54,34 +12,88 @@
     "ssl_issuer": "Amazon"
   },
   {
-    "domain": "www.google.com",
+    "domain": "digitalocean.com",
     "status": "Live",
-    "ssl_expiration": "2025-12-15",
+    "ssl_expiration": "2026-02-18",
     "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "dropbox.com",
+    "status": "Live",
+    "ssl_expiration": "2026-04-14",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "espn.com",
+    "status": "Live",
+    "ssl_expiration": "2026-11-10",
+    "ssl_issuer": "Sectigo Limited"
+  },
+  {
+    "domain": "example.com",
+    "status": "Live",
+    "ssl_expiration": "2026-03-16",
+    "ssl_issuer": "SSL Corporation"
+  },
+  {
+    "domain": "gmail.com",
+    "status": "Live",
+    "ssl_expiration": "2026-02-25",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "hackernews.com",
+    "status": "Live",
+    "ssl_expiration": "2026-07-15",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "httpforever.com",
+    "status": "Live",
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
+  },
+  {
+    "domain": "int-college.co.il",
+    "status": "Live",
+    "ssl_expiration": "2026-02-12",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "microsoft.com",
+    "status": "Live",
+    "ssl_expiration": "2026-06-06",
+    "ssl_issuer": "Microsoft Corporation"
   },
   {
     "domain": "mozilla.org",
     "status": "Live",
-    "ssl_expiration": "2025-11-27",
+    "ssl_expiration": "2026-03-18",
     "ssl_issuer": "Google Trust Services"
   },
   {
-    "domain": "walla.co.il",
+    "domain": "netflix.com",
     "status": "Live",
-    "ssl_expiration": "2025-11-30",
-    "ssl_issuer": "Let's Encrypt"
-  },
-  {
-    "domain": "bbc.co.uk",
-    "status": "Live",
-    "ssl_expiration": "2026-07-27",
-    "ssl_issuer": "GlobalSign nv-sa"
-  },
-  {
-    "domain": "whatsapp.com",
-    "status": "Live",
-    "ssl_expiration": "2025-10-16",
+    "ssl_expiration": "2026-09-04",
     "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "neverssl.com",
+    "status": "Live",
+    "ssl_expiration": "2026-08-07",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "nytimes.com",
+    "status": "Live",
+    "ssl_expiration": "2026-03-14",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "openai.com",
+    "status": "Live",
+    "ssl_expiration": "2026-02-23",
+    "ssl_issuer": "Google Trust Services"
   },
   {
     "domain": "python.org",
@@ -92,62 +104,14 @@
   {
     "domain": "reddit.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-07",
+    "ssl_expiration": "2026-05-22",
     "ssl_issuer": "DigiCert Inc"
   },
   {
-    "domain": "nytimes.com",
+    "domain": "stackoverflow.com",
     "status": "Live",
-    "ssl_expiration": "2026-03-14",
-    "ssl_issuer": "DigiCert Inc"
-  },
-  {
-    "domain": "wikipedia.org",
-    "status": "Live",
-    "ssl_expiration": "2025-11-08",
+    "ssl_expiration": "2026-03-15",
     "ssl_issuer": "Let's Encrypt"
-  },
-  {
-    "domain": "youtube.com",
-    "status": "Live",
-    "ssl_expiration": "2025-12-15",
-    "ssl_issuer": "Google Trust Services"
-  },
-  {
-    "domain": "apple.com",
-    "status": "Live",
-    "ssl_expiration": "2025-12-17",
-    "ssl_issuer": "Apple Inc."
-  },
-  {
-    "domain": "netflix.com",
-    "status": "Live",
-    "ssl_expiration": "2026-09-04",
-    "ssl_issuer": "DigiCert Inc"
-  },
-  {
-    "domain": "gmail.com",
-    "status": "Live",
-    "ssl_expiration": "2025-12-15",
-    "ssl_issuer": "Google Trust Services"
-  },
-  {
-    "domain": "dropbox.com",
-    "status": "Live",
-    "ssl_expiration": "2025-12-08",
-    "ssl_issuer": "DigiCert Inc"
-  },
-  {
-    "domain": "ynet.co.il",
-    "status": "Live",
-    "ssl_expiration": "2025-10-31",
-    "ssl_issuer": "DigiCert Inc"
-  },
-  {
-    "domain": "microsoft.com",
-    "status": "Live",
-    "ssl_expiration": "2026-03-30",
-    "ssl_issuer": "Microsoft Corporation"
   },
   {
     "domain": "temu.com",
@@ -156,21 +120,45 @@
     "ssl_issuer": "N/A"
   },
   {
-    "domain": "example.com",
+    "domain": "udemy.com",
     "status": "Live",
-    "ssl_expiration": "2026-01-15",
+    "ssl_expiration": "2026-03-22",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "walla.co.il",
+    "status": "Live",
+    "ssl_expiration": "2026-01-30",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "whatsapp.com",
+    "status": "Live",
+    "ssl_expiration": "2025-12-29",
     "ssl_issuer": "DigiCert Inc"
   },
   {
-    "domain": "neverssl.com",
+    "domain": "wikipedia.org",
     "status": "Live",
-    "ssl_expiration": "2026-08-07",
-    "ssl_issuer": "Amazon"
+    "ssl_expiration": "2026-03-08",
+    "ssl_issuer": "Let's Encrypt"
   },
   {
-    "domain": "httpforever.com",
+    "domain": "www.google.com",
     "status": "Live",
-    "ssl_expiration": "N/A",
-    "ssl_issuer": "N/A"
+    "ssl_expiration": "2026-02-25",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "ynet.co.il",
+    "status": "Live",
+    "ssl_expiration": "2026-09-30",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "youtube.com",
+    "status": "Live",
+    "ssl_expiration": "2026-02-25",
+    "ssl_issuer": "Google Trust Services"
   }
 ]
