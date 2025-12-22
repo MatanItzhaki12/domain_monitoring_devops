@@ -1,28 +1,26 @@
-# Domain Monitoring System - DevOps Course
+# Domain Monitoring System - Backend
 
-A domain monitoring system project for DevOps course.
+This repository contains the backend service for the Domain Monitoring System, developed as part of a DevOps course project.
 
 ## 📌 Project Description
 
-This system monitors the availability and status of domains. It includes user management, logging, domain management, domain monitoring and web interface support.
+The backend monitors the availability and status of domains. It provides REST APIs for domain management, user management, logging, and monitoring operations. The backend is built with Python (Flask) and is designed for integration with CI/CD pipelines and infrastructure automation.
 
-## 🧱 Project Structure
+## 🧱 Backend Structure
 
 ```
-domain_monitoring_devops/
-├── app.py                    # Web interface (Flask)
+domain_monitoring_backend/
+├── app.py                    # Main Flask application (API server)
 ├── DomainManagementEngine.py # Domain management logic
 ├── MonitoringSystem.py       # Domain monitoring engine
-├── UserManagementModule.py   # User management
+├── UserManagementModule.py   # User management logic
 ├── logger.py                 # Logging system
-├── templates/                # dynamic dashboard HTML template
-├── static/                   # Static files (HTML, CSS, JS)
-├── tests/                    # Test and demo files
-├── logs/                     # Log folder
-└── UsersData/                # User data
+├── tests/                    # Backend tests (API, performance, etc.)
+├── logs/                     # Log files
+└── UsersData/                # User data storage
 ```
 
-## ⚙️ Installation
+## ⚙️ Installation & Usage
 
 1. Clone the repository:
 
@@ -34,33 +32,36 @@ cd domain_monitoring_devops
 2. Create a virtual environment and install dependencies:
 
 ```bash
-python -m venv venv # Or: python3 -m venv venv
-source venv/bin/activate  # On Windows (CMD): venv\Scripts\activate
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. Run the main file (e.g., app.py):
+3. Run the backend server:
 
 ```bash
 python app.py
 ```
 
-* You can also run the performance test file in `tests/`:
+4. (Optional) Run backend tests:
 
 ```bash
-python tests/test_monitoring_system.py
+python -m unittest discover tests
+# or
+pytest tests/
 ```
 
 ## 👤 Authors
 
-* Matan
-* Sergey
-* Johhny
-* Oz
-* Assaf
+- Matan
+- Sergey
+- Johhny
+- Oz
+- Assaf
 
 ## 📄 License
 
 This project is licensed under the MIT License.
-
-# test
