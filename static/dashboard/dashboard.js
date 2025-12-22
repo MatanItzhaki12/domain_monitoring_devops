@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", function () {
     scanNowBtn.disabled = true;
     scanNowBtn.textContent = "Scanning...";
     try {
-      await fetch("/scan_domains");
+      await fetch("/scan_domains", { method: "POST"});
       location.reload();
     } catch {
       alert("Scan failed.");
