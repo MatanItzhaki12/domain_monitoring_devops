@@ -97,8 +97,7 @@
           url: "{{ JENKINS_URL }}"
       jobs:
       - script: >
-          pipelineJob('Domain-Monitoring-CI') {
-            // FIX: Ensure listener is active immediately (Use // for Groovy comments)
+          pipelineJob('Domain-Monitoring-backend') {
             triggers {
               githubPush()
             }
@@ -107,7 +106,24 @@
                 scm {
                   git {
                     remote { url('{{ REPO_URL }}') }
-                    branch('main')
+                    branch('backend')
+                  }
+                }
+                scriptPath('Jenkinsfile')
+              }
+            }
+          }
+      - script: >
+          pipelineJob('Domain-Monitoring-front-end') {
+            triggers {
+              githubPush()
+            }
+            definition {
+              cpsScm {
+                scm {
+                  git {
+                    remote { url('{{ REPO_URL }}') }
+                    branch('front-end')
                   }
                 }
                 scriptPath('Jenkinsfile')
