@@ -16,9 +16,6 @@ def new_username():
 
 # Tests
 
-def test_1_register_page_access():
-    # Check if the /register page is accessible
-    assert check_get_webpage("/register").ok == True
 
 # Invalid Username Tests
 
@@ -37,9 +34,9 @@ def test_1_register_page_access():
         (" ", "Qwe12345", "Qwe12345")
     ]
 )
-def test_2_register_invalid_username(username, password, password_confirmation): 
+def test_1_register_invalid_username(username, password, password_confirmation): 
     # Invalid or empty username should be rejected
-    expected_response = {"error": "Username invalid."} 
+    expected_response = {"ok": False,"error": "All fields are required"} 
     response = check_register_user(username=username, password=password, 
                                    password_confirmation=password_confirmation)
     assert response.status_code == 400
@@ -58,10 +55,10 @@ def test_2_register_invalid_username(username, password, password_confirmation):
         ("Qwe12345!", "Qwe12345!")
     ]
 )
-def test_3_register_existing_username(existing_username, password, password_confirmation):
+def test_2_register_existing_username(existing_username, password, password_confirmation):
 
     # username already exists
-    expected_response = {"error": "Username already taken."}
+    expected_response = {"ok": False,"error": "Username already taken."}
     response = check_register_user(username=existing_username, password=password, 
                                    password_confirmation=password_confirmation)
     assert response.status_code == 409
@@ -82,9 +79,9 @@ def test_3_register_existing_username(existing_username, password, password_conf
         ("Qwe12345!", "Qwe12345")
     ]
 )
-def test_4_register_invalid_password_confirmation(new_username, password, password_confirmation):
+def test_3_register_invalid_password_confirmation(new_username, password, password_confirmation):
     # checking if password and password confirmation are the same
-    expected_response = {"error": "Password and Password Confirmation are not the same."}
+    expected_response = {"ok": False,"error": "Password and Password Confirmation are not the same."}
     response = check_register_user(username=new_username, password=password, 
                                    password_confirmation=password_confirmation)
     assert response.status_code == 400
@@ -96,36 +93,36 @@ def test_4_register_invalid_password_confirmation(new_username, password, passwo
     "password,password_confirmation,expected_response",
     [
         # password not long enough - less than 8 characters
-        ("Qwe1234", "Qwe1234", {"error": "Password is not between 8 to 12 characters."}),
-        ("Qwe123", "Qwe123", {"error": "Password is not between 8 to 12 characters."}),
-        ("qwe1234", "qwe1234", {"error": "Password is not between 8 to 12 characters."}),
-        ("QWE123", "QWE123", {"error": "Password is not between 8 to 12 characters."}),
-        ("Qwert", "Qwert", {"error": "Password is not between 8 to 12 characters."}),
-        ("Qwe12!", "Qwe12!", {"error": "Password is not between 8 to 12 characters."}),    
+        ("Qwe1234", "Qwe1234", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("Qwe123", "Qwe123", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("qwe1234", "qwe1234", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("QWE123", "QWE123", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("Qwert", "Qwert", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("Qwe12!", "Qwe12!", {"ok": False, "error": "Password is not between 8 to 12 characters."}),    
         # password too long - more than 12 characters
-        ("Qwe1234567890", "Qwe1234567890", {"error": "Password is not between 8 to 12 characters."}),
-        ("Qwe123456789012", "Qwe123456789012", {"error": "Password is not between 8 to 12 characters."}),
-        ("qwe1234567890", "qwe1234567890", {"error": "Password is not between 8 to 12 characters."}),
-        ("QWE1234567890", "QWE1234567890", {"error": "Password is not between 8 to 12 characters."}),
-        ("Qwertyuiopasd", "Qwertyuiopasd", {"error": "Password is not between 8 to 12 characters."}),
-        ("Qwe123456789!", "Qwe123456789!", {"error": "Password is not between 8 to 12 characters."}),
+        ("Qwe1234567890", "Qwe1234567890", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("Qwe123456789012", "Qwe123456789012", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("qwe1234567890", "qwe1234567890", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("QWE1234567890", "QWE1234567890", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("Qwertyuiopasd", "Qwertyuiopasd", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
+        ("Qwe123456789!", "Qwe123456789!", {"ok": False, "error": "Password is not between 8 to 12 characters."}),
         # password does not include at least one uppercase character
-        ("qwe12345", "qwe12345", {"error": "Password does not include at least one uppercase character."}),
-        ("qwertyuiop", "qwertyuiop", {"error": "Password does not include at least one uppercase character."}),
-        ("qwe12345!", "qwe12345!", {"error": "Password does not include at least one uppercase character."}),
+        ("qwe12345", "qwe12345", {"ok": False, "error": "Password does not include at least one uppercase character."}),
+        ("qwertyuiop", "qwertyuiop", {"ok": False, "error": "Password does not include at least one uppercase character."}),
+        ("qwe12345!", "qwe12345!", {"ok": False, "error": "Password does not include at least one uppercase character."}),
         # password does not include at least one lowercase character
-        ("QWE12345", "QWE12345", {"error": "Password does not include at least one lowercase character."}),
-        ("QWERTYUIOP", "QWERTYUIOP", {"error": "Password does not include at least one lowercase character."}),
-        ("QWE12345!", "QWE12345!", {"error": "Password does not include at least one lowercase character."}),
+        ("QWE12345", "QWE12345", {"ok": False, "error": "Password does not include at least one lowercase character."}),
+        ("QWERTYUIOP", "QWERTYUIOP", {"ok": False, "error": "Password does not include at least one lowercase character."}),
+        ("QWE12345!", "QWE12345!", {"ok": False, "error": "Password does not include at least one lowercase character."}),
         # password does not include at least one digits
-        ("Qwertyuiop", "Qwertyuiop", {"error": "Password does not include at least one digit."}),
-        ("Qwertyuiop!", "Qwertyuiop!", {"error": "Password does not include at least one digit."}),
+        ("Qwertyuiop", "Qwertyuiop", {"ok": False, "error": "Password does not include at least one digit."}),
+        ("Qwertyuiop!", "Qwertyuiop!", {"ok": False, "error": "Password does not include at least one digit."}),
         # password include characters that are not uppercase, lowercase or digits
-        ("Qwe12345!", "Qwe12345!", {"error": "Password should include only uppercase characters, lowercase characters and digits!"})
+        ("Qwe12345!", "Qwe12345!", {"ok": False, "error": "Password should include only uppercase characters, lowercase characters and digits!"})
     ]
 
 )
-def test_5_register_invalid_password(new_username, password, password_confirmation, expected_response):
+def test_4_register_invalid_password(new_username, password, password_confirmation, expected_response):
     # Invalid password formats should be rejected
     response = check_register_user(username=new_username, password=password, 
                                    password_confirmation=password_confirmation)
@@ -135,7 +132,7 @@ def test_5_register_invalid_password(new_username, password, password_confirmati
 
 def test_6_register_successful_registration(new_username):
     # check the registration of fully valid users 
-    expected_response = {"message" : "Registered Successfully."}
+    expected_response = {"ok": True,"username": new_username}
     # Test:
     response = check_register_user(username=new_username, password="Qwe12345", 
                                    password_confirmation="Qwe12345")

@@ -60,6 +60,10 @@ def post(path: str, data=None, json=None, headers=None, files=None):
     """Wrapper for POST requests."""
     return session.post(f"{BASE_URL}{path}", data=data, json=json, headers=headers, files=files)
 
+def delete(path: str, json=None, headers=None):
+    """Wrapper for DELETE requests."""
+    return session.delete(f"{BASE_URL}{path}", json=json, headers=headers)
+
 
 # -----------------------------------------------------
 # Webpage & Auth Endpoints
@@ -78,26 +82,18 @@ def check_register_user(username, password, password_confirmation):
         "password": password,
         "password_confirmation": password_confirmation
     }
-    response = post("/register", json=payload)
+    response = post("/api/register", json=payload)
     print_response(response)
     return response
 
 
 def check_login_user(username, password):
-    """Login existing user."""
+    """Login existing user. Returns response object."""
     payload = {
         "username": username,
         "password": password
     }
-    response = post("/login", json=payload)
-    print_response(response)
-    return response
-
-
-def check_logout_user(cookie):
-    """Logout the current user using their session cookie."""
-    headers = {"Cookie": f"session={cookie}"}
-    response = get("/logout", headers=headers)
+    response = post("/api/login", json=payload)
     print_response(response)
     return response
 
@@ -111,45 +107,56 @@ def check_dashboard(cookie):
 
 
 # -----------------------------------------------------
-# Domain Management
+# Domain Management (Backend API)
 # -----------------------------------------------------
-def add_domain(domain, cookie):
-    """Add a single domain for the logged-in user."""
-    headers = {
-        "Content-Type": "application/json",
-        "Cookie": f"session={cookie}"
-    }
+
+def add_domain(domain, username):
+    """Add a single domain for the test user via Backend API."""
+    # Backend expects X-Username header
+    headers = {"X-Username": username}
     payload = {"domain": domain}
-    response = post("/add_domain", json=payload, headers=headers)
+    
+    # Path is /api/domains (POST)
+    response = post("/api/domains", json=payload, headers=headers)
     print_response(response)
     return response
 
 
-def remove_domains(domains, cookie):
-    """Remove one or multiple domains."""
+def remove_domains(domains_list, username):
+    """
+    Remove one or multiple domains via Backend API.
+    Backend expects DELETE method on /api/domains with JSON body.
+    """
     headers = {
         "Content-Type": "application/json",
-        "Cookie": f"session={cookie}"
+        "X-Username": username
     }
-    payload = {"domains": domains}
-    response = post("/remove_domains", json=payload, headers=headers)
+    payload = {"domains": domains_list}
+    
+    # Path is /api/domains (DELETE)
+    response = delete("/api/domains", json=payload, headers=headers)
     print_response(response)
     return response
 
 
-def list_domains(cookie):
-    """Get the current user's domain list."""
-    headers = {"Cookie": f"session={cookie}"}
-    response = get("/my_domains", headers=headers)
+def list_domains(username):
+    """Get the current user's domain list via Backend API."""
+    headers = {"X-Username": username}
+    
+    # Path is /api/domains (GET)
+    response = get("/api/domains", headers=headers)
     print_response(response)
     return response
 
 
-def bulk_upload_domains(file_path, cookie):
-    """Upload a .txt file with multiple domains."""
-    headers = {"Cookie": f"session={cookie}"}
+def bulk_upload_domains(file_path, username):
+    """Upload a .txt file with multiple domains via Backend API."""
+    headers = {"X-Username": username}
+    
     with open(file_path, "rb") as f:
-        response = post("/bulk_domains", files={"file": f}, headers=headers)
+        # Path is /api/domains/bulk (POST)
+        response = post("/api/domains/bulk", files={"file": f}, headers=headers)
+    
     print_response(response)
     return response
 
@@ -158,20 +165,20 @@ def bulk_upload_domains(file_path, cookie):
 # Domain Monitoring
 # -----------------------------------------------------
 
-def check_scan_domains(session_cookie: str | None = None):
+def check_scan_domains(username: str | None = None):
     """
-    Performs a GET request to /scan_domains.
-    If a session_cookie is provided, sends it as a Flask 'session' cookie.
-    Returns the response object from the requests library.
+    Performs a POST request to /api/scan.
+    Backend requires X-Username header.
     """
+    url = f"{BASE_URL}/api/scan"
+    headers = {}
 
-    url = f"{BASE_URL}/scan_domains"
-    cookies = {}
+    if username:
+        headers["X-Username"] = username
 
-    if session_cookie:
-        cookies["session"] = session_cookie
-
-    response = requests.get(url, cookies=cookies, timeout=5)
+    # Note: Backend uses POST for scan
+    response = requests.post(url, headers=headers, timeout=5)
+    print_response(response)
     return response
 
 
@@ -179,9 +186,7 @@ def check_scan_domains(session_cookie: str | None = None):
 # Removing existing user
 # -----------------------------------------------------
 def remove_user_from_running_app(username):
-    # User Logout
-    get("/logout")
-    # Removing new test user
+    # Removing new test user directly via UserManager
     UM().remove_user(username)
     # Reloading users.json to memory
     result = get("/reload_users_to_memory")
