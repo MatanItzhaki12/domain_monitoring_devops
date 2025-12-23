@@ -1,142 +1,135 @@
-# tests/api_tests/test_add_remove_domains.py
 import pytest
-import requests
-import json
-import os
-import re
+import uuid
 from tests.api_tests import Aux_Library as aux
 
+# Ensure tests run in specific order if configured
 pytestmark = pytest.mark.order(5)
 
-def load_test_user():
+@pytest.fixture(scope="module")
+def user_session():
     """
-    Load user from users.json.
-    Fallback to default user if not found.
+    Fixture to setup a test user:
+    1. Registers a new user.
+    2. Logs them in.
+    3. Extracts and returns the session cookie.
+    4. Teardown: Removes user from DB.
     """
-    users_file = os.path.join(os.path.dirname(__file__), "..", "..", "UsersData", "users.json")
-    if os.path.exists(users_file):
-        with open(users_file, "r", encoding="utf-8") as f:
-            users = json.load(f)
-        if isinstance(users, list) and len(users) > 0:
-            return users[0]
-    return {"username": "apitester", "password": "Apitester1"}
+    # 1. Generate unique credentials
+    username = f"fe_test_{uuid.uuid4().hex[:8]}"
+    
+    # FIX: Password must be 8-12 characters long
+    password = "TestPass12" 
+
+    # 2. Register
+    reg_resp = aux.check_register_user(username, password, password)
+    assert reg_resp.status_code in [200, 201], f"Registration failed: {reg_resp.text}"
+
+    # 3. Login
+    login_resp = aux.check_login_user(username, password)
+    assert login_resp.status_code == 200, f"Login failed: {login_resp.text}"
+
+    # 4. Extract Session Cookie
+    cookie = aux.extract_cookie(login_resp)
+    assert cookie, "Login succeeded but no 'session' cookie found in headers."
+    
+    print(f"\n[INFO] Authenticated as {username} with session: {cookie[:10]}...")
+    
+    yield cookie
+
+    # 5. Cleanup
+    aux.remove_user_from_running_app(username)
 
 
-@pytest.fixture(scope="session")
-def session_cookie():
+def test_1_add_and_remove_single_domain(user_session):
     """
-    Logs in using Aux_Library.check_login_user and extracts the session cookie.
+    Verifies adding and removing a single domain using Session Cookie.
     """
-    user = load_test_user()
-    response = aux.check_login_user(user["username"], user["password"])
-    assert response.status_code == 200, f"Login failed: {response.text}"
-    assert response.json().get("ok"), f"Unexpected login response: {response.text}"
+    cookie = user_session
+    domain = f"test-single-{uuid.uuid4().hex[:4]}.com"
 
-    # Extract the session cookie
-    cookie_header = response.headers.get("Set-Cookie", "")
-    match = re.search(r"session=([^;]+)", cookie_header)
-    assert match, "Session cookie not found in login response"
-    cookie = match.group(1)
-    print(f"[INFO] Logged in as {user['username']}, session cookie: {cookie[:12]}...")
-    return cookie
+    # 1. Add Domain
+    add_resp = aux.add_domain(domain, cookie)
+    assert add_resp.status_code in [200, 201]
+    assert add_resp.json().get("ok") is True
 
-def test_1_add_and_remove_domain(session_cookie):
-    """
-    Full add/remove domain test:
-    1. Add domain via /add_domain
-    2. Verify it appears in /my_domains
-    3. Remove it via /remove_domains
-    4. Confirm it is gone
-    """
-    BASE_URL = aux.BASE_URL  # Use from Aux_Library
-    headers = {
-        "Content-Type": "application/json",
-        "Cookie": f"session={session_cookie}"
-    }
+    # 2. Verify Domain exists (using Dashboard since /my_domains isn't in app.py)
+    dash_resp = aux.check_dashboard(cookie)
+    assert dash_resp.status_code == 200
+    assert domain in dash_resp.text, f"Domain {domain} not found in dashboard HTML"
 
-    test_domain = "pytest-example.com"
-
-    # Add domain
-    add_resp = requests.post(f"{BASE_URL}/add_domain", json={"domain": test_domain}, headers=headers)
-    print(f"[ADD_DOMAIN] {add_resp.status_code} - {add_resp.text}")
-    assert add_resp.status_code in (201, 409)
-    assert "ok" in add_resp.json()
-
-    # Verify domain list
-    list_resp = requests.get(f"{BASE_URL}/my_domains", headers=headers)
-    print(f"[MY_DOMAINS] {list_resp.status_code} - {list_resp.text}")
-    assert list_resp.status_code == 200
-    data = list_resp.json().get("data", [])
-    assert any(test_domain in str(d) for d in data), "Domain not found after add_domain"
-
-    # Remove domain
-    remove_resp = requests.post(f"{BASE_URL}/remove_domains", json={"domains": [test_domain]}, headers=headers)
-    print(f"[REMOVE_DOMAIN] {remove_resp.status_code} - {remove_resp.text}")
+    # 3. Remove Domain
+    # Frontend remove_domains route expects a list of domains
+    remove_resp = aux.remove_domains([domain], cookie)
     assert remove_resp.status_code == 200
     assert remove_resp.json().get("ok") is True
 
-    # Confirm removal
-    verify_resp = requests.get(f"{BASE_URL}/my_domains", headers=headers)
-    print(f"[VERIFY_REMOVAL] {verify_resp.status_code} - {verify_resp.text}")
-    domains_after = verify_resp.json().get("data", [])
-    assert not any(test_domain in str(d) for d in domains_after), "Domain still present after removal"
+    # 4. Verify Removal
+    dash_resp_after = aux.check_dashboard(cookie)
+    assert domain not in dash_resp_after.text, f"Domain {domain} still present after removal"
 
-    print("Add/remove domain test completed successfully.")
+
+def test_2_remove_domain_unauthorized():
+    """
+    Verifies that removing a domain without a valid session cookie fails.
+    """
+    # Pass None as cookie
+    resp = aux.remove_domains(["unauth.com"], cookie=None)
     
-# -------------------------------
-# 2. Remove Domain Edge Cases (Planned Failure)
-# -------------------------------
-def test_2_remove_domain_without_auth():
-    """Removing a domain without authentication should fail."""
-    BASE_URL = aux.BASE_URL
-    resp = requests.post(
-        f"{BASE_URL}/remove_domains",
-        json={"domains": ["unauth.com"]},
-        headers={"Content-Type": "application/json"},
-    )
-    assert resp.status_code in (401, 302, 403), f"Unexpected code: {resp.status_code}"
+    # Frontend app.py returns 401 if "username" not in session
+    assert resp.status_code == 401
+    assert resp.json().get("error") == "Unauthorized"
 
-def test_3_remove_nonexistent_domain(session_cookie):
-    """Removing a non-existent domain should return a graceful error."""
-    BASE_URL = aux.BASE_URL
-    headers = {"Content-Type": "application/json", "Cookie": f"session={session_cookie}"}
 
-    domain = "this-domain-does-not-exist.com"
-    resp = requests.post(
-        f"{BASE_URL}/remove_domains",
-        json={"domains": [domain]},
-        headers=headers,
-    )
-    assert resp.status_code in (200, 404)
-    data = resp.json()
-    assert "ok" in data
+def test_3_add_remove_bulk_domains(user_session):
+    """
+    Verifies bulk adding and removing of domains.
+    """
+    cookie = user_session
+    domains = [f"bulk-{i}-{uuid.uuid4().hex[:4]}.com" for i in range(3)]
 
-def test_4_remove_domains_bulk(session_cookie):
-    """Add several domains and remove them all in one API call."""
-    BASE_URL = aux.BASE_URL
-    headers = {"Content-Type": "application/json", "Cookie": f"session={session_cookie}"}
-
-    domains = [f"bulk{i}.example.com" for i in range(3)]
-
-    # Add all
+    # 1. Add multiple domains
     for d in domains:
-        requests.post(f"{BASE_URL}/add_domain", json={"domain": d}, headers=headers)
+        resp = aux.add_domain(d, cookie)
+        assert resp.status_code in [200, 201]
 
-    # Remove all at once
-    rem_resp = requests.post(f"{BASE_URL}/remove_domains", json={"domains": domains}, headers=headers)
-    assert rem_resp.status_code == 200, f"Bulk remove failed: {rem_resp.text}"
+    # 2. Verify all are present in Dashboard
+    dash_resp = aux.check_dashboard(cookie)
+    for d in domains:
+        assert d in dash_resp.text, f"Bulk domain {d} missing from dashboard"
+
+    # 3. Remove all at once
+    rem_resp = aux.remove_domains(domains, cookie)
+    assert rem_resp.status_code == 200
     assert rem_resp.json().get("ok") is True
 
-    # Verify none remain
-    list_resp = requests.get(f"{BASE_URL}/my_domains", headers=headers)
-    assert list_resp.status_code == 200
+    # 4. Verify dashboard is clear of these domains
+    dash_resp_after = aux.check_dashboard(cookie)
     for d in domains:
-        assert d not in str(list_resp.json()), f"{d} still present after bulk removal"
+        assert d not in dash_resp_after.text, f"Bulk domain {d} still present after removal"
 
-def test_5_remove_domains_empty_payload(session_cookie):
-    """Removing domains with empty payload should return 400 or ok:false."""
-    BASE_URL = aux.BASE_URL
-    headers = {"Content-Type": "application/json", "Cookie": f"session={session_cookie}"}
 
-    resp = requests.post(f"{BASE_URL}/remove_domains", json={}, headers=headers)
-    assert resp.status_code in (400, 422)
+def test_4_remove_nonexistent_domain(user_session):
+    """
+    Verifies that removing a domain that doesn't exist is handled gracefully.
+    """
+    cookie = user_session
+    fake_domain = "nonexistent-domain.com"
+
+    resp = aux.remove_domains([fake_domain], cookie)
+    
+    # Should return 200 OK (idempotent behavior is standard for this app)
+    assert resp.status_code == 200
+    assert resp.json().get("ok") is True
+
+def test_5_remove_domains_empty_payload(user_session):
+    """
+    Verifies that sending an empty list to remove_domains returns a success or error
+    depending on implementation (app.py simply passes it to backend).
+    """
+    cookie = user_session
+    
+    # Passing empty list
+    resp = aux.remove_domains([], cookie)
+    
+    # Backend usually validates this. Expecting 400 Bad Request if validation exists.
+    assert resp.status_code in [400, 422]

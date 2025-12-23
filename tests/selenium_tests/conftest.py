@@ -26,7 +26,7 @@ def driver():
     chrome_options.add_argument("--allow-file-access-from-files")
     chrome_options.add_argument("--enable-local-file-accesses")
 
-    chrome_options.add_argument("--headless=new")
+    # chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-infobars")
     chrome_options.add_argument("--disable-extensions")
@@ -46,4 +46,4 @@ def driver():
 
 @pytest.fixture
 def base_url():
-    return os.getenv("BASE_URL", "http://localhost:8080")
+    return os.getenv("BASE_URL", "http://localhost:8081")

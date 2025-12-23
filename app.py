@@ -56,13 +56,11 @@ def login():
 
     resp, status = backend_post("/api/login", json=data)
 
-    if status == 200 and resp.get("ok"):
+    if resp.get("ok"):
         session["username"] = resp["username"]
-        return jsonify({"ok": True}), 200
+        return jsonify({"ok": True, "username": resp["username"]}), 200
 
-    return jsonify({
-        "error": resp.get("error", "Login failed")
-    }), status
+    return resp, status
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -74,13 +72,11 @@ def register():
 
     resp, status = backend_post("/api/register", json=data)
 
-    if status == 201 and resp.get("ok"):
+    if resp.get("ok"):
         session["username"] = resp["username"]
-        return jsonify({"ok": True}), 201
+        return resp, status
 
-    return jsonify({
-        "error": resp.get("error", "Registration failed")
-    }), status
+    return resp, status
 
 
 @app.route("/dashboard", methods=["GET"])
