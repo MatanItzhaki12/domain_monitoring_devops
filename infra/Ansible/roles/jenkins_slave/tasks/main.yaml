@@ -76,6 +76,17 @@
   debug:
     msg: "Found secret: {{ node_secret_output.stdout }}"
 
+# --- AWS CREDS FILE CREATION ---
+
+- name: Create .aws creds file
+  copy:
+    dest: "~/.aws/credentials"
+    mode: '0600'
+    content: |
+      [default]
+      aws_access_key_id={{ aws_access_key_id }}
+      aws_secret_access_key={{ aws_secret_access_key }}      
+
 # --- SYSTEMD SERVICE SETUP ---
 
 - name: Create Systemd Service File

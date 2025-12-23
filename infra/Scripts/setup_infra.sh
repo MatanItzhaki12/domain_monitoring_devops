@@ -116,8 +116,11 @@ check_installations() {
     fi
     
     # Clone the repo
-    echo "Cloning project repo..."
-    git clone https://github.com/MatanItzhaki12/domain_monitoring_devops.git \
+    echo "Cloning project repo (branch: infra)..."
+    git clone \
+    --branch infra \
+    --single-branch \
+    https://github.com/MatanItzhaki12/domain_monitoring_devops.git \
     "$HOME/domain_monitoring_devops_infra" &>/dev/null
 
     PROJECT_ROOT="$HOME/domain_monitoring_devops_infra/infra"
