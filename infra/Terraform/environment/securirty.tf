@@ -7,9 +7,15 @@ resource "tls_private_key" "group2_generated_keys" {
 
 # Upload public key to AWS
 
-resource "aws_key_pair" "group2_tf_public_key" {
+resource "aws_key_pair" "group2_client_public_key" {
     key_name = var.ssh_public_key_name
     public_key = tls_private_key.group2_generated_keys.public_key_openssh
+
+    tags = {
+        Purpose = "key_pair"
+        Environment = "${var.environment}"
+        Group = "${var.group_name}"        
+    }
 }
 
 # Save private key locally
@@ -27,9 +33,9 @@ resource "local_file" "group2_tf_private_key" {
 
 # Create The Security group
 
-resource "aws_security_group" "group2_tf_security_group" {
-    name = "${var.group_name}-TF-SG"
-    vpc_id = aws_vpc.group2_vpc.id
+resource "aws_security_group" "group2_client_fe_security_group" {
+    name = "${var.group_name}-${environment}-FE-SG"
+    vpc_id = aws_vpc.group2_client_vpc.id
     # Inbound Rules
     ingress {
         from_port = 22
@@ -39,17 +45,10 @@ resource "aws_security_group" "group2_tf_security_group" {
     }
     ingress {
         from_port = 8080
-        to_port = 8080
+        to_port = 8081
         protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     } 
-    # Maybe 50000 is not neccassery?    
-    ingress {
-        from_port = 50000
-        to_port = 50000
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
 
     # Outbound Rule
     egress {
@@ -59,6 +58,39 @@ resource "aws_security_group" "group2_tf_security_group" {
         cidr_blocks = ["0.0.0.0/0"]
     }
     tags = {
-        Name = "${var.group_name}_TF_SG"
+        Purpose = "FE_SG"
+        Environment = "${var.environment}"
+        Group = "${var.group_name}"   
+    }
+}
+
+resource "aws_security_group" "group2_client_be_security_group" {
+    name = "${var.group_name}-${environment}-BE-SG"
+    vpc_id = aws_vpc.group2_client_vpc.id
+    # Inbound Rules
+    ingress {
+        from_port = 22
+        to_port = 22
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    ingress {
+        from_port = 8080
+        to_port = 8081
+        protocol = "tcp"
+        cidr_blocks = ["${public_subnet_cidr}"]
+    } 
+
+    # Outbound Rule
+    egress {
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    tags = {
+        Purpose = "BE_SG"
+        Environment = "${var.environment}"
+        Group = "${var.group_name}"   
     }
 }

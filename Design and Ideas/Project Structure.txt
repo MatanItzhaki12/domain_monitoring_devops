@@ -1,0 +1,51 @@
+Project Structure
+-------------------
+
+- logs/
+-- critical.log
+-- debug.log
+-- error.log
+-- info.log
+-- warning.log
+
+- static/
+
+-- main/
+--- main.html
+--- main.css
+--- main.js
+
+-- login/
+--- login.html
+--- login.css
+--- login.js
+
+-- register/
+--- register.html
+--- register.css
+--- register.js
+
+-- dashboard/
+--- dashboard.css
+--- dashboard.js
+
+- templates/
+-- dashboard.html
+
+- tests
+-- test_monitoring_system.py
+
+- UsersData/
+-- users.json
+-- <username>_domains.json
+
+- app.py
+- DomainManagementEngine.py
+- logger.py
+- MonitoringSystem.py
+- UserManagementModule.py
+
+- .gitignore
+- README.md
+
+

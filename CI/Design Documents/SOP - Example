@@ -1,0 +1,330 @@
+# **SOP — Automated Testing & Release Pipeline (CI) for Domain Monitoring System**
+
+## **Document Details**
+
+| Field            | Details                                                        |
+| ---------------- | -------------------------------------------------------------- |
+| **SOP Title**    | Setup, Configuration, and Operation of CI Pipeline             |
+| **Project**      | Domain Monitoring System — Automated Testing & Release Process |
+| **Version**      | 1.0                                                            |
+
+---
+
+# **1. Purpose**
+
+This document describes the process for setting up, operating, and maintaining the CI pipeline used for automated testing and release of the Domain Monitoring System.
+
+It includes:
+
+* Jenkins Master & Agent deployment
+* Webhook setup
+* Docker-based build & test execution
+* Automated semantic versioning and DockerHub publishing
+* Cleanup processes
+* Failure handling
+
+This document applies to developers interacting with the jenkins' pipeline and the Domain Monitoring System's code. It ensures the application's code is passing all the tests needed to run correctly.
+
+The process covers:
+
+* Infrastructure setup
+* Pipeline configuration
+* Test execution using Pytest + Selenium
+* Version promotion
+* Release to DockerHub
+
+---
+
+# **2.  System Architecture**
+
+The CI architecture includes:
+
+### **2.1 Jenkins Master (Orchestrator)**
+
+* Runs Jenkins Master container
+* Receives GitHub Webhooks
+* Triggers the CI pipeline
+* Delegates work to Jenkins Agent
+* Collects logs, and test results
+
+### **2.2 Jenkins Agent (Worker)**
+
+* Runs the CI logic
+* Builds temporary Docker images
+* Creates and runs ephemeral containers
+* Executes the Testing's Suite
+* Promotes successful builds
+* Publishes permenant Docker images to DockerHub
+* Cleans workspace and temp images
+
+---
+
+# **3. Prerequisites**
+
+### **3.1 Infrastructure - AWS Servers**
+
+* Two AWS EC2 instances: Ubuntu 24.04 LTS version
+  
+  * **jenkins-master**
+  * **jenkins-agent**
+  
+* Security groups:
+
+  * Open port 8080: 
+    * Jenkins Master - Runs Jenkins orchaestrator. 
+    * Jenkins Agent - Runs the Domain Monitoring System
+  * Open port 50000 (JNLP Agent) - for in-bound connection between the Jenkins instances
+  * Outbound internet access
+
+### **3.2 Installed Software**
+
+<!-- On both machines:
+
+
+```bash
+sudo apt update && sudo apt install -y docker.io docker-compose git
+sudo usermod -aG docker ubuntu
+``` -->
+
+### **3.3 Accounts**
+
+* GitHub account with repo access
+* DockerHub account (for publishing images)
+* Jenkins admin credentials
+
+---
+
+# **4. Installation & Setup**
+
+---
+
+## **4.1 Jenkins Master Setup**
+
+### **4.1.1 Start Jenkins Master Container**
+
+```bash
+docker run -d \
+  --name jenkins-master \
+  -p 8080:8080 \
+  -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  jenkins/jenkins:lts
+```
+
+### **4.1.2 Retrieve Admin Password**
+
+```bash
+docker exec jenkins-master cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+### **4.1.3 Install Required Plugins**
+
+Run the recommended setup, it includes:
+* Git
+* Docker Pipeline
+* Node & Label parameter
+* Pipeline Utility Steps
+* JNLP Agent plugin
+
+---
+
+## **4.2 Jenkins Agent Setup**
+
+### **4.2.1 Start Jenkins Agent Container**
+
+```bash
+docker run -d \
+  --name jenkins-agent \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkins/inbound-agent \
+  -url http://<MASTER_IP>:8080 \
+  <AGENT_SECRET> <AGENT_NAME>
+```
+
+### **4.2.2 Register the Agent in Jenkins**
+
+* Open: **Manage Jenkins → Nodes → New Node**
+* Choose: *Permanent Agent*
+* Assign labels: `docker agent pipeline`
+
+### **4.2.3 Configure as a systemd service** (ensures auto-start)
+
+# write something here!!!!
+
+---
+
+# **5. GitHub Webhook Configuration**
+
+1. Open repo → **Settings → Webhooks**
+2. Add new webhook:
+
+   * URL: `http://<MASTER_IP>:8080/github-webhook/`
+   * Content type: `application/json`
+   * Events: **Just push events**
+
+Verify with Jenkins logs that the webhook is received.
+
+---
+
+# **6. Pipeline Logic**
+<!-- 
+This follows your exact architecture:
+
+## **6.1 Pipeline Trigger**
+
+Triggered by:
+
+* GitHub Webhook
+* Manual "Build Now"
+
+## **6.2 Pipeline Stages**
+
+### **1. Checkout Code**
+
+```groovy
+stage('Checkout') {
+    checkout scm
+}
+```
+
+### **2. Build Temporary Image**
+
+* Build Docker image with temporary tag
+  Example tag:
+
+```
+domain-monitoring:temp-${BUILD_NUMBER}
+```
+
+### **3. Run Temporary Container**
+
+Used to execute tests.
+
+### **4. Run Pytest + Selenium Tests**
+
+* Backend API tests (Pytest)
+* GUI tests (Selenium)
+
+Test command:
+
+```bash
+pytest --maxfail=1 --disable-warnings -q
+```
+
+### **5. Evaluate Test Results**
+
+* If tests **pass** → continue
+* If tests **fail** → exit pipeline, print failure reason
+
+### **6. Promote Version**
+
+* Calculate next semantic version (`major.minor.patch`)
+* Tag new image
+* Push to DockerHub:
+
+```
+docker push matanitzhaki/domain-monitoring:<next-ver>
+```
+
+### **7. Cleanup**
+
+* Remove temporary image
+* Remove container
+* Clean Jenkins workspace -->
+
+---
+
+# **7. Failure Handling Procedure**
+
+## **7.1 Build Failure**
+
+Actions:
+
+1. Jenkins marks build as **FAILED**
+2. Developer receives notification
+3. Developer checks:
+
+   * Console output
+   * Pytest or Selenium failure logs
+4. Fix issue
+5. Commit & push code
+6. Webhook triggers new build
+
+---
+
+## **7.2 Webhook Not Triggering**
+
+Steps:
+
+1. Check GitHub webhook delivery logs
+2. Verify Jenkins URL is reachable
+3. Ensure Master port 8080 is open
+4. Restart Jenkins Master
+5. Test the payload again
+
+---
+
+## **7.3 Docker Build Failures**
+
+Common causes:
+
+* Missing dependencies
+* Broken Dockerfile
+* Invalid Python requirements
+
+Fix:
+
+* Run locally:
+
+  ```
+  docker build .
+  ```
+
+---
+
+## **7.4 Selenium Browser Errors**
+
+Diagnose:
+
+* Check browser logs in test container
+* Validate wait conditions
+* Confirm correct selenium driver version
+
+---
+
+### **7.5 Regenerating Agent Credentials**
+
+If lost:
+
+* Go to **Node configuration**
+* Generate new secret
+* Update Agent service
+
+---
+
+# **8. Appendices**
+
+## **8.1 Directory Structure**
+
+```
+CI/
+ ├── Design Documents/
+ ├── Jenkinsfile
+ ├── Dockerfile
+tests/
+ ├── api_tests/
+ └── selenium_tests/
+app/
+ └── application source code
+```
+
+## **8.2 Environment Variables**
+
+| Variable       | Purpose                 |
+| -------------- | ----------------------- |
+| DOCKERHUB_USER | DockerHub username      |
+| DOCKERHUB_PASS | DockerHub token         |
+| VERSION_FILE   | Tracks semantic version |
+
+---
+

@@ -5,6 +5,12 @@ variable "group_name" {
     type = string
 }   
 
+variable "environment" {
+    description = "the name of the client"
+    type = string
+}
+
+
 # networking
 
 variable "vpc_cidr" {
@@ -16,6 +22,12 @@ variable "public_subnet_cidr" {
     description = "the CIDR block for the public subnet"
     type = string
 }
+
+variable "private_subnet_cidr" {
+    description = "the CIDR block for the private subnet"
+    type = string
+}
+
 
 variable "enable_dns_hostnames" {
     description = "Enable DNS hostnames for the VPC"
@@ -53,10 +65,13 @@ variable "ec2_type" {
     type = string
 }
 
-variable "jenkins_master_private_ip" {
-    type = string
+variable "fe_machines" {
+    description = "Number of FE instances"
+    type = number
 }
 
-variable "jenkins_agent_private_ip" {
-    type = string
+variable "be_machines" {
+    description = "Number of BE instances"
+    type = number
+    default = 1
 }
