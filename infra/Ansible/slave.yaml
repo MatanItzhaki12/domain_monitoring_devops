@@ -1,0 +1,10 @@
+- name: Configure Jenkins Agent on AWS EC2
+  hosts: _agent
+  become: yes
+
+  vars:
+    ADMIN_USER: "admin"
+    NODE_NAME: "docker-slave-1"
+
+  roles:
+    - jenkins_slave
