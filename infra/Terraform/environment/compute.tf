@@ -11,7 +11,7 @@ resource "aws_instance" "group2_client_fe" {
     associate_public_ip_address = false
     tags = {
         Name = "${var.group_name}-${var.environment}-fe-${count.index + 1}"
-        Purpose = "FE_EC2_${count.index + 1}"
+        Purpose = "FE_EC2"
         Environment = "${var.environment}"
         Group = "${var.group_name}" 
     }
@@ -28,7 +28,7 @@ resource "aws_instance" "group2_client_be" {
     associate_public_ip_address = false
     tags = {
         Name = "${var.group_name}-${var.environment}-be-${count.index + 1}"
-        Purpose = "BE_EC2_${count.index + 1}"
+        Purpose = "BE_EC2"
         Environment = "${var.environment}"
         Group = "${var.group_name}" 
     }
