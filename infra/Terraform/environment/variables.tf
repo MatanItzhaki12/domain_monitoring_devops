@@ -18,12 +18,22 @@ variable "vpc_cidr" {
     type = string
 }
 
-variable "public_subnet_cidr" {
+variable "public_subnet_cidr_a" {
     description = "the CIDR block for the public subnet"
     type = string
 }
 
-variable "private_subnet_cidr" {
+variable "public_subnet_cidr_b" {
+    description = "the CIDR block for the public subnet"
+    type = string
+}
+
+variable "private_subnet_cidr_a" {
+    description = "the CIDR block for the private subnet"
+    type = string
+}
+
+variable "private_subnet_cidr_b" {
     description = "the CIDR block for the private subnet"
     type = string
 }
@@ -39,18 +49,6 @@ variable "enable_dns_support" {
     description = "Enable DNS support for the VPC"
     type = bool 
     default = true
-}
-
-# security
-
-variable "ssh_public_key_name" {
-    description = "the name of the public key on aws"
-    type = string
-}
-
-variable "ssh_private_key_name" {
-    description = "the name of the public key on aws"
-    type = string
 }
 
 # compute

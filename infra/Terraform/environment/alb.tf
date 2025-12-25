@@ -1,9 +1,16 @@
 # --- FE ALB ---
 resource "aws_lb" "group2_client_fe_alb" {
-    name = "${group_name}-${environment}-fe-alb"
+    name = "${var.group_name}-${var.environment}-fe-alb"
     load_balancer_type = "application"
-    subnets = [aws_subnet.public.id]
+    subnets = [aws_subnet.public_a.id, aws_subnet.public_b.id]
     security_groups = [aws_security_group.group2_client_fe_security_group.id]
+
+    tags = {
+        Name = "${var.group_name}-${var.environment}-FE-ALB"
+        Purpose = "FE_ALB"
+        Environment = "${var.environment}"
+        Group = "${var.group_name}"
+    }
 }
 
 resource "aws_lb_listener" "http" {
@@ -23,10 +30,16 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_lb_target_group" "group2_client_fe_alb_tg" {
-    name = "${group_name}-${environment}-fe-alb-tg"
+    name = "${var.group_name}-${var.environment}-fe-alb-tg"
     port = 8080
     protocol = "HTTP"
     vpc_id = aws_vpc.group2_client_vpc.id
+
+    stickiness {
+        enabled         = true
+        type            = "lb_cookie"
+        cookie_duration = 86400   # seconds (1 day)
+    }
 
     health_check {
         path = "/health"
@@ -36,6 +49,13 @@ resource "aws_lb_target_group" "group2_client_fe_alb_tg" {
         timeout = 3
         healthy_threshold = 2
         unhealthy_threshold = 2
+    }
+
+    tags = {
+        Name        = "${var.group_name}-${var.environment}-fe-tg"
+        Purpose     = "ALB_FE_TG"
+        Environment = var.environment
+        Group       = var.group_name
     }
 }
 
@@ -51,7 +71,7 @@ resource "aws_lb_listener_rule" "fe-instances" {
     priority = 100
     condition {
       path_pattern {
-        values = ["*"]
+        values = ["/*"]
       }
     }
     action {
@@ -62,10 +82,18 @@ resource "aws_lb_listener_rule" "fe-instances" {
 
 # --- BE ALB ---
 resource "aws_lb" "group2_client_be_alb" {
-    name = "${group_name}-${environment}-be-alb"
+    name = "${var.group_name}-${var.environment}-be-alb"
     load_balancer_type = "application"
-    subnets = [aws_subnet.private.id]
+    internal = true
+    subnets = [aws_subnet.private_a.id, aws_subnet.private_b.id]
     security_groups = [aws_security_group.group2_client_be_security_group.id]
+    tags = {
+        Name = "${var.group_name}-${var.environment}-BE-ALB"
+        Purpose = "BE_ALB"
+        Environment = "${var.environment}"
+        Group = "${var.group_name}"
+
+    }
 }
 
 resource "aws_lb_listener" "be_http" {
@@ -85,7 +113,7 @@ resource "aws_lb_listener" "be_http" {
 }
 
 resource "aws_lb_target_group" "group2_client_be_alb_tg" {
-    name = "${group_name}-${environment}-be-alb-tg"
+    name = "${var.group_name}-${var.environment}-be-alb-tg"
     port = 8080
     protocol = "HTTP"
     vpc_id = aws_vpc.group2_client_vpc.id
@@ -98,6 +126,13 @@ resource "aws_lb_target_group" "group2_client_be_alb_tg" {
         timeout = 3
         healthy_threshold = 2
         unhealthy_threshold = 2
+    }
+
+    tags = {
+        Name        = "${var.group_name}-${var.environment}-be-tg"
+        Purpose     = "ALB_BE_TG"
+        Environment = var.environment
+        Group       = var.group_name
     }
 }
 
@@ -113,7 +148,7 @@ resource "aws_lb_listener_rule" "be-instances" {
     priority = 100
     condition {
       path_pattern {
-        values = ["*"]
+        values = ["/*"]
       }
     }
     action {
