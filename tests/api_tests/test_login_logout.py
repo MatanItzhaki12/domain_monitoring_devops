@@ -27,7 +27,7 @@ def test_2_login_missing_fields(username, password):
     assert login_response.json().get("error") == "username and password are required"
 
 # Check valid login
-def test_2_login_valid_and_logout():
+def test_3_login_valid_and_logout():
     login_response = check_login_user("john_doe", "password")
     session_cookie = login_response.cookies.get("session")
     assert login_response.status_code == 200 
