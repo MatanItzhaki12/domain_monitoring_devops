@@ -1,0 +1,41 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+# --- BASIC INSTALLATION ---
+- name: Install Docker
+  apt:
+    name: 
+      - docker.io
+    state: present
+
+- name: Ensure Docker service is running
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Add ubuntu user to docker group
+  user:
+    name: ubuntu
+    groups: docker
+    append: yes
+
+- name: Download docker image from Docker Hub
+  community.docker.docker_image:
+    name: "{{ frontend_Docker_Image }}"
+    tag: "{{ frontend_docker_version }}"
+    source: pull
+
+- name: Run frontend container
+  community.docker.docker_container:
+    name: dms_frontend
+    image: "{{ frontend_Docker_Image }}:{{ frontend_docker_version }}"
+    state: started
+    restart_policy: always
+    ports:
+      - "8081:8081"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
