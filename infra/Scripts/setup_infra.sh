@@ -16,6 +16,13 @@
 # Ansible deployment
 set -e
 
+# Client's Machines' Variables
+FE_VMS_NUM=2
+BE_VMS_NUM=1
+CLIENT_NAME="Client1"
+FE_VER="lts"
+BE_VER="lts"
+
 # The user can choose to start from a different step, by passing it
 # like this "./infra_setup.sh 3"
 START_STEP=1
@@ -211,6 +218,29 @@ check_terraform_structure() {
     done
 
     echo "Terraform folder structure and main.tf files are valid"
+
+    echo "Writing Variables to terraform.tfvars"
+    cat  << EOF > "$ENV_DIR/terraform.tfvars"
+    # environment
+    group_name = "Group2"
+    environment = $CLIENT_NAME
+
+    # networking
+    vpc_cidr = "10.11.0.0/16"
+    public_subnet_cidr = "10.11.1.0/24"
+    private_subnet_cidr = "10.11.2.0/24"
+
+    # security
+    ssh_public_key_name = "group2_\${environment}_dms_pubkey"
+    ssh_private_key_name = "group2_\${environment}_private_key"
+
+    # compute
+    os_ami = "ami-0f5fcdfbd140e4ab7"
+    ec2_type = "t3.small"
+    fe_machines = $FE_VMS_NUM
+    be_machines = $BE_MACHINES_NUM
+EOF
+
     echo "Step 3 is completed"
 }
 

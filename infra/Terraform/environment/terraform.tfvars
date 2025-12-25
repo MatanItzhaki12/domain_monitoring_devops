@@ -8,7 +8,6 @@ public_subnet_cidr = "10.11.1.0/24"
 private_subnet_cidr = "10.11.2.0/24"
 
 # security
-
 ssh_public_key_name = "group2_${environment}_dms_pubkey"
 ssh_private_key_name = "group2_${environment}_private_key"
 
