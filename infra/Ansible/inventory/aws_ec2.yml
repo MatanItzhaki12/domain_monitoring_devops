@@ -7,7 +7,8 @@ filters:
   instance-state-name:
     - running
   "tag:Name": 
-    - "Group2-jenkins-*"
+    - "Group2-project*"
+    - "{{ customer_name }}"
 
 hostnames:
   - tag:Name

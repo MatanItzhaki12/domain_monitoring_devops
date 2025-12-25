@@ -1,55 +1,29 @@
 ---
-- name: Configure Jenkins Master on AWS EC2
-  hosts: _master
+# --- Frontend Part ---
+- name: Configure Project Frontend on AWS EC2
+  hosts: _frontend
   become: yes
 
   collections:
     - community.docker
 
   vars:
-    JENKINS_URL: "http://{{ hostvars[groups['_master'][0]]['ansible_host'] }}:8080"
-    jenkins_home: /var/jenkins_home
-    jenkins_container_name: jenkins-master
-    JCasC_url: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/infra/Ansible/jenkins.yaml"
-    Plugin_configuration_file: "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/refs/heads/main/infra/Ansible/plugins.yaml"
+    frontend_Docker_Image: "matan8520/dms_frontend"
+    frontend_docker_version: "latest" #Placeholeder will be replaced in jenkins pipeline
   roles:
-    - jenkins_master
+    - frontend
 
-# --- Github Part ---
 
-- name: Capture Jenkins master public IP
-  hosts: _master
-  gather_facts: false
-
-  tasks:
-    - name: Set Jenkins public IP fact on master
-      set_fact:
-        jenkins_public_ip: "{{ ansible_host }}"
-
-    - name: Expose Jenkins IP to localhost
-      set_fact:
-        jenkins_public_ip: "{{ ansible_host }}"
-      delegate_to: localhost
-      delegate_facts: true
-
-- name: Configure GitHub webhook 
-  hosts: localhost
-  connection: local
-  gather_facts: false
-  vars:
-    github_repo_full: "MatanItzhaki12/domain_monitoring_devops"
-  roles:
-    - github_webhook
-
-# --- Agent Part ---
-
-- name: Configure Jenkins Agent on AWS EC2
-  hosts: _agent
+# --- Backend Part ---
+- name: Configure Project backend on AWS EC2
+  hosts: _backend
   become: yes
 
-  vars:
-    ADMIN_USER: "admin"
-    NODE_NAME: "docker-slave-1"
+  collections:
+    - community.docker
 
+  vars:
+    backend_Docker_Image: "matan8520/dms_backend"
+    backend_docker_version: "latest" #Placeholeder will be replaced in jenkins pipeline
   roles:
-    - jenkins_slave
+    - backend
