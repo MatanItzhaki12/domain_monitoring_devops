@@ -113,8 +113,10 @@ def api_register():
         return jsonify({"ok": False, "error": result["error"]}), 400
 
     return jsonify({
+        "message": "Registered Successfully.",
         "ok": True,
         "username": username
+        
     }), 201
 
 
@@ -196,16 +198,10 @@ def api_scan_domains():
 
     try:
         updated = monitoring_system.scan_user_domains(username, dme=domain_engine)
-        return jsonify({
-            "ok": True,
-            "updated": len(updated)
-        }), 200
+        return jsonify({"ok": True, "updated": len(updated)}), 200
     except Exception as e:
         logger.error(f"Error during scan: {e}")
-        return jsonify({
-            "ok": False,
-            "error": str(e)
-        }), 500
+        return jsonify({"ok": False, "error": str(e)}), 500
         
 @app.route("/api/domains/bulk", methods=["POST"])
 def api_bulk_domains():
