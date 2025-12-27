@@ -22,7 +22,7 @@ def ping():
 
 @app.route("/pingbackend", methods=["GET"])
 def pingbackend():
-    r = requests.get("http://localhost:8080/api/ping", timeout=3)
+    r = requests.get(f"{BACKEND_BASE_URL}/api/ping", timeout=3)
 
     return jsonify(r.json()), r.status_code
 
@@ -188,7 +188,7 @@ def scan_domains():
         return jsonify({"ok": False, "error": "Unauthorized"}), 401
 
     resp, status = backend_post("/api/scan")
-    return jsonify(resp), status
+    return resp, status
 
 
 # ---------------------------

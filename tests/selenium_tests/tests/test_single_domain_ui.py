@@ -1,16 +1,12 @@
 import pytest
 import os
-import time
-import json
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 
 from tests.selenium_tests.pages.login_page import LoginPage
 from tests.selenium_tests.pages.single_domain_modal import SingleDomainModal
 
 pytestmark = pytest.mark.order(9)
-THIS_DIR = os.path.dirname(__file__)
 
 @pytest.mark.parametrize(
     "domain,status,ssl_issuer,ssl_expiration", 
@@ -22,47 +18,49 @@ THIS_DIR = os.path.dirname(__file__)
     ]
 )
 def test_add_single_domain_ui(driver, base_url, domain, status, ssl_issuer, ssl_expiration):
+    # Setup explicit wait (25 seconds)
+    wait = WebDriverWait(driver, 25)
+
+    # --- RESTORED LOGIN STEPS ---
     login_page = LoginPage(driver, base_url)
     login_page.load()
     login_page.login("Selenium_Tester_12345", "St87654321")
-    time.sleep(1)
-    # Wait until dashboard loads
+    
+    # Wait for successful login
+    wait.until(EC.url_contains("/dashboard"))
+    # ----------------------------
+
     single_modal = SingleDomainModal(driver=driver, base_url=base_url)
     single_modal.load()
-    time.sleep(1)
-    # Check correct page 
-    assert single_modal.get_title() == "Dashboard"
-    # _modal inherit from DashboardPage
-    assert "Selenium_Tester_12345" in single_modal.get_welcome_message()
-    time.sleep(1)
+    
+    wait.until(lambda d: single_modal.get_title() == "Dashboard")
+    wait.until(lambda d: "Selenium_Tester_12345" in single_modal.get_welcome_message())
 
     # =========================
     #  Add Single Domain TEST
     # =========================
-
-    # Step 1: open modal
     single_modal.open_add_domain_modal()
-    time.sleep(0.5)
-    # Step 2: add single domain to dashboard
+    
     single_modal.add_single_domain(domain=domain)
     assert single_modal.wait_for_success()
     
-    # Step 3: wait until dashboard is active again
     single_modal.wait_for_active_dashboard()
-    time.sleep(5)
 
     # Step 4: Verify results
-    domain_details_dashboard = single_modal.get_domain_data(domain=domain)
-    # Validate domain exists
-    assert domain_details_dashboard is not None
-    # Validate status
-    assert domain_details_dashboard["status"] == status
-    # Validate SSL issuer
-    assert domain_details_dashboard["ssl_issuer"].lower() == ssl_issuer.lower()
-    # Validate Expiration - only not empty
-    assert domain_details_dashboard["ssl_expiration"] and domain_details_dashboard["ssl_expiration"] != "None" 
+    def domain_data_is_ready(d):
+        try:
+            data = single_modal.get_domain_data(domain=domain)
+            # Return data only if it exists AND status matches expected
+            if data and data["status"] == status:
+                return data
+            return False
+        except Exception:
+            return False
 
-    # Clean User Domain
-    user_domains_path = "./UsersData/Selenium_Tester_12345_domains.json"
-    with open(user_domains_path, "w") as f:
-        json.dump([], f)
+    # Wait for data to populate
+    domain_details_dashboard = wait.until(domain_data_is_ready)
+
+    assert domain_details_dashboard is not None
+    assert domain_details_dashboard["status"] == status
+    assert domain_details_dashboard["ssl_issuer"].lower() == ssl_issuer.lower()
+    assert domain_details_dashboard["ssl_expiration"] and domain_details_dashboard["ssl_expiration"] != "None"

@@ -135,7 +135,7 @@ def test_5_register_invalid_password(new_username, password, password_confirmati
 
 def test_6_register_successful_registration(new_username):
     # check the registration of fully valid users 
-    expected_response = {"ok": True,"username": new_username}
+    expected_response = {"message": "Registered Successfully.", "ok": True,"username": new_username}
     # Test:
     response = check_register_user(username=new_username, password="Qwe12345", 
                                    password_confirmation="Qwe12345")

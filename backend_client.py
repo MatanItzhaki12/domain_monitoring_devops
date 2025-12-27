@@ -3,8 +3,7 @@ import requests
 from flask import session
 
 BACKEND_BASE_URL = os.environ.get(
-    "BACKEND_BASE_URL",
-    "http://localhost:8080"
+    "BACKEND_BASE_URL"
 )
 
 def backend_headers():
