@@ -6,8 +6,9 @@ regions:
 filters:
   instance-state-name:
     - running
-  "tag:Name": 
-    - "Group2-project*"
+  "tag:Group": 
+    - "Group2"
+  "tag:Environment":
     - "{{ customer_name }}"
 
 hostnames:

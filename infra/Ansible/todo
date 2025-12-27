@@ -2,3 +2,4 @@
 2. get list of all backend and all frontend servers from aws
 3. get customer name to filter
 4. fix ip on the machines currently localhost
+5. take lb ip from tf and set it as env variable

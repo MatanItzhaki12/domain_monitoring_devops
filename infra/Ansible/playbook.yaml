@@ -1,7 +1,7 @@
 ---
 # --- Frontend Part ---
 - name: Configure Project Frontend on AWS EC2
-  hosts: _frontend
+  hosts: _FE_EC2
   become: yes
 
   collections:
@@ -16,7 +16,7 @@
 
 # --- Backend Part ---
 - name: Configure Project backend on AWS EC2
-  hosts: _backend
+  hosts: _BE_EC2
   become: yes
 
   collections:
