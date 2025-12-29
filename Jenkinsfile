@@ -59,7 +59,8 @@ pipeline {
 
                     def semverTags = parsed.results
                         .collect { it.name }
-                        .findAll { it ==~ /v\\d+\\.\\d+\\.\\d+/ }
+                        .findAll { it ==~ /v\d+\.\d+\.\d+/ }
+
 
                     echo "Found semantic tags: ${semverTags}"
 
