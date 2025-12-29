@@ -48,36 +48,29 @@ pipeline {
         stage('Compute Semantic Version') {
             steps {
                 script {
-                    def latestDigest = sh(
-                        script: '''
-                        curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags?name=latest \
-                        | jq -r '.results[0].digest'
-                        ''',
-                        returnStdout: true
-                    ).trim()
+                    sh """
+                    LATEST_VERSION_DIGEST=$(curl -s 'https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags?name=latest' \
+                                                        | jq -r '.results[0].digest')
+                    LATEST_VERSION_TAG=$(curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags \
+                                                | jq -r --arg d "$LATEST_VERSION_DIGEST" '
+                                                .results[]
+                                                | select(.digest == $d)
+                                                | select(.name | startswith("v"))
+                                                | .name
+                                            ' | cut -d'v' -f2-)
+                    if [ "$LATEST_VERSION_TAG" = "" ]; then 
+                        LATEST_VERSION_TAG="0.0.0"
+                    fi
 
-                    def latestTag = sh(
-                        script: '''
-                        curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags?page_size=100 \
-                        | jq -r --arg d ''' + latestDigest + ''' '
-                            .results[]
-                            | select(.digest == $d)
-                            | select(.name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))
-                            | .name
-                        ' | head -1
-                        ''',
-                        returnStdout: true
-                    ).trim()
+                    declare -i major=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f1)
+                    declare -i minor=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f2)
+                    declare -i patch=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f3)
 
-                    if (!latestTag) {
-                        latestTag = "v0.0.0"
-                    }
+                    patch=$((patch + 1))
 
-                    def parts = latestTag.replace("v","").tokenize(".").collect { it.toInteger() }
-                    def nextVersion = "v${parts[0]}.${parts[1]}.${parts[2] + 1}"
-
-                    env.NEW_TAG_VERSION = nextVersion
-                    echo "New version: ${env.NEW_TAG_VERSION}"
+                    export NEW_VERSION_TAG="v$major.$minor.$patch"
+                    """
+                  
                 }
             }
         }
@@ -93,9 +86,9 @@ pipeline {
                 )]) {
                     sh """
                         echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_TAG_VERSION}
+                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_VERSION_TAG}
                         docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:latest
-                        docker push \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_TAG_VERSION}
+                        docker push \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_VERSION_TAG}
                         docker push \$DOCKER_USER/${IMAGE_NAME}:latest
                         docker logout
                     """
