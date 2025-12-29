@@ -1,10 +1,8 @@
 import os
 import requests
 from flask import session
-
-BACKEND_BASE_URL = os.environ.get(
-    "BACKEND_BASE_URL"
-)
+from IP_Library import BACKEND_URL
+BACKEND_BASE_URL = BACKEND_URL
 
 def backend_headers():
     headers = {}

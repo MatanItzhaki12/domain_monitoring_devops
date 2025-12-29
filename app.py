@@ -6,6 +6,7 @@ from backend_client import backend_post
 from backend_client import backend_get
 from backend_client import backend_delete
 from backend_client import BACKEND_BASE_URL
+from IP_Library import FRONTEND_PORT
 
 logger = logger.setup_logger("frontend")
 
@@ -200,4 +201,4 @@ def static_files(filename):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8081)
+    app.run(debug=True, host="0.0.0.0", port=FRONTEND_PORT)
