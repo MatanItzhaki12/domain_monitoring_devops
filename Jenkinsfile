@@ -62,9 +62,9 @@ pipeline {
                         LATEST_VERSION_TAG="0.0.0"
                     fi
 
-                    declare -i major=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f1)
-                    declare -i minor=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f2)
-                    declare -i patch=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f3)
+                    major=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f1)
+                    minor=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f2)
+                    patch=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f3)
 
                     patch=$((patch + 1))
 
