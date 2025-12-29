@@ -48,7 +48,7 @@ pipeline {
         stage('Compute Semantic Version') {
             steps {
                 script {
-                    sh '''
+                    env.NEW_VERSION_TAG = sh(script: '''
                     LATEST_VERSION_DIGEST=$(curl -s 'https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags?name=latest' \
                                                         | jq -r '.results[0].digest')
                     LATEST_VERSION_TAG=$(curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags \
@@ -68,8 +68,10 @@ pipeline {
 
                     patch=$((patch + 1))
 
-                    export NEW_VERSION_TAG="v$major.$minor.$patch"
-                    '''
+                    echo "v$major.$minor.$patch"
+                    ''', returnStdout: true).trim()
+
+                    echo "Calculated Version for pipeline: ${env.NEW_VERSION_TAG}"
                   
                 }
             }
