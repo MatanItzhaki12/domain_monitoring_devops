@@ -97,9 +97,9 @@ pipeline {
                 )]) {
                     sh """
                         echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${SEMVER_TAG}
+                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${env.SEMVER_TAG}
                         docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:latest
-                        docker push \$DOCKER_USER/${IMAGE_NAME}:${SEMVER_TAG}
+                        docker push \$DOCKER_USER/${IMAGE_NAME}:${env.SEMVER_TAG}
                         docker push \$DOCKER_USER/${IMAGE_NAME}:latest
                         docker logout
                     """
