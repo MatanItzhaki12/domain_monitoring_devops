@@ -15,7 +15,7 @@ pipeline {
         stage('Checkout Source Code') {
             steps {
                 echo "Cloning repository from GitHub..."
-                git branch: 'main', url: "${REPO_URL}"
+                git branch: 'frontend', url: "${REPO_URL}"
             }
         }
 
@@ -48,6 +48,8 @@ pipeline {
         stage('Run Container for Tests') {
             steps {
                 echo "Starting temporary container..."
+                env.BACKEND_IP="localhost"
+                env.FRONTEND_IP="localhost"
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
                     docker run -d --name ${CONTAINER_NAME} ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
