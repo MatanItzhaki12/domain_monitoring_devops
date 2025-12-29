@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify, session, redirect, render_template
+from flask import Flask, request, jsonify
 import os
 from UserManagementModule import UserManager as UM
 from DomainManagementEngine import DomainManagementEngine as DME
 from MonitoringSystem import MonitoringSystem as MS
 import logger
+from IP_Library import BACKEND_PORT
 
 logger = logger.setup_logger("backend")
 user_manager = UM()
@@ -264,4 +265,4 @@ def static_files(filename):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8080)
+    app.run(debug=True, host="0.0.0.0", port=BACKEND_PORT)
