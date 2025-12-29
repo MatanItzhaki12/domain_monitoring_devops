@@ -48,46 +48,39 @@ pipeline {
         stage('Compute Semantic Version') {
             steps {
                 script {
-                    echo "Fetching existing tags from Docker Hub..."
-
-                    def tagsJson = sh(
-                        script: "curl -s https://hub.docker.com/v2/repositories/matan8520/dms_backend/tags?page_size=100",
+                    def latestDigest = sh(
+                        script: """
+                        curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags?name=latest \
+                        | jq -r '.results[0].digest'
+                        """,
                         returnStdout: true
-                    )
+                    ).trim()
 
-                    def parsed = new groovy.json.JsonSlurper().parseText(tagsJson)
+                    def latestTag = sh(
+                        script: """
+                        curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags?page_size=100 \
+                        | jq -r --arg d "${latestDigest}" '
+                            .results[]
+                            | select(.digest == \$d)
+                            | select(.name | test("^v[0-9]+\\\\.[0-9]+\\\\.[0-9]+$"))
+                            | .name
+                        ' | head -1
+                        """,
+                        returnStdout: true
+                    ).trim()
 
-                    def semverTags = parsed.results
-                        .collect { it.name }
-                        .findAll { it ==~ /v\d+\.\d+\.\d+/ }
-
-
-                    echo "Found semantic tags: ${semverTags}"
-
-                    String nextVersion
-
-                    if (!semverTags || semverTags.isEmpty()) {
-                        nextVersion = "v1.0.0"
-                    } else {
-                        semverTags = semverTags.sort { tag ->
-                            tag.replace("v","")
-                            .tokenize(".")
-                            .collect { it.toInteger() }
-                        }
-
-                        def latest = semverTags.last()
-                        def parts = latest.replace("v","").split("\\.").collect { it.toInteger() }
-                        parts[2] = parts[2] + 1
-
-                        nextVersion = "v${parts[0]}.${parts[1]}.${parts[2]}"
+                    if (!latestTag) {
+                        latestTag = "v0.0.0"
                     }
 
-                    env.SEMVER_TAG = nextVersion
-                    echo "Next semantic version: ${env.SEMVER_TAG}"
+                    def parts = latestTag.replace("v","").tokenize(".").collect { it.toInteger() }
+                    def nextVersion = "v${parts[0]}.${parts[1]}.${parts[2] + 1}"
+
+                    env.NEW_TAG_VERSION = nextVersion
+                    echo "New version: ${env.NEW_TAG_VERSION}"
                 }
             }
         }
-
         stage('Push Backend Image') {
             when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
             steps {               
@@ -98,9 +91,9 @@ pipeline {
                 )]) {
                     sh """
                         echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${env.SEMVER_TAG}
+                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_TAG_VERSION}
                         docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:latest
-                        docker push \$DOCKER_USER/${IMAGE_NAME}:${env.SEMVER_TAG}
+                        docker push \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_TAG_VERSION}
                         docker push \$DOCKER_USER/${IMAGE_NAME}:latest
                         docker logout
                     """
