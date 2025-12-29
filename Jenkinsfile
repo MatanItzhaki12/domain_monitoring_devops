@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         REGISTRY = "matan8520"
-        IMAGE_NAME = "dms"
+        IMAGE_NAME = "dms_backend"
         REPO_URL = "https://github.com/MatanItzhaki12/domain_monitoring_devops.git"
         CONTAINER_NAME = "temp_container_${BUILD_NUMBER}"
     }
@@ -45,10 +45,51 @@ pipeline {
                 """
             }
         }
+        stage('Compute Semantic Version') {
+            steps {
+                script {
+                    echo "Fetching existing tags from Docker Hub..."
+
+                    def tagsJson = sh(
+                        script: "curl -s https://hub.docker.com/v2/repositories/matan8520/dms_backend/tags?page_size=100",
+                        returnStdout: true
+                    )
+
+                    def parsed = new groovy.json.JsonSlurper().parseText(tagsJson)
+
+                    def semverTags = parsed.results
+                        .collect { it.name }
+                        .findAll { it ==~ /v\\d+\\.\\d+\\.\\d+/ }
+
+                    echo "Found semantic tags: ${semverTags}"
+
+                    String nextVersion
+
+                    if (!semverTags || semverTags.isEmpty()) {
+                        nextVersion = "v1.0.0"
+                    } else {
+                        semverTags.sort { a, b ->
+                            def av = a.replace("v","").split("\\.").collect { it.toInteger() }
+                            def bv = b.replace("v","").split("\\.").collect { it.toInteger() }
+                            av <=> bv
+                        }
+
+                        def latest = semverTags.last()
+                        def parts = latest.replace("v","").split("\\.").collect { it.toInteger() }
+                        parts[2] = parts[2] + 1
+
+                        nextVersion = "v${parts[0]}.${parts[1]}.${parts[2]}"
+                    }
+
+                    env.SEMVER_TAG = nextVersion
+                    echo "Next semantic version: ${env.SEMVER_TAG}"
+                }
+            }
+        }
 
         stage('Push Backend Image') {
             when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
-            steps {
+            steps {               
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
                     usernameVariable: 'DOCKER_USER',
@@ -56,9 +97,9 @@ pipeline {
                 )]) {
                     sh """
                         echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${env.TAG}
+                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${SEMVER_TAG}
                         docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:latest
-                        docker push \$DOCKER_USER/${IMAGE_NAME}:${env.TAG}
+                        docker push \$DOCKER_USER/${IMAGE_NAME}:${SEMVER_TAG}
                         docker push \$DOCKER_USER/${IMAGE_NAME}:latest
                         docker logout
                     """
