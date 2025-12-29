@@ -69,10 +69,10 @@ pipeline {
                     if (!semverTags || semverTags.isEmpty()) {
                         nextVersion = "v1.0.0"
                     } else {
-                        semverTags.sort { a, b ->
-                            def av = a.replace("v","").split("\\.").collect { it.toInteger() }
-                            def bv = b.replace("v","").split("\\.").collect { it.toInteger() }
-                            av <=> bv
+                        semverTags = semverTags.sort { tag ->
+                            tag.replace("v","")
+                            .tokenize(".")
+                            .collect { it.toInteger() }
                         }
 
                         def latest = semverTags.last()
