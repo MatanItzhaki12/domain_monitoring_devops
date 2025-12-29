@@ -57,16 +57,15 @@ pipeline {
                     ).trim()
 
                     def latestTag = sh(
-                        script: """
-                        DIGEST="${latestDigest}"
+                        script: '''
                         curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags?page_size=100 \
-                        | jq -r --arg d "\$DIGEST" '
+                        | jq -r --arg d ''' + latestDigest + ''' '
                             .results[]
-                            | select(.digest == \$d)
-                            | select(.name | test("^v[0-9]+\\\\.[0-9]+\\\\.[0-9]+$"))
+                            | select(.digest == $d)
+                            | select(.name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))
                             | .name
                         ' | head -1
-                        """,
+                        ''',
                         returnStdout: true
                     ).trim()
 
@@ -82,6 +81,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Push Backend Image') {
             when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
