@@ -1,4 +1,4 @@
-from .Aux_Library import check_get_webpage
+from tests.api_tests.Aux_Library import check_get_webpage
 import pytest
 
 pytestmark = pytest.mark.order(1)

@@ -42,7 +42,7 @@ def test_1_click_here_to_login(driver, base_url):
         "username,password,password_confirmation,expected_message",
         [
             # Invalid username
-            ("", "Qwe12345", "Qwe12345","Username invalid."),
+            ("", "Qwe12345", "Qwe12345","All fields are required"),
             # Existing username
             (EXISTING_USERNAME, "Qwe12345", "Qwe12345", "Username already taken."),
             # Invalid password confirmation

@@ -1,10 +1,16 @@
 import pytest
 import os
+import sys
 import platform
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../"))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+from IP_Library import FRONTEND_URL
 
 # Global Fixtures
 
@@ -44,4 +50,4 @@ def driver():
 
 @pytest.fixture
 def base_url():
-    return os.getenv("BASE_URL", "http://localhost:8080")
+    return FRONTEND_URL

@@ -2,12 +2,19 @@ import os
 import requests
 import re
 import json
+import sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../"))
+if project_root not in sys.path:
+    sys.path.append(project_root)
 from UserManagementModule import UserManager as UM
+from IP_Library import FRONTEND_URL
+
 
 # -----------------------------------------------------
 # Global session and Base URL configuration
 # -----------------------------------------------------
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8080")
+BASE_URL = FRONTEND_URL
 session = requests.Session()
 
 
@@ -160,18 +167,17 @@ def bulk_upload_domains(file_path, cookie):
 
 def check_scan_domains(session_cookie: str | None = None):
     """
-    Performs a GET request to /scan_domains.
-    If a session_cookie is provided, sends it as a Flask 'session' cookie.
-    Returns the response object from the requests library.
+    Performs a POST request to /scan_domains.
     """
-
     url = f"{BASE_URL}/scan_domains"
     cookies = {}
 
     if session_cookie:
         cookies["session"] = session_cookie
 
-    response = requests.get(url, cookies=cookies, timeout=5)
+    # FIX: Changed from requests.get to requests.post
+    response = requests.post(url, cookies=cookies, timeout=5)
+    # Optional: print_response(response) if you want logs
     return response
 
 

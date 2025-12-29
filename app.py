@@ -6,6 +6,7 @@ from backend_client import backend_post
 from backend_client import backend_get
 from backend_client import backend_delete
 from backend_client import BACKEND_BASE_URL
+from IP_Library import FRONTEND_PORT
 
 logger = logger.setup_logger("frontend")
 
@@ -22,7 +23,7 @@ def ping():
 
 @app.route("/pingbackend", methods=["GET"])
 def pingbackend():
-    r = requests.get("http://localhost:8080/api/ping", timeout=3)
+    r = requests.get(f"{BACKEND_BASE_URL}/api/ping", timeout=3)
 
     return jsonify(r.json()), r.status_code
 
@@ -56,13 +57,11 @@ def login():
 
     resp, status = backend_post("/api/login", json=data)
 
-    if status == 200 and resp.get("ok"):
+    if resp.get("ok"):
         session["username"] = resp["username"]
-        return jsonify({"ok": True}), 200
+        return jsonify({"ok": True, "username": resp["username"]}), 200
 
-    return jsonify({
-        "error": resp.get("error", "Login failed")
-    }), status
+    return resp, status
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -74,13 +73,11 @@ def register():
 
     resp, status = backend_post("/api/register", json=data)
 
-    if status == 201 and resp.get("ok"):
+    if resp.get("ok"):
         session["username"] = resp["username"]
-        return jsonify({"ok": True}), 201
+        return resp, status
 
-    return jsonify({
-        "error": resp.get("error", "Registration failed")
-    }), status
+    return resp, status
 
 
 @app.route("/dashboard", methods=["GET"])
@@ -192,7 +189,7 @@ def scan_domains():
         return jsonify({"ok": False, "error": "Unauthorized"}), 401
 
     resp, status = backend_post("/api/scan")
-    return jsonify(resp), status
+    return resp, status
 
 
 # ---------------------------
@@ -204,4 +201,4 @@ def static_files(filename):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8081)
+    app.run(debug=True, host="0.0.0.0", port=FRONTEND_PORT)
