@@ -39,23 +39,41 @@ pipeline {
             }
         }
 
-        stage('Run Backend Container')
-        {
+        stage('Setup Network') {
+                    steps {
+                        // Create a bridge network so containers can see each other
+                        sh 'docker network create dms_network || true'
+                    }
+        }
+
+        stage('Run Backend Container') {
             steps {
-                echo "Starting backend container for integration tests..."
+                echo "Starting backend container..."
                 sh """
                     docker rm -f backend_test_container || true
-                    docker run -d --name backend_test_container -p 8080:8080 matan8520/dms_backend:latest
+                    
+                    docker run -d \
+                        --name backend_test_container \
+                        --network dms_network \
+                        -p 8080:8080 \
+                        matan8520/dms_backend:latest
                 """
             }
         }
 
         stage('Run Container for Tests') {
             steps {
-                echo "Starting temporary container..."
+                echo "Starting frontend/test container..."
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} -p 8081:8081 ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
+                    
+                    docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        --network dms_network \
+                        -e BACKEND_IP="backend_test_container" \
+                        -e FRONTEND_IP="${CONTAINER_NAME}" \
+                        -p 8081:8081 \
+                        ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
                 """
             }
         }
@@ -67,20 +85,20 @@ pipeline {
                     steps {
                         echo "Running frontend API tests..."
                         sh """
-                            docker exec ${CONTAINER_NAME} pytest tests
+                            docker exec ${CONTAINER_NAME} pytest tests/api_tests --maxfail=1 --disable-warnings -q
                         """
                     }
                 }
 
                 // -------------- SELENIUM STUB TESTS --------------------
-                // stage('UI Selenium Tests') {
-                //     steps {
-                //         echo "Running frontend selenium tests..."
-                //         sh """
-                //             docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q
-                //         """
-                //     }
-                // }
+                stage('UI Selenium Tests') {
+                    steps {
+                        echo "Running frontend selenium tests..."
+                        sh """
+                            docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q
+                        """
+                    }
+                }
 
             }
         }
