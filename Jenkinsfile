@@ -130,7 +130,6 @@ pipeline {
                     ''', returnStdout: true).trim()
 
                     echo "Calculated Version for pipeline: ${env.NEW_VERSION_TAG}"
-                    git clone 
                 }
             }
         }
