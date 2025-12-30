@@ -42,8 +42,8 @@ def test_2_register_invalid_username(username, password, password_confirmation):
     expected_response = {"ok": False,"error": "All fields are required"}  
     response = check_register_user(username=username, password=password, 
                                    password_confirmation=password_confirmation)
-    assert response.status_code == 400
     assert response.json() == expected_response
+    assert response.status_code == 400
     
 @pytest.mark.parametrize(
     "password,password_confirmation",
