@@ -175,7 +175,7 @@ pipeline {
                     echo "Frontend version is: ${env.NEW_VERSION_TAG}"
                     dir('version_matrix'){
                         git branch: 'versions', url: "${REPO_URL}"
-                        sh 'python3 domain_monitoring_devops/calculate.py'
+                        sh 'python3 calculate.py'
                         withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                             sh """
                                 # Configure Git Identity (Required for commit)
