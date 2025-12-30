@@ -67,20 +67,20 @@ pipeline {
                     steps {
                         echo "Running frontend API tests..."
                         sh """
-                            docker exec ${CONTAINER_NAME} pytest tests/api_tests --maxfail=1 --disable-warnings -q
+                            docker exec ${CONTAINER_NAME} pytest tests
                         """
                     }
                 }
 
                 // -------------- SELENIUM STUB TESTS --------------------
-                stage('UI Selenium Tests') {
-                    steps {
-                        echo "Running frontend selenium tests..."
-                        sh """
-                            docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q
-                        """
-                    }
-                }
+                // stage('UI Selenium Tests') {
+                //     steps {
+                //         echo "Running frontend selenium tests..."
+                //         sh """
+                //             docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q
+                //         """
+                //     }
+                // }
 
             }
         }
