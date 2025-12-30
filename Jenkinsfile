@@ -1,10 +1,11 @@
 pipeline {
-    agent { label 'Slave' }
+    agent any
 
     environment {
         REGISTRY = "matan8520"
-        IMAGE_NAME = "dms"
+        IMAGE_NAME = "dms_frontend"
         REPO_URL = "https://github.com/MatanItzhaki12/domain_monitoring_devops.git"
+        REPO_URL_NO_HTTP = "github.com/MatanItzhaki12/domain_monitoring_devops.git"
         CONTAINER_NAME = "temp_container_${BUILD_NUMBER}"
     }
 
@@ -24,14 +25,7 @@ pipeline {
                 script {
                     def commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                     echo "Commit ID: ${commit}"
-
-                    def b = BUILD_NUMBER.toInteger()
-                    def shortTag = commit.take(8)
-
-                    env.TAG = shortTag
-                    env.VERSION_TAG = "build-${b}-${shortTag}"
-
-                    echo "Image tag: ${env.TAG}"
+                    env.TAG = commit.take(8)
                 }
             }
         }
@@ -45,14 +39,23 @@ pipeline {
             }
         }
 
+        stage('Run Backend Container')
+        {
+            steps {
+                echo "Starting backend container for integration tests..."
+                sh """
+                    docker rm -f backend_test_container || true
+                    docker run -d --name backend_test_container matan8520/dms_backend:latest -p 8080:8080
+                """
+            }
+        }
+
         stage('Run Container for Tests') {
             steps {
                 echo "Starting temporary container..."
-                env.BACKEND_IP="localhost"
-                env.FRONTEND_IP="localhost"
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
+                    docker run -d --name ${CONTAINER_NAME} ${REGISTRY}/${IMAGE_NAME}:${env.TAG} -p 8081:8081
                 """
             }
         }
@@ -60,9 +63,9 @@ pipeline {
         stage('Execute Tests') {
             parallel {
 
-                stage('Backend API Tests') {
+                stage('Frontend API Tests') {
                     steps {
-                        echo "Running backend API tests..."
+                        echo "Running frontend API tests..."
                         sh """
                             docker exec ${CONTAINER_NAME} pytest tests/api_tests --maxfail=1 --disable-warnings -q
                         """
@@ -70,19 +73,11 @@ pipeline {
                 }
 
                 // -------------- SELENIUM STUB TESTS --------------------
-                stage('UI Selenium Tests (Stub)') {
+                stage('UI Selenium Tests') {
                     steps {
-                        echo "Running STUB Selenium tests..."
-
+                        echo "Running frontend selenium tests..."
                         sh """
-                           
-                            docker exec ${CONTAINER_NAME} sh -c "mkdir -p /app/tests/selenium_tests"
-
-                           
-                            docker exec ${CONTAINER_NAME} sh -c "echo 'def test_stub(): assert True' > /app/tests/selenium_tests/test_stub.py"
-
-                           
-                            docker exec ${CONTAINER_NAME} pytest /app/tests/selenium_tests/test_stub.py -q
+                            docker exec ${CONTAINER_NAME} pytest tests/selenium_tests --maxfail=1 --disable-warnings -q
                         """
                     }
                 }
@@ -90,64 +85,101 @@ pipeline {
             }
         }
 
-        stage('Promote and Push Image') {
-            when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
-
+        stage('Compute Semantic Version') {
             steps {
                 script {
-                    echo "Detecting latest version tag..."
+                    env.NEW_VERSION_TAG = sh(script: '''
+                    LATEST_VERSION_DIGEST=$(curl -s 'https://registry.hub.docker.com/v2/repositories/matan8520/dms_frontend/tags?name=latest' \
+                                                        | jq -r '.results[0].digest')
+                    LATEST_VERSION_TAG=$(curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_frontend/tags \
+                                                | jq -r --arg d "$LATEST_VERSION_DIGEST" '
+                                                .results[]
+                                                | select(.digest == $d)
+                                                | select(.name | startswith("v"))
+                                                | .name
+                                            ' | cut -d'v' -f2-)
+                    if [ "$LATEST_VERSION_TAG" = "" ]; then 
+                        LATEST_VERSION_TAG="0.0.0"
+                    fi
 
-                    def latestTag = sh(
-                        script: "git tag --sort=-v:refname | grep -Eo 'v[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1 || echo 'v0.0.0'",
-                        returnStdout: true
-                    ).trim()
+                    major=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f1)
+                    minor=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f2)
+                    patch=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f3)
 
-                    echo "Current version: ${latestTag}"
-                    if (latestTag == '') {
-                        latestTag = 'v0.0.0'
-                    }
-                    def parts = latestTag.replace('v','').tokenize('.')
-                    def major = parts[0].toInteger()
-                    def minor = parts[1].toInteger()
-                    def patch = parts[2].toInteger()
+                    patch=$((patch + 1))
 
-                    def newVersion = "v${major}.${minor}.${patch + 1}"
-                    echo "New version: ${newVersion}"
+                    echo "v$major.$minor.$patch"
+                    ''', returnStdout: true).trim()
 
-                    // Push image to DockerHub
-                    withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub-creds',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )]) {
-                        sh """
-                            echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                            docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${newVersion}
-                            docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:latest
-                            docker push ${REGISTRY}/${IMAGE_NAME}:${newVersion}
-                            docker push ${REGISTRY}/${IMAGE_NAME}:latest
-                            docker logout
-                        """
-                    }
-
-                    // Push git tag
-                    withCredentials([usernamePassword(
-                        credentialsId: 'github-token',
-                        usernameVariable: 'GIT_USER',
-                        passwordVariable: 'GIT_TOKEN'
-                    )]) {
-
-                        sh """
-                            git config --global user.email "jenkins@ci.local"
-                            git config --global user.name "Jenkins CI"
-                            git tag -a ${newVersion} -m 'Release ${newVersion}' || true
-                            git push https://\$GIT_USER:\$GIT_TOKEN@github.com/cerform/domain_monitoring_devops.git ${newVersion} || true
-                        """
-                    }
+                    echo "Calculated Version for pipeline: ${env.NEW_VERSION_TAG}"
+                    git clone 
                 }
             }
         }
 
+        stage('Push Frontend Image') {
+            when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
+            steps {               
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh """
+                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_VERSION_TAG}
+                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:latest
+                        docker push \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_VERSION_TAG}
+                        docker push \$DOCKER_USER/${IMAGE_NAME}:latest
+                        docker logout
+                    """
+                }
+            }
+        }
+        stage('update version matrix file'){
+            steps {
+                script {
+                    env.BACKEND_VERSION = sh(script:'''
+                        LATEST_VERSION_DIGEST=$(curl -s 'https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags?name=latest' \
+                                                                | jq -r '.results[0].digest')
+                            LATEST_VERSION_TAG=$(curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags \
+                                                        | jq -r --arg d "$LATEST_VERSION_DIGEST" '
+                                                        .results[]
+                                                        | select(.digest == $d)
+                                                        | select(.name | startswith("v"))
+                                                        | .name
+                                                    ' | cut -d'v' -f2-)
+                            if [ "$LATEST_VERSION_TAG" = "" ]; then 
+                                LATEST_VERSION_TAG="0.0.0"
+                            fi
+                            echo "v$LATEST_VERSION_TAG"
+                        ''', returnStdout: true).trim()
+                    echo "Backend version is: ${env.BACKEND_VERSION}"
+                    echo "Frontend version is: ${env.NEW_VERSION_TAG}"
+                    dir('version_matrix'){
+                        git branch: 'versions', url: "${REPO_URL}"
+                        sh 'python3 domain_monitoring_devops/calculate.py'
+                        withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                            sh """
+                                # Configure Git Identity (Required for commit)
+                                git config user.email "jenkins-bot@example.com"
+                                git config user.name "Jenkins Bot"
+
+                                # Stage all changes made by the python script
+                                git add .
+
+                                # Commit (The '|| echo' prevents failure if there are no changes)
+                                git commit -m "Automated update from Jenkins" || echo "No changes to commit"
+
+                                # Push safely using the credentials variables
+                                # We inject the token directly into the URL to bypass the password prompt
+                                git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${REPO_URL_NO_HTTP} HEAD:versions
+                            """
+                        }
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -166,4 +198,5 @@ pipeline {
             deleteDir()
         }
     }
+
 }
