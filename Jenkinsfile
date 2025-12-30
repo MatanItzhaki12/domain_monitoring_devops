@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         REGISTRY = "matan8520"
-        IMAGE_NAME = "dms"
+        IMAGE_NAME = "dms_backend"
         REPO_URL = "https://github.com/MatanItzhaki12/domain_monitoring_devops.git"
         CONTAINER_NAME = "temp_container_${BUILD_NUMBER}"
     }
@@ -45,10 +45,42 @@ pipeline {
                 """
             }
         }
+        stage('Compute Semantic Version') {
+            steps {
+                script {
+                    env.NEW_VERSION_TAG = sh(script: '''
+                    LATEST_VERSION_DIGEST=$(curl -s 'https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags?name=latest' \
+                                                        | jq -r '.results[0].digest')
+                    LATEST_VERSION_TAG=$(curl -s https://registry.hub.docker.com/v2/repositories/matan8520/dms_backend/tags \
+                                                | jq -r --arg d "$LATEST_VERSION_DIGEST" '
+                                                .results[]
+                                                | select(.digest == $d)
+                                                | select(.name | startswith("v"))
+                                                | .name
+                                            ' | cut -d'v' -f2-)
+                    if [ "$LATEST_VERSION_TAG" = "" ]; then 
+                        LATEST_VERSION_TAG="0.0.0"
+                    fi
+
+                    major=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f1)
+                    minor=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f2)
+                    patch=$(echo "$LATEST_VERSION_TAG" | cut -d'.' -f3)
+
+                    patch=$((patch + 1))
+
+                    echo "v$major.$minor.$patch"
+                    ''', returnStdout: true).trim()
+
+                    echo "Calculated Version for pipeline: ${env.NEW_VERSION_TAG}"
+                  
+                }
+            }
+        }
+
 
         stage('Push Backend Image') {
             when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
-            steps {
+            steps {               
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
                     usernameVariable: 'DOCKER_USER',
@@ -56,9 +88,9 @@ pipeline {
                 )]) {
                     sh """
                         echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${env.TAG}
+                        docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_VERSION_TAG}
                         docker tag ${REGISTRY}/${IMAGE_NAME}:${env.TAG} \$DOCKER_USER/${IMAGE_NAME}:latest
-                        docker push \$DOCKER_USER/${IMAGE_NAME}:${env.TAG}
+                        docker push \$DOCKER_USER/${IMAGE_NAME}:${env.NEW_VERSION_TAG}
                         docker push \$DOCKER_USER/${IMAGE_NAME}:latest
                         docker logout
                     """

@@ -2,12 +2,19 @@ import os
 import requests
 import re
 import json
+import sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../"))
+if project_root not in sys.path:
+    sys.path.append(project_root)
 from UserManagementModule import UserManager as UM
+from IP_Library import BACKEND_URL
+
 
 # -----------------------------------------------------
 # Global session and Base URL configuration
 # -----------------------------------------------------
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8080")
+BASE_URL = BACKEND_URL
 session = requests.Session()
 
 

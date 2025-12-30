@@ -1,0 +1,109 @@
+versions.yml - needed in a seperate branch (Release_version)
+
+# versions.yml 
+compatibility_matrix:
+  - backend: "1.0.0"
+    frontend_versions: ["0.0.1", "0.0.2"]
+  - backend: "1.1.0"
+    frontend_versions: ["0.0.3"]
+
+
+*** You will need the Pipeline Utility Steps Plugin to use the readYaml command. ***
+
+- Jenkinsfile example for version control (inside the orchestration)
+
+pipeline {
+    agent any
+    stages {
+        stage('Load Metadata') {
+            steps {
+                // 1. Checkout the orchestrator repo
+                git url: 'github.com', branch: 'main'
+                
+                script {
+                    // 2. Parse the YAML file
+                    def config = readYaml file: 'versions.yml'
+                    
+                    // 3. Logic to select the specific BE version (e.g., from a parameter)
+                    def targetBE = params.SELECTED_BE_VERSION ?: "1.0.0"
+                    def entry = config.compatibility_matrix.find { it.backend == targetBE }
+                    
+                    if (entry) {
+                        env.COMPATIBLE_FE_VERSIONS = entry.frontend_versions.join(',')
+                        echo "Found compatible FE versions: ${env.COMPATIBLE_FE_VERSIONS}"
+                    } else {
+                        error "No compatibility mapping found for BE version ${targetBE}"
+                    }
+                }
+            }
+        }
+        stage('Deploy Matrix') {
+            matrix {
+                axes {
+                    axis {
+                        name 'FE_VERSION'
+                        // This must be a static list or a parameter; 
+                        // for dynamic lists, use the 'parallel' approach below
+                        values '0.0.1', '0.0.2', '0.0.3' 
+                    }
+                }
+                // Optional: Skip combinations that aren't in the metadata
+                when {
+                    beforeAgent true
+                    expression { env.COMPATIBLE_FE_VERSIONS.contains(env.FE_VERSION) }
+                }
+                stages {
+                    stage('Deploy Pair') {
+                        steps {
+                            sh "docker run my-be:${params.SELECTED_BE_VERSION}"
+                            sh "docker run my-fe:${FE_VERSION}"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+3. After successful testings add the tested combination to the "versions.yml" file (Frontend Jenkinsfile)
+
+
+stage('Update Metadata') {
+    // 1. Wrap in credentials to allow pushing to GitHub
+    withCredentials([usernamePassword(credentialsId: 'github-credentials', 
+                                      usernameVariable: 'GIT_USER', 
+                                      passwordVariable: 'GIT_TOKEN')]) {
+        script {
+            // 2. Load the current file
+            def data = readYaml file: 'metadata.yml'
+            
+            // 3. Logic to add the new successful version
+            // Example: Append FE 0.0.3 to the list for BE 1.0.0
+            def entry = data.compatibility_matrix.find { it.backend == "1.0.0" }
+            if (entry && !entry.frontend_versions.contains("0.0.3")) {
+                entry.frontend_versions.add("0.0.3")
+            }
+            
+            // 4. Save the modified object back to the file
+            writeYaml file: 'metadata.yml', data: data, overwrite: true
+            
+            // 5. Commit and push back to the repository
+            sh """
+                git config user.email "jenkins@yourdomain.com"
+                git config user.name "Jenkins CI"
+                git add metadata.yml
+                git commit -m "chore: add FE 0.0.3 to compatibility matrix [skip ci]"
+                
+                # Use the token in the remote URL for authentication
+                git push https://${GIT_USER}:${GIT_TOKEN}@github.com HEAD:main
+            """
+        }
+    }
+}
+
+Comments : 
+     - [skip ci] Tag: Always include [skip ci] in your commit message. This prevents Jenkins from triggering a new build loop when it sees the metadata file it just updated.
+     - Atomicity: If multiple pipelines update the same metadata file simultaneously, one may overwrite the other. For high-concurrency environments, consider using a Lockable Resource in Jenkins to ensure only one pipeline writes to the file at a time.

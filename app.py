@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify, session, redirect, render_template
+from flask import Flask, request, jsonify
 import os
 from UserManagementModule import UserManager as UM
 from DomainManagementEngine import DomainManagementEngine as DME
 from MonitoringSystem import MonitoringSystem as MS
 import logger
+from IP_Library import BACKEND_PORT
 
 logger = logger.setup_logger("backend")
 user_manager = UM()
@@ -113,8 +114,10 @@ def api_register():
         return jsonify({"ok": False, "error": result["error"]}), 400
 
     return jsonify({
+        "message": "Registered Successfully.",
         "ok": True,
         "username": username
+        
     }), 201
 
 
@@ -196,16 +199,10 @@ def api_scan_domains():
 
     try:
         updated = monitoring_system.scan_user_domains(username, dme=domain_engine)
-        return jsonify({
-            "ok": True,
-            "updated": len(updated)
-        }), 200
+        return jsonify({"ok": True, "updated": len(updated)}), 200
     except Exception as e:
         logger.error(f"Error during scan: {e}")
-        return jsonify({
-            "ok": False,
-            "error": str(e)
-        }), 500
+        return jsonify({"ok": False, "error": str(e)}), 500
         
 @app.route("/api/domains/bulk", methods=["POST"])
 def api_bulk_domains():
@@ -268,4 +265,4 @@ def static_files(filename):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8080)
+    app.run(debug=True, host="0.0.0.0", port=BACKEND_PORT)
