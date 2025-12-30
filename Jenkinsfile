@@ -45,7 +45,7 @@ pipeline {
                 echo "Starting backend container for integration tests..."
                 sh """
                     docker rm -f backend_test_container || true
-                    docker run -d --name backend_test_container matan8520/dms_backend:latest -p 8080:8080
+                    docker run -d --name backend_test_container -p 8080:8080 matan8520/dms_backend:latest
                 """
             }
         }
@@ -55,7 +55,7 @@ pipeline {
                 echo "Starting temporary container..."
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} ${REGISTRY}/${IMAGE_NAME}:${env.TAG} -p 8081:8081
+                    docker run -d --name ${CONTAINER_NAME} -p 8081:8081 ${REGISTRY}/${IMAGE_NAME}:${env.TAG}
                 """
             }
         }
