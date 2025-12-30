@@ -97,35 +97,25 @@
           url: "{{ JENKINS_URL }}"
       jobs:
       - script: >
-          pipelineJob('Domain-Monitoring-backend') {
-            triggers {
-              githubPush()
-            }
-            definition {
-              cpsScm {
-                scm {
+          multibranchPipelineJob('Domain-Monitoring-CI-Multibranch') {
+            branchSources {
+              branchSource {
+                source {
                   git {
-                    remote { url('{{ REPO_URL }}') }
-                    branch('backend')
+                    id('domain-monitoring')
+                    remote('{{ REPO_URL }}')
+                    traits {
+                      headWildcardFilter {
+                        includes('backend frontend')
+                        excludes('infra versions')
+                      }
+                    }
                   }
                 }
-                scriptPath('Jenkinsfile')
               }
             }
-          }
-      - script: >
-          pipelineJob('Domain-Monitoring-front-end') {
-            triggers {
-              githubPush()
-            }
-            definition {
-              cpsScm {
-                scm {
-                  git {
-                    remote { url('{{ REPO_URL }}') }
-                    branch('front-end')
-                  }
-                }
+            factory {
+              workflowBranchProjectFactory {
                 scriptPath('Jenkinsfile')
               }
             }
