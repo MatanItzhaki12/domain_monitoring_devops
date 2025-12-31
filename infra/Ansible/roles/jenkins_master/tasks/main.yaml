@@ -104,7 +104,10 @@
                   git {
                     id('domain-monitoring')
                     remote('{{ REPO_URL }}')
+                    credentialsId('github-token')
                     traits {
+                      gitBranchDiscovery()
+                      gitHubPushTrigger()
                       headWildcardFilter {
                         includes('backend frontend')
                         excludes('infra versions')
@@ -113,6 +116,9 @@
                   }
                 }
               }
+            }
+            triggers { 
+              periodic(5) 
             }
             factory {
               workflowBranchProjectFactory {
