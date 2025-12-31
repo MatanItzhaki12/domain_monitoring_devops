@@ -43,3 +43,13 @@ warnings-ng
 blueocean
 dashboard-view
 cloudbees-folder
+
+# missing plugins for multibranch
+github-api
+display-url-api
+scm-api
+structs
+workflow-multibranch
+workflow-job
+workflow-cps
+workflow-api
