@@ -116,7 +116,7 @@
               }
             }
             triggers {
-              scm('H/5 * * * *') 
+              githubPush() 
             }
           }
       - script: |
@@ -133,7 +133,7 @@
               }
             }
             triggers {
-              scm('H/5 * * * *')  // optional: poll for fallback if webhook fails
+              githubPush()
             }
           }
     mode: '0644'
