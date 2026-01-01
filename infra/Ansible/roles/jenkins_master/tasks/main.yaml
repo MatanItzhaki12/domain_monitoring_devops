@@ -109,7 +109,7 @@
                 scm {
                   git {
                     remote { url('{{ REPO_URL }}') }
-                    branches('*/backend')   // <-- branch filter here
+                    branches('*/backend')
                   }
                 }
                 scriptPath('Jenkinsfile')
@@ -126,7 +126,7 @@
                 scm {
                   git {
                     remote { url('{{ REPO_URL }}') }
-                    branches('*/frontend')  // <-- branch filter here
+                    branches('*/frontend') 
                   }
                 }
                 scriptPath('Jenkinsfile')
