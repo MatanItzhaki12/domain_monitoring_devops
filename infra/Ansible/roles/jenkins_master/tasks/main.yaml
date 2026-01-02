@@ -85,12 +85,18 @@
                     scope: GLOBAL
                     username: "{{ DOCKERHUB_USER }}"
                     password: "{{ DOCKERHUB_PASS }}"
-
+                # Used for CLONING (Branch Source)
                 - usernamePassword:
                     id: "github-token"
                     scope: GLOBAL
                     username: "{{ GITHUB_USER }}"
                     password: "{{ GITHUB_TOKEN }}"
+                # Used for WEBHOOKS (System Settings)
+                - string:
+                    description: "GitHub Webhook Token"
+                    id: "github-token-secret"
+                    scope: GLOBAL
+                    secret: "{{ GITHUB_TOKEN }}"
 
       unclassified:
         location:
@@ -99,43 +105,53 @@
           configs:
             - name: "GitHub"
               apiUrl: "https://api.github.com"
-              credentialsId: "github-token"
+              credentialsId: "github-token-secret"
               manageHooks: true
+      
+      security:
+        globalJobDslSecurityConfiguration:
+          useScriptSecurity: false
+      
       jobs:
-      - script: |
-          pipelineJob('Domain-Monitoring-backend') {
-            definition {
-              cpsScm {
-                scm {
-                  git {
-                    remote { url('{{ REPO_URL }}') }
-                    branches('*/backend')
-                  }
+        - script: |
+            multibranchPipelineJob('Domain-Monitoring-CI-Multibranch') {
+              branchSources {
+                github {
+                  id('domain-monitoring-git')
+                  repoOwner('{{ GITHUB_USER }}')
+                  repository('domain_monitoring_devops')
+                  scanCredentialsId('github-token')
                 }
-                scriptPath('Jenkinsfile')
+              }
+              configure { node ->
+                def traits = node / sources / data / 'jenkins.branch.BranchSource' / source / traits
+                traits << 'org.jenkinsci.plugins.github__branch__source.BranchDiscoveryTrait' {
+                  strategyId(1)
+                }
+                traits << 'org.jenkinsci.plugins.github__branch__source.WildcardSCMHeadFilterTrait' {
+                  includes('backend frontend')
+                  excludes('infra versions')
+                }
+
+                def strategyNode = node / 'strategy'
+                strategyNode << 'jenkins.branch.buildstrategies.basic.BranchBuildStrategyImpl' {
+                    'skipInitialBuildOnFirstBranchIndexing'(true)
+                    'skipInitialBuildOnIndexing'(true)
+                }
+              }
+
+              factory {
+                workflowBranchProjectFactory {
+                  scriptPath('Jenkinsfile')
+                }
+              }
+              orphanedItemStrategy {
+                discardOldItems {
+                  numToKeep(0)
+                  daysToKeep(0)
+                }
               }
             }
-            triggers {
-              githubPush() 
-            }
-          }
-      - script: |
-          pipelineJob('Domain-Monitoring-frontend') {
-            definition {
-              cpsScm {
-                scm {
-                  git {
-                    remote { url('{{ REPO_URL }}') }
-                    branches('*/frontend') 
-                  }
-                }
-                scriptPath('Jenkinsfile')
-              }
-            }
-            triggers {
-              githubPush()
-            }
-          }
     mode: '0644'
 
 - name: Download plugins.yaml
@@ -169,7 +185,7 @@
   copy:
     dest: "{{ jenkins_home }}/Dockerfile"
     content: |
-      FROM jenkins/jenkins:lts-jdk21
+      FROM jenkins/jenkins:2.544
       USER root
       ENV SECURITY_SCRIPTING_DISABLED=true
       ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"

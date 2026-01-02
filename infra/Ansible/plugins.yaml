@@ -53,3 +53,4 @@ workflow-multibranch
 workflow-job
 workflow-cps
 workflow-api
+basic-branch-build-strategies
