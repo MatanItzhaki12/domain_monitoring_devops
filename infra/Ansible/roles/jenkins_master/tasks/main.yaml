@@ -130,7 +130,7 @@
                 }
                 traits << 'org.jenkinsci.plugins.github__branch__source.WildcardSCMHeadFilterTrait' {
                   includes('backend frontend')
-                  excludes('infra versions')
+                  excludes('main infra versions')
                 }
 
                 def strategyNode = node / 'strategy'
