@@ -112,42 +112,43 @@
         globalJobDslSecurityConfiguration:
           useScriptSecurity: false
       
-      jobs:
-        - script: |
-            multibranchPipelineJob('Domain-Monitoring-CI-Multibranch') {
-              branchSources {
-                github {
-                  id('domain-monitoring-git')
-                  repoOwner('{{ GITHUB_USER }}')
-                  repository('domain_monitoring_devops')
-                  scanCredentialsId('github-token')
+      jobs: 
+        - script: | 
+            multibranchPipelineJob('Domain-Monitoring-CI-Multibranch') { 
+              branchSources { 
+                branchSource { 
+                  source { 
+                    github {
+                      id('domain-monitoring-git')
+                      credentialsId('github-token')
+                      repoOwner('{{ GITHUB_USER }}')
+                      repository('{{ REPO_NAME }}')
+                      repositoryUrl('{{ REPO_URL }}')
+                      configuredByUrl(true)
+                      traits { 
+                        gitHubBranchDiscovery { 
+                          strategyId(1)
+                        }
+                        headWildcardFilter {
+                          includes('backend frontend')
+                          excludes('main versions infra Prod-Infra')
+                        }
+                      }
+                    }
+                  } 
+                  buildStrategies {
+                    skipInitialBuildOnFirstBranchIndexing()
+                  }
                 }
-              }
-              configure { node ->
-                def traits = node / sources / data / 'jenkins.branch.BranchSource' / source / traits
-                traits << 'org.jenkinsci.plugins.github__branch__source.BranchDiscoveryTrait' {
-                  strategyId(1)
-                }
-                traits << 'org.jenkinsci.plugins.github__branch__source.WildcardSCMHeadFilterTrait' {
-                  includes('backend frontend')
-                  excludes('infra versions')
-                }
-
-                def strategyNode = node / 'strategy'
-                strategyNode << 'jenkins.branch.buildstrategies.basic.BranchBuildStrategyImpl' {
-                    'skipInitialBuildOnFirstBranchIndexing'(true)
-                    'skipInitialBuildOnIndexing'(true)
-                }
-              }
-
-              factory {
-                workflowBranchProjectFactory {
+              } 
+              factory { 
+                workflowBranchProjectFactory { 
                   scriptPath('Jenkinsfile')
                 }
-              }
-              orphanedItemStrategy {
-                discardOldItems {
-                  numToKeep(0)
+              } 
+              orphanedItemStrategy { 
+                discardOldItems { 
+                  numToKeep(0) 
                   daysToKeep(0)
                 }
               }
