@@ -149,6 +149,24 @@
                 }
               }
             }
+        - script: |
+            pipelineJob('Deploy-DMS-to-Client') {
+              description('Deployment pipeline for single-tenant client products on AWS')
+              definition {
+                cpsScm {
+                  scm {
+                    git {
+                      remote {
+                        url('{{ REPO_URL }}')
+                        credentialsId('github-token')
+                      }
+                      branches('*/Prod-Infra')
+                    }
+                  }
+                  scriptPath('Jenkinsfile')
+                }
+              }
+            }
     mode: '0644'
 
 - name: Download plugins.yaml

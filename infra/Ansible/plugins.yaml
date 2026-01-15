@@ -44,7 +44,7 @@ blueocean
 dashboard-view
 cloudbees-folder
 
-# missing plugins for multibranch
+# plugins for multibranch
 github-api
 display-url-api
 scm-api
@@ -54,3 +54,6 @@ workflow-job
 workflow-cps
 workflow-api
 basic-branch-build-strategies
+
+# Active Choices (The dynamic dropdowns)
+uno-choice
