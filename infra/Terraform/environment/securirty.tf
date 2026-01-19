@@ -1,96 +1,96 @@
 # Generate SSH key
 
 resource "tls_private_key" "group2_generated_keys" {
-    algorithm = "RSA"
-    rsa_bits = 4096
+  algorithm = "RSA"
+  rsa_bits  = 4096
 }
 
 # Upload public key to AWS
 
 resource "aws_key_pair" "group2_client_public_key" {
-    key_name = local.ssh_public_key_name
-    public_key = tls_private_key.group2_generated_keys.public_key_openssh
+  key_name   = local.ssh_public_key_name
+  public_key = tls_private_key.group2_generated_keys.public_key_openssh
 
-    tags = {
-        Purpose = "key_pair"
-        Environment = "${var.environment}"
-        Group = "${var.group_name}"        
-    }
+  tags = {
+    Purpose     = "key_pair"
+    Environment = "${var.environment}"
+    Group       = "${var.group_name}"
+  }
 }
 
 # Save private key locally
 
 resource "local_file" "group2_tf_private_key" {
-    content = tls_private_key.group2_generated_keys.private_key_pem
-    filename = "${path.root}/keys/${local.ssh_private_key_name}.pem"
-    file_permission = "0400"
+  content         = tls_private_key.group2_generated_keys.private_key_pem
+  filename        = "${path.root}/keys/${local.ssh_private_key_name}.pem"
+  file_permission = "0400"
 
-    # provisioner "local-exec" {
-    #     when = create
-    #     command = "chmod 400 \"${path.module}/generated_key.pem\""
-    # }
+  # provisioner "local-exec" {
+  #     when = create
+  #     command = "chmod 400 \"${path.module}/generated_key.pem\""
+  # }
 }
 
 # Create The Security group
 
 resource "aws_security_group" "group2_client_fe_security_group" {
-    name = "${var.group_name}-${var.environment}-FE-SG"
-    vpc_id = aws_vpc.group2_client_vpc.id
-    # Inbound Rules
-    ingress {
-        from_port = 22
-        to_port = 22
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-    ingress {
-        from_port = 8080
-        to_port = 8081
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    } 
+  name   = "${var.group_name}-${var.environment}-FE-SG"
+  vpc_id = aws_vpc.group2_client_vpc.id
+  # Inbound Rules
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 8080
+    to_port     = 8081
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-    # Outbound Rule
-    egress {
-        from_port = 0
-        to_port = 0
-        protocol = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-    tags = {
-        Purpose = "FE_SG"
-        Environment = "${var.environment}"
-        Group = "${var.group_name}"   
-    }
+  # Outbound Rule
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Purpose     = "FE_SG"
+    Environment = "${var.environment}"
+    Group       = "${var.group_name}"
+  }
 }
 
 resource "aws_security_group" "group2_client_be_security_group" {
-    name = "${var.group_name}-${var.environment}-BE-SG"
-    vpc_id = aws_vpc.group2_client_vpc.id
-    # Inbound Rules
-    ingress {
-        from_port = 22
-        to_port = 22
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-    ingress {
-        from_port = 8080
-        to_port = 8081
-        protocol = "tcp"
-        cidr_blocks = [var.public_subnet_cidr_a,var.public_subnet_cidr_b]
-    } 
+  name   = "${var.group_name}-${var.environment}-BE-SG"
+  vpc_id = aws_vpc.group2_client_vpc.id
+  # Inbound Rules
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 8080
+    to_port     = 8081
+    protocol    = "tcp"
+    cidr_blocks = [var.public_subnet_cidr_a, var.public_subnet_cidr_b]
+  }
 
-    # Outbound Rule
-    egress {
-        from_port = 0
-        to_port = 0
-        protocol = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-    tags = {
-        Purpose = "BE_SG"
-        Environment = "${var.environment}"
-        Group = "${var.group_name}"   
-    }
+  # Outbound Rule
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Purpose     = "BE_SG"
+    Environment = "${var.environment}"
+    Group       = "${var.group_name}"
+  }
 }

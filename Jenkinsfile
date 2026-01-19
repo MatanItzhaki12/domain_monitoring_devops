@@ -13,8 +13,20 @@ properties([
             description: 'Select Backend Version',
             script: [
                 $class: 'GroovyScript', 
+                sandbox: false,
                 fallbackScript: [script: 'return ["error"]'], 
-                script: [script: 'return ["1.0", "2.0", "3.0"]']
+                script: [
+                    script: '''
+                        import groovy.json.JsonSlurper
+                        def url = new URL (
+                        "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/versions/matrix.json"
+                        )
+                        def json = new JsonSlurper().parse(url)
+
+                        // returning backends keys:
+                        return json.backend.keySet().sort()
+                    '''
+                ]
             ]
         ],
         // Reactive Parameter: Frontend Version (Depends on BACKEND_VERSION)
@@ -25,18 +37,27 @@ properties([
             referencedParameters: 'BACKEND_VERSION', 
             script: [
                 $class: 'GroovyScript', 
+                sandbox: false,
                 fallbackScript: [script: 'return ["error"]'], 
-                script: [script: '''
-                    // The matrix logic
-                    def matrix = [
-                        "1.0": ["1.0", "1.1"],
-                        "2.0": ["2.0", "2.1-beta"],
-                        "3.0": ["3.0", "3.1"]
-                    ]
-                    
-                    // 'BACKEND_VERSION' is automatically available as a variable
-                    return matrix[BACKEND_VERSION] ?: ["No compatible versions found"]
-                ''']
+                script: [
+                    script: '''
+                        import groovy.json.JsonSlurper
+                        
+                        if (!BACKEND_VERSION) {
+                            return ['Select backend version']
+                        }
+
+                        def url = new URL (
+                        "https://raw.githubusercontent.com/MatanItzhaki12/domain_monitoring_devops/versions/matrix.json"
+                        ) 
+
+                        def json = new JsonSlurper().parse(url)
+
+                        // returning frontend version correcsponding to the backend version:
+                        frontend_versions = json.backend[BACKEND_VERSION]
+                        return frontend_versions ? frontend_versions.sort() : ["No compatible versions found"]
+                    '''
+                ]
             ]
         ]
     ])
@@ -123,28 +144,165 @@ pipeline {
             }
         }
 
-        // stage('Ensure Dependencies Installed') {
-        //     steps {
-        //     }
-        // }
+        stage('Ensure Dependencies Installed') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Checking Python, Terraform, and Ansible installations..."
+
+                    # Python
+                    if ! command -v python3 >/dev/null 2>&1; then
+                        echo "Installing Python3..."
+                        sudo apt install -y python3 &>/dev/null
+                    fi
+
+                    # Ensure pip is installed
+                    if ! command -v pip3 >/dev/null 2>&1; then
+                        echo "Installing pip3..."
+                        sudo apt install -y python3-pip &>/dev/null
+                    fi
+                    
+                    if ! python3 -m venv --help >/dev/null 2>&1; then
+                        echo "Installing python3-venv..."
+                        sudo apt install python3-venv -y
+                    fi
+
+                    # Upgrade modules, if needed
+                    python3 -m pip install --user --upgrade boto3 botocore --break-system-packages &>/dev/null
+
+                    # # Install boto3 and botocore for AWS Ansible modules
+                    # echo "Installing boto3 and botocore for Ansible AWS integration..."
+                    # sudo apt install -y python3-boto3 python3-botocore >/dev/null
+
+                    # git
+                    if ! command -v git >/dev/null 2>&1; then
+                        echo "Installing Git..."
+                        sudo apt install -y git &>/dev/null
+                    fi
+
+                    # Terraform
+                    if ! command -v terraform >/dev/null 2>&1; then
+                        echo "Installing Terraform..."
+                        sudo apt-get install -y gnupg software-properties-common &>/dev/null
+                        wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp.gpg &>/dev/null
+                        echo "deb [signed-by=/usr/share/keyrings/hashicorp.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main"\
+                        | sudo tee /etc/apt/sources.list.d/hashicorp.list &>/dev/null
+                        sudo apt update &>/dev/null
+                        sudo apt install -y terraform >/dev/null
+                    fi
+
+                    # Ansible
+                    if ! command -v ansible >/dev/null 2>&1; then
+                        echo "Installing Ansible..."
+                        python3 -m pip install --user --upgrade ansible &>/dev/null
+                    fi
+                
+                '''
+            }
+        }
 
         stage('Create Client Infrastructure via Terraform') {
             steps {
+                withAWS(credentials: 'aws-creds'){
+                    sh """
+                        set -e
+
+                        cd $WORKSPACE/Terraform/environment
+
+                        echo "Writing Variables to terraform.tfvars"
+                        cat > "terraform.tfvars" <<EOF
+                        # environment
+                        group_name = "Group2"
+                        environment = "${params.CLIENT_NAME}"
+
+                        # networking
+                        vpc_cidr = "10.11.0.0/16"
+                        public_subnet_cidr = "10.11.1.0/24"
+                        private_subnet_cidr = "10.11.2.0/24"
+
+                        # security
+                        ssh_public_key_name = "group2_${params.CLIENT_NAME}_dms_pubkey"
+                        ssh_private_key_name = "group2_${params.CLIENT_NAME}_private_key"
+
+                        # compute
+                        os_ami = "ami-0f5fcdfbd140e4ab7"
+                        ec2_type = "t3.small"
+                        fe_machines = ${params.FRONTEND_VM_COUNT.toInteger()}
+                        be_machines = ${params.BACKEND_VM_COUNT.toInteger()}
+                        EOF
+
+                        terraform init -input=false
+                        terraform plan -input=false -out=tfplan
+                        terraform apply -input=false tfplan --auto-approve
+                    """
+                }
             }
         }
 
         stage('Move Key to .ssh Folder') {
             steps {
+                sh """
+                    set -e
+
+                    KEY_FILE_NAME="group2_${params.CLIENT_NAME}_private_key.pem"
+                    SRC="$WORKSPACE/Terraform/environment/keys/$KEY_FILE_NAME"
+                    DEST="$HOME/.ssh/keys/$KEY_FILE_NAME"
+
+                    mkdir -p "$HOME/.ssh/keys"
+                    chmod 700 "$HOME/.ssh"
+                    chmod 700 "$HOME/.ssh/keys"
+                    
+                    if [ -f "$DEST" ]; then
+                        rm -f "$DEST"
+                    fi
+
+                    cp "$SRC" "$DEST"
+                    chmod 600 "$DEST"
+                """
             }
         }
 
         stage('Configure Client Product via Ansible') {
             steps {
+                withCredentials([string(credentialsId: 'ansible-vault-password', variable: 'VAULT_PASS')]){
+                    sh """
+                        set -e
+
+                        cd $WORKSPACE/Ansible/
+
+                        VAULT_FILE=$(mktemp)
+                        echo "$VAULT_PASS" > "$VAULT_FILE"
+                        chmod 600 "$VAULT_FILE"
+
+                        ansible-playbook playbook.yaml -i inventory/aws_ec2.yml \
+                        --vault-password-file "$VAULT_FILE"
+
+                        rm -f "$VAULT_FILE"
+                    """
+                }
+                
             }
         }
 
         stage('Execute Validation Tests') {
             steps {
+                sh """
+                    set -e
+
+                    cd $WORKSPACE/tests/
+
+                    if [ ! -d "venv" ]; then
+                        python3 -m venv venv
+                    fi
+
+                    # Activate venv and install dependencies
+                    source venv/bin/activate
+                    pip install -r requirements.txt
+
+                    # Run tests
+                    pytest tests/ --maxfail=1 --disable-warnings -q
+                """
             }
         }
     }
@@ -154,25 +312,29 @@ pipeline {
             echo "Successfully deployed ${params.CLIENT_NAME}"
             echo "Sending FE ALB Hostname to ${params.CLIENT_EMAIL}"
             script {
-                ********************//def alb_url = sh(script: "terraform output -raw frontend_alb_dns", returnStdout: true).trim()
+                def alb_url = sh(script: """
+                    cd $WORKSPACE/Terraform/environment
+                    terraform output -raw frontend_alb_dns
+                    """, returnStdout: true).trim()
                 
-                mail to: "${params.CLIENT_EMAIL}",
+                emailext to: "${params.CLIENT_EMAIL}",
                     subject: "Your DMS Environment is Ready: ${params.CLIENT_NAME}",
                     body: "Hello,\n\nYour DMS environment has been deployed.\nURL: http://${alb_url}\n"
             }
         }
+
         failure {
-            echo "Tests failed — showing logs:"
-            sh "docker logs ${CONTAINER_NAME} || true"
+            echo "Failure: Terraform will destroy resoueces."
+            sh """
+                cd $WORKSPACE/Terraform/environment
+                terraform init -input=false
+                terraform destroy -input=false tfplan --auto-approve
+            """
+            echo "Terraform Destroyed Resources Successfully!"
         }
 
         always {
             echo "Cleaning up..."
-            sh """
-                docker rm -f ${CONTAINER_NAME} || true
-                docker rmi ${REGISTRY}/${IMAGE_NAME}:${env.TAG} || true
-                docker system prune -af --volumes || true
-            """
             deleteDir()
         }
     }
