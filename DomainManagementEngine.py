@@ -45,7 +45,7 @@ class DomainManagementEngine:
           "ssl":  null
         }
     ]
-    
+
     """
 
     # Regex for FQDN validation (example.com, sub.example.co.il etc.)
@@ -94,54 +94,62 @@ class DomainManagementEngine:
 
         return True, host, None
 
-    @staticmethod
-    def _empty_user_doc(username: str) -> Dict[str, Any]:
-        """Return a fresh user document structure."""
-        return {"username": username, "domains": []}
+    """delete"""
+    # @staticmethod
+    # def _empty_user_doc(username: str) -> Dict[str, Any]:
+    #     """Return a fresh user document structure."""
+    #     return {"username": username, "domains": []}
 
     def load_user_domains(self, username: str) -> List[Dict[str, Any]]:
         """
         Load (or initialize) user's domain list.
         The JSON file contains only a list of domain objects.
         """
-        path = _domains_path(username)
-        with _lock:
-            if not os.path.exists(path):
-                os.makedirs(USERS_DATA_DIR, exist_ok=True)
-                with open(path, "w", encoding="utf-8") as f:
-                    json.dump([], f, ensure_ascii=False, indent=2)
-                return []
+        """ replace with a Select From where querry to 
+        pull users domains for dashboard """
+        # path = _domains_path(username)
+        # with _lock:
+        #     if not os.path.exists(path):
+        #         os.makedirs(USERS_DATA_DIR, exist_ok=True)
+        #         with open(path, "w", encoding="utf-8") as f:
+        #             json.dump([], f, ensure_ascii=False, indent=2)
+        #         return []
 
-            with open(path, "r", encoding="utf-8") as f:
-                try:
-                    data = json.load(f)
-                    if not isinstance(data, list):
-                        data = []
-                except json.JSONDecodeError:
-                    data = []
-            return sorted(data, key=lambda x: x["domain"].lower())
-
+        #     with open(path, "r", encoding="utf-8") as f:
+        #         try:
+        #             data = json.load(f)
+        #             if not isinstance(data, list):
+        #                 data = []
+        #         except json.JSONDecodeError:
+        #             data = []
+        #     return sorted(data, key=lambda x: x["domain"].lower())
+        pass
 
     def save_user_domains(self, username: str, data: List[Dict[str, Any]]) -> None:
         """Save user's domain list to disk."""
-        path = _domains_path(username)
-        with _lock:
-            os.makedirs(USERS_DATA_DIR, exist_ok=True)
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(sorted(data, key=lambda x: x["domain"].lower()), 
-                          f, ensure_ascii=False, indent=2)
+        """ rerplace with an Insert querry"""
+        # path = _domains_path(username)
+        # with _lock:
+        #     os.makedirs(USERS_DATA_DIR, exist_ok=True)
+        #     with open(path, "w", encoding="utf-8") as f:
+        #         json.dump(sorted(data, key=lambda x: x["domain"].lower()),
+        #                   f, ensure_ascii=False, indent=2)
+        pass
 
     def list_domains(self, username: str) -> List[Dict[str, Any]]:
         return self.load_user_domains(username)
 
     def set_last_full_check_now(self, username: str) -> None:
         """Update last full check timestamp (to be called after MonitoringSystem run)."""
+        """update the funtion to match the database"""
+
         with _lock:
             data = self.load_user_domains(username)
-            data["last_full_check"] = _utc_now_iso()
+            """data["last_full_check"] = _utc_now_iso()"""
             self.save_user_domains(username, data)
 
     def add_domain(self, username: str, raw_domain: str) -> bool:
+        """update and make sure it works with load user domains from db"""
         ok, host, reason = self.validate_domain(raw_domain)
         if not ok or not host:
             return False
@@ -161,7 +169,6 @@ class DomainManagementEngine:
 
             self.save_user_domains(username, domains)
             return True
-
 
     def bulk_upload(self, username: str, file_path: str) -> Dict[str, Any]:
         """
@@ -183,7 +190,8 @@ class DomainManagementEngine:
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                domains_to_add = [line.strip().lower() for line in f if line.strip()]
+                domains_to_add = [line.strip().lower()
+                                  for line in f if line.strip()]
         except Exception as e:
             logger.exception(f"Failed to read bulk upload file: {e}")
             return {"ok": False, "error": "Could not read file"}
@@ -208,7 +216,7 @@ class DomainManagementEngine:
                     logger.warning(f"Duplicate domain skipped: {normalized}")
                     duplicates.append(normalized)
                     continue
-
+                """update and make sure it works with load user domains from db"""
                 domains.append({
                     "domain": normalized,
                     "status": "Pending",
@@ -237,7 +245,9 @@ class DomainManagementEngine:
         :param hosts: list of domain strings
         :return: {"removed": [...], "not_found": [...]}
         """
-        to_remove = {self._normalize_domain(h) for h in (hosts or []) if h and h.strip()}
+        """update and make sure it works with load user domains from db and create delete querry"""
+        to_remove = {self._normalize_domain(
+            h) for h in (hosts or []) if h and h.strip()}
         to_remove.discard("")
 
         removed, not_found = [], []
@@ -256,5 +266,3 @@ class DomainManagementEngine:
             self.save_user_domains(username, new_list)
 
         return {"removed": removed, "not_found": not_found}
-
-    
