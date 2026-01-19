@@ -113,73 +113,128 @@ class UserManager:
             return "FAILED", "Error: Unable to validate username.", e
 
 # MATAN
-    """change so that it will write to db"""
-
-    def write_user_to_json(self, username, password):
+def write_user_to_DB(self, username, password):
         """
-        This method writes the username and password to the json file.
+        This method writes the username and password to the PostgreSQL database.
         """
-        # logger.info(f"Writing user's details to users.json.")
-        # try:
-        #     with open(USERS_CRED_PATH, "r") as f:
-        #         users_list = json.load(f)
-
-        #     user_to_write = {
-        #         "username": f"{username}",
-        #         "password": f"{password}"
-        #     }
-
-        #     users_list.append(user_to_write)
-        #     with open(USERS_CRED_PATH, "w") as f:
-        #         json.dump(users_list, f, indent=4, ensure_ascii=False)
-
-        #     return "SUCCESS", "Username and password was written successfully."
-
-        # except Exception as e:
-        #     logger.error(
-        #         f"Failed to write user's details to users.json; Exception: {str(e)}")
-        #     return "FAILED", "Error: Unable to write user to file.", e
-        pass
-# MATAN
-    def validate_login(self, username, password):
-        """
-        This method validate the username and password for login, i.e. checking if the 
-        username exist in the database, and the password is the that belongs to it.
-        """
-
-        """change to select from where querry to check if user and password belong to user"""
+        # FIX: Updated log message
+        logger.info(f"Writing user's details to database.") 
+        
         try:
-            if username in self.users and self.users[username] == password:
-                logger.info(f"Login successful: username={username}")
-                return True
-            logger.warning(f"Login failed: username={username}")
-            return False
-        except Exception as e:
+            # Ensure DB_PARAMS is accessible here (either global or self.DB_PARAMS)
+            with psycopg2.connect(**DB_PARAMS) as connection:
+                with connection.cursor() as cursor:
+                    insert_query = """ 
+                    INSERT INTO users (username, password, created_at) 
+                    VALUES (%s, %s, NOW())
+                    """
+                    cursor.execute(insert_query, (username, password))
+                    
+            # FIX: Matched the old string exactly if you want 100% compatibility
+            return "SUCCESS", "Username and password was written successfully."
+
+        except (Exception, psycopg2.Error) as error:
+            logger.error(f"Failed to write user's details to database; Exception: {str(error)}")
+            
+            # FIX: Structure matches old return (Status, Message, ErrorObj)
+            return "FAILED", "Error: Unable to write user to database.", error
+# MATAN
+def validate_login(self, username, password):
+        """
+        This method validates the username and password for login by checking 
+        if the username and password pair exists in the PostgreSQL database.
+        """
+        try:
+            # Connect to the database
+            with psycopg2.connect(**DB_PARAMS) as connection:
+                with connection.cursor() as cursor:
+                    
+                    # SQL Query: Look for a row where BOTH username and password match.
+                    # We select '1' because we don't need the actual data, just to know it exists.
+                    query = "SELECT 1 FROM users WHERE username = %s AND password = %s"
+                    
+                    # Execute safely using tuple parameters to prevent SQL Injection
+                    cursor.execute(query, (username, password))
+                    
+                    # Fetch the result
+                    user_record = cursor.fetchone()
+
+                    # Check if a record was found
+                    if user_record:
+                        logger.info(f"Login successful: username={username}")
+                        return True
+                    else:
+                        # Result is None, meaning no match found
+                        logger.warning(f"Login failed: username={username}")
+                        return False
+
+        except (Exception, psycopg2.Error) as e:
             logger.error(f"Could not validate users credentials. {str(e)}")
             return False
 # MATAN
-    def remove_user(self, username):
-        """change to select and delete querry: 
-        1. find user id with the username
-        2. find all the domains that belong to the user
-        3. delete the records from the aux_users_domains
-        4. check if the domain has other users asign to it, and
-        5. delete the domain record if it does not exist in another user records
+def remove_user(self, username):
         """
-        logger.info(
-            f"deleting {username}'s details from users.json, and deletes its domains file if exists.")
+        Removes a user from the PostgreSQL database.
+        
+        Logic:
+        1. Find user_id by username.
+        2. Identify domains linked to this user.
+        3. Delete the link in 'aux_users_domains'.
+        4. Check if those domains are used by anyone else.
+        5. If not used by anyone else, delete the domain from 'domains'.
+        6. Delete the user from 'users'.
+        """
+        # Updated log message for DB context
+        logger.info(f"Deleting {username} and associated orphaned data from database.")
+
         try:
-            if username in self.users:
-                password = self.users[username]
-                del self.users[username]
-                result = self.save_users_from_memory_to_json()
-                if result[0] == "FAILED":
-                    self.users[username] = password
-                    logger.error(
-                        f"Unable to remove user {username} from json file.")
+            with psycopg2.connect(**DB_PARAMS) as connection:
+                with connection.cursor() as cursor:
+                    
+                    # --- STEP 1: Find user id ---
+                    cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+                    user_row = cursor.fetchone()
+                    
+                    if not user_row:
+                        # User not found, behave like the old function (do nothing/return None)
+                        logger.warning(f"User {username} not found in database.")
+                        return
 
-            Path(f"{DATA_PATH}{username}_domains.json").unlink(missing_ok=True)
+                    user_id = user_row[0]
 
-        except Exception as e:
-            logger.error(
-                f"Error deleting {username} and files from system: {str(e)}")
+                    # --- STEP 2 & 3: Find domains and Delete links ---
+                    # We delete the links for this user, but we use 'RETURNING domain_id'
+                    # so we know which domains we just unlinked (to check them in step 4).
+                    cursor.execute("""
+                        DELETE FROM aux_users_domains 
+                        WHERE user_id = %s 
+                        RETURNING domain_id
+                    """, (user_id,))
+                    
+                    # Get a list of domain_ids that this user had
+                    # fetchall returns tuples like [(1,), (5,)], so we flatten it to [1, 5]
+                    user_domain_ids = [row[0] for row in cursor.fetchall()]
+
+                    # --- STEP 4 & 5: Check for other users and Delete orphaned domains ---
+                    for domain_id in user_domain_ids:
+                        # Check if ANY other user is still linked to this domain
+                        cursor.execute("""
+                            SELECT 1 FROM aux_users_domains 
+                            WHERE domain_id = %s LIMIT 1
+                        """, (domain_id,))
+                        
+                        is_still_used = cursor.fetchone()
+
+                        # If is_still_used is None, no one else is using this domain.
+                        # We can safely delete it.
+                        if not is_still_used:
+                            cursor.execute("DELETE FROM domains WHERE id = %s", (domain_id,))
+
+                    # --- STEP 6: Delete the user record ---
+                    cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+                    
+                    # The transaction commits automatically here if no errors occurred
+
+        except (Exception, psycopg2.Error) as e:
+            # Matches the old error logging structure
+            logger.error(f"Error deleting {username} and files from system: {str(e)}")
