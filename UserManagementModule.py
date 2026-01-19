@@ -3,46 +3,26 @@ import re
 import logger
 from pathlib import Path
 import DomainManagementEngine as DME
-
+import psycopg2
+import IP_Library
 logger = logger.setup_logger("UserManagementModule")
-USERS_CRED_PATH = "./UsersData/users.json"
-DATA_PATH = "./UsersData/"
+DB_PARAMS = {
+    'dbname': IP_Library.DATABASE_NAME,
+    'user': IP_Library.DATABASE_USER,
+    'password': IP_Library.DATABASE_PASSWORD,
+    'host': IP_Library.DATABASE_IP,
+    'port': IP_Library.DATABASE_PORT
+}
 
 
 class UserManager:
     """
     This class handles everything in relation to users.
     """
-    """delete"""
-    # def __init__(self):
-    #     # This method loads the users from the users.json file, using the method
-    #     logger.info(f"Initializing UserManagement module.")
-    #     self.users = self._load_json_to_dict()
+    def __init__(self):
+        pass
 
-    # def load_users_json_to_memory(self):
-    #     logger.info(f"Reloading users.json file.")
-    #     self.users = self._load_json_to_dict()
-
-    # def _load_json_to_dict(self):
-    #     """
-    #     This method loads the users.json file and return a dictionary in the format:
-    #     dict[username] = password
-    #     """
-    #     logger.debug(f"Loading users.json file.")
-    #     try:
-    #         users = {}
-    #         with open(USERS_CRED_PATH, "r") as f:
-    #             users_json = json.load(f)
-    #         for user_details in users_json:
-    #             username = user_details["username"]
-    #             password = user_details["password"]
-    #             users[username] = password
-    #         logger.debug(f"users.json file loaded successfully.")
-    #         return users
-    #     except Exception as e:
-    #         logger.error(f"users.json could not be loaded! {str(e)}")
-    #         return {}
-
+# OZ
     def register_page_add_user(self, username, password, password_confirmation, dme: DME.DomainManagementEngine):
         """
         registering user to the system, after checking the validity of the credentials.
@@ -80,6 +60,7 @@ class UserManager:
             logger.error(f"Unable to register user; Exception: {str(e)}")
             return {"error": "Unable to register user."}
 
+# OZ
     def register_page_password_validity(self, password, password_confirmation):
         """
         This method checks the validity of the password.
@@ -109,7 +90,7 @@ class UserManager:
             logger.error(
                 f"Unable to validate user's password; Exception: {str(e)}")
             return "FAILED", "Error: Unable to validate password.", e
-
+# OZ
     def username_validity(self, username):
         """
         This method checks username validity, mainly it checks if the 
@@ -129,28 +110,7 @@ class UserManager:
                 f"Unable to check the validity of the password; Exception: {str(e)}")
             return "FAILED", "Error: Unable to validate username.", e
 
-    """delete"""
-    # # def save_users_from_memory_to_json(self):
-    # #     logger.info(f"writing users from memory to users.json file.")
-    # #     try:
-    # #         users_list = []
-    # #         for user in self.users:
-    # #             user_temp = {
-    # #                 "username": user,
-    # #                 "password": self.users[user]
-    # #             }
-    # #             users_list.append(user_temp)
-
-    # #         with open(USERS_CRED_PATH, "w") as f:
-    # #             json.dump(users_list, f, indent=4, ensure_ascii=False)
-
-    # #         return "SUCCESS", "Users was written from memory to users.json file successfully."
-
-    #     except Exception as e:
-    #         logger.error(
-    #             f"Failed to write self.users from memory to users.json; Exception: {str(e)}")
-    #         return "FAILED", "Unabled to write self.users to users.json.", e
-
+# MATAN
     """change so that it will write to db"""
 
     def write_user_to_json(self, username, password):
@@ -178,7 +138,7 @@ class UserManager:
         #         f"Failed to write user's details to users.json; Exception: {str(e)}")
         #     return "FAILED", "Error: Unable to write user to file.", e
         pass
-
+# MATAN
     def validate_login(self, username, password):
         """
         This method validate the username and password for login, i.e. checking if the 
@@ -195,7 +155,7 @@ class UserManager:
         except Exception as e:
             logger.error(f"Could not validate users credentials. {str(e)}")
             return False
-
+# MATAN
     def remove_user(self, username):
         """change to select and delete querry: 
         1. find user id with the username

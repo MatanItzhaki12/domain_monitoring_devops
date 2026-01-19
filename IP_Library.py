@@ -24,6 +24,11 @@ DATABASE_IP = os.environ.get(
 DATABASE_PORT = 5432
 
 DATABASE_URL = f"http://{DATABASE_IP}:{DATABASE_PORT}"
+
+DATABASE_NAME = os.environ.get(
+    "DATABASE_NAME", "domain_monitoring"
+)
+
 DATABASE_USER = os.environ.get(
     "DATABASE_USER", "user"
 )
