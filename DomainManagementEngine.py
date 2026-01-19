@@ -1,23 +1,20 @@
 from __future__ import annotations
 
-import json
 import os
 import re
 from datetime import datetime, timezone
 from threading import RLock
 from typing import Dict, List, Tuple, Any, Optional
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
 from logger import setup_logger
 
 # ----------------------------
-# Thread-safety for file IO
+# Thread-safety for DB IO
 # ----------------------------
 _lock = RLock()
-
-# ----------------------------
-# Base directory for per-user JSON files
-# ----------------------------
-BASE_DIR = os.path.dirname(__file__)
-USERS_DATA_DIR = os.path.join(BASE_DIR, "UsersData")
 
 
 def _utc_now_iso() -> str:
@@ -25,27 +22,14 @@ def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
-def _domains_path(username: str) -> str:
-    """Generate per-user JSON file path."""
-    safe_user = re.sub(r"[^A-Za-z0-9_.-]", "_", username.strip())
-    return os.path.join(USERS_DATA_DIR, f"{safe_user}_domains.json")
+def _utc_now_dt() -> datetime:
+    """Return current UTC datetime (timezone-aware)."""
+    return datetime.now(timezone.utc)
 
 
 class DomainManagementEngine:
     """
-    File-backed user domain storage and domain validation/CRUD.
-
-    JSON structure example (UsersData/alex_domains.json):
-    [
-        {
-          "host": "example.com",
-          "added_at": "2025-09-15T12:34:56.000Z",
-          "last_check": "2025-09-15T14:10:40.000Z",
-          "http": null,
-          "ssl":  null
-        }
-    ]
-
+    Postgres-backed user domain storage and domain validation/CRUD.
     """
 
     # Regex for FQDN validation (example.com, sub.example.co.il etc.)
@@ -53,8 +37,14 @@ class DomainManagementEngine:
         r"^(?=.{1,253}$)(?!-)([A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}$"
     )
 
-    def __init__(self):
-        os.makedirs(USERS_DATA_DIR, exist_ok=True)
+    def __init__(self, db_url: Optional[str] = None):
+        self.logger = setup_logger("DomainManagementEngine")
+        self.db_url = db_url or os.getenv("DATABASE_URL")
+        if not self.db_url:
+            raise RuntimeError("DATABASE_URL is not set (postgresql://user:pass@host:5432/dbname)")
+
+    def _conn(self):
+        return psycopg2.connect(self.db_url)
 
     @staticmethod
     def _normalize_domain(raw: str) -> str:
@@ -94,92 +84,78 @@ class DomainManagementEngine:
 
         return True, host, None
 
-    """delete"""
-    # @staticmethod
-    # def _empty_user_doc(username: str) -> Dict[str, Any]:
-    #     """Return a fresh user document structure."""
-    #     return {"username": username, "domains": []}
+    # ---------------------------------------------------------------------
+    # DB methods (replace file-based load/save)
+    # ---------------------------------------------------------------------
 
     def load_user_domains(self, username: str) -> List[Dict[str, Any]]:
         """
-        Load (or initialize) user's domain list.
-        The JSON file contains only a list of domain objects.
+        Pull user's domains from Postgres for dashboard.
         """
-        """ replace with a Select From where querry to 
-        pull users domains for dashboard """
-        # path = _domains_path(username)
-        # with _lock:
-        #     if not os.path.exists(path):
-        #         os.makedirs(USERS_DATA_DIR, exist_ok=True)
-        #         with open(path, "w", encoding="utf-8") as f:
-        #             json.dump([], f, ensure_ascii=False, indent=2)
-        #         return []
-
-        #     with open(path, "r", encoding="utf-8") as f:
-        #         try:
-        #             data = json.load(f)
-        #             if not isinstance(data, list):
-        #                 data = []
-        #         except json.JSONDecodeError:
-        #             data = []
-        #     return sorted(data, key=lambda x: x["domain"].lower())
-        pass
+        sql = """
+            SELECT
+              domain,
+              status,
+              ssl_expiration,
+              ssl_issuer,
+              added_at,
+              last_check
+            FROM public.user_domains
+            WHERE username = %s
+            ORDER BY lower(domain) ASC;
+        """
+        with _lock:
+            with self._conn() as conn:
+                with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                    cur.execute(sql, (username,))
+                    return [dict(r) for r in (cur.fetchall() or [])]
 
     def save_user_domains(self, username: str, data: List[Dict[str, Any]]) -> None:
-        """Save user's domain list to disk."""
-        """ rerplace with an Insert querry"""
-        # path = _domains_path(username)
-        # with _lock:
-        #     os.makedirs(USERS_DATA_DIR, exist_ok=True)
-        #     with open(path, "w", encoding="utf-8") as f:
-        #         json.dump(sorted(data, key=lambda x: x["domain"].lower()),
-        #                   f, ensure_ascii=False, indent=2)
-        pass
+        """
+        No-op in Postgres mode. Persistence is done via INSERT/DELETE/UPDATE queries.
+        """
+        return
 
     def list_domains(self, username: str) -> List[Dict[str, Any]]:
         return self.load_user_domains(username)
 
     def set_last_full_check_now(self, username: str) -> None:
         """Update last full check timestamp (to be called after MonitoringSystem run)."""
-        """update the funtion to match the database"""
-
+        sql = """
+            INSERT INTO public.user_domain_meta (username, last_full_check)
+            VALUES (%s, %s)
+            ON CONFLICT (username)
+            DO UPDATE SET last_full_check = EXCLUDED.last_full_check;
+        """
         with _lock:
-            data = self.load_user_domains(username)
-            """data["last_full_check"] = _utc_now_iso()"""
-            self.save_user_domains(username, data)
+            with self._conn() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(sql, (username, _utc_now_dt()))
+                conn.commit()
 
     def add_domain(self, username: str, raw_domain: str) -> bool:
-        """update and make sure it works with load user domains from db"""
-        ok, host, reason = self.validate_domain(raw_domain)
+        ok, host, _reason = self.validate_domain(raw_domain)
         if not ok or not host:
             return False
 
+        sql = """
+            INSERT INTO public.user_domains
+            (username, domain, status, ssl_expiration, ssl_issuer, added_at)
+            VALUES (%s, %s, 'Pending', 'N/A', 'N/A', now())
+            ON CONFLICT (username, domain) DO NOTHING;
+        """
         with _lock:
-            domains = self.load_user_domains(username)
-            existing = {d.get("domain") for d in domains}
-            if host in existing:
-                return False
-
-            domains.append({
-                "domain": host,
-                "status": "Pending",
-                "ssl_expiration": "N/A",
-                "ssl_issuer": "N/A"
-            })
-
-            self.save_user_domains(username, domains)
-            return True
+            with self._conn() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(sql, (username, host))
+                    inserted = (cur.rowcount == 1)
+                conn.commit()
+        return inserted
 
     def bulk_upload(self, username: str, file_path: str) -> Dict[str, Any]:
         """
         Bulk upload domains from a text file.
-        Each valid line is added as:
-        {
-            "domain": "<domain>",
-            "status": "Pending",
-            "ssl_expiration": "N/A",
-            "ssl_issuer": "N/A"
-        }
+        Each valid line is inserted into Postgres with ON CONFLICT DO NOTHING.
         Returns a summary dict.
         """
         logger = setup_logger("bulk_upload")
@@ -190,8 +166,7 @@ class DomainManagementEngine:
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                domains_to_add = [line.strip().lower()
-                                  for line in f if line.strip()]
+                domains_to_add = [line.strip().lower() for line in f if line.strip()]
         except Exception as e:
             logger.exception(f"Failed to read bulk upload file: {e}")
             return {"ok": False, "error": "Could not read file"}
@@ -199,34 +174,34 @@ class DomainManagementEngine:
         if not domains_to_add:
             return {"ok": False, "error": "File is empty or invalid"}
 
-        added, duplicates, invalid = [], [], []
+        added: List[str] = []
+        duplicates: List[str] = []
+        invalid: List[Dict[str, str]] = []
+
+        insert_sql = """
+            INSERT INTO public.user_domains
+            (username, domain, status, ssl_expiration, ssl_issuer, added_at)
+            VALUES (%s, %s, 'Pending', 'N/A', 'N/A', now())
+            ON CONFLICT (username, domain) DO NOTHING;
+        """
 
         with _lock:
-            domains = self.load_user_domains(username)
-            existing = {d.get("domain") for d in domains}
+            with self._conn() as conn:
+                with conn.cursor() as cur:
+                    for raw in domains_to_add:
+                        ok, normalized, reason = self.validate_domain(raw)
+                        if not ok or not normalized:
+                            logger.warning(f"Invalid domain skipped: {raw} ({reason})")
+                            invalid.append({"input": raw, "reason": reason or "Invalid"})
+                            continue
 
-            for raw in domains_to_add:
-                ok, normalized, reason = self.validate_domain(raw)
-                if not ok or not normalized:
-                    logger.warning(f"Invalid domain skipped: {raw} ({reason})")
-                    invalid.append({"input": raw, "reason": reason})
-                    continue
+                        cur.execute(insert_sql, (username, normalized))
+                        if cur.rowcount == 1:
+                            added.append(normalized)
+                        else:
+                            duplicates.append(normalized)
 
-                if normalized in existing:
-                    logger.warning(f"Duplicate domain skipped: {normalized}")
-                    duplicates.append(normalized)
-                    continue
-                """update and make sure it works with load user domains from db"""
-                domains.append({
-                    "domain": normalized,
-                    "status": "Pending",
-                    "ssl_expiration": "N/A",
-                    "ssl_issuer": "N/A"
-                })
-                added.append(normalized)
-                existing.add(normalized)
-
-            self.save_user_domains(username, domains)
+                conn.commit()
 
         summary = {
             "ok": True,
@@ -241,28 +216,38 @@ class DomainManagementEngine:
 
     def remove_domains(self, username: str, hosts: List[str]) -> Dict[str, List[str]]:
         """
-        Remove domains from the user's list.
+        Remove domains from the user's list (Postgres).
         :param hosts: list of domain strings
         :return: {"removed": [...], "not_found": [...]}
         """
-        """update and make sure it works with load user domains from db and create delete querry"""
-        to_remove = {self._normalize_domain(
-            h) for h in (hosts or []) if h and h.strip()}
+        to_remove = {self._normalize_domain(h) for h in (hosts or []) if h and h.strip()}
         to_remove.discard("")
+        to_remove_list = sorted(to_remove)
 
-        removed, not_found = [], []
+        if not to_remove_list:
+            return {"removed": [], "not_found": []}
+
+        select_sql = """
+            SELECT domain
+            FROM public.user_domains
+            WHERE username = %s AND domain = ANY(%s);
+        """
+
+        delete_sql = """
+            DELETE FROM public.user_domains
+            WHERE username = %s AND domain = ANY(%s);
+        """
 
         with _lock:
-            domains = self.load_user_domains(username)
-            current = {d.get("domain") for d in domains}
+            with self._conn() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(select_sql, (username, to_remove_list))
+                    existing = {row[0] for row in (cur.fetchall() or [])}
 
-            # Remove matching entries
-            new_list = [d for d in domains if d.get("domain") not in to_remove]
-            removed = list(current.intersection(to_remove))
+                    cur.execute(delete_sql, (username, to_remove_list))
+                conn.commit()
 
-            # Track domains that didn't exist
-            not_found = list(to_remove - current)
-
-            self.save_user_domains(username, new_list)
-
-        return {"removed": removed, "not_found": not_found}
+        return {
+            "removed": sorted(existing),
+            "not_found": sorted(set(to_remove_list) - existing)
+        }
