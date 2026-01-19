@@ -97,9 +97,26 @@
                     id: "github-token-secret"
                     scope: GLOBAL
                     secret: "{{ GITHUB_TOKEN }}"
+                - string:
+                    description: "Ansible vault password"
+                    scope: GLOBAL
+                    id: ansible-vault-password
+                    secret: {{ ansible_vault_password }}
+                - aws:
+                    id: "aws-creds"
+                    description: "AWS Credentials for Prod-Infra's Jenkins Pipeline."
+                    accessKey: {{ aws_access_key_id }}
+                    secretKey: {{ aws_secret_access_key }}
+                - usernamePassword:
+                    scope: GLOBAL
+                    id: "mailjet-smtp-creds"
+                    username: {{ smtp_server_api }}
+                    password: {{ smtp_server_secret }}
+                    description: "Mailjet SMTP Credentials"            
 
       unclassified:
         location:
+          adminAddress: "{{ email_address }}"
           url: "{{ JENKINS_URL }}"
         gitHubPluginConfig:
           configs:
@@ -107,6 +124,14 @@
               apiUrl: "https://api.github.com"
               credentialsId: "github-token-secret"
               manageHooks: true
+        email-ext:
+          smtpHost: "{{ smtp_server }}"
+          smtpPort: "{{ smtp_server_port }}"
+          useSsl: false 
+          useTls: true  # Recommended for Port 587
+          credentialsId: "mailjet-smtp-creds"
+          defaultReplyTo: "{{ email_address }}"
+          emergencyContact: "{{ email_address }}"
       
       jobs: 
         - script: | 
