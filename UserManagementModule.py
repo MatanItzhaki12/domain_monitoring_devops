@@ -14,6 +14,8 @@ DB_PARAMS = {
     'port': IP_Library.DATABASE_PORT
 }
 
+def connect_db():
+    return psycopg2.connect(**DB_PARAMS)
 
 class UserManager:
     """
