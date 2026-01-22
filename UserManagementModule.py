@@ -1,11 +1,9 @@
-import json
 import re
-import logger
-from pathlib import Path
+import logger as log
 import DomainManagementEngine as DME
 import psycopg2
 import IP_Library
-logger = logger.setup_logger("UserManagementModule")
+logger = log.setup_logger("UserManagementModule")
 DB_PARAMS = {
     'dbname': IP_Library.DATABASE_NAME,
     'user': IP_Library.DATABASE_USER,
@@ -29,30 +27,29 @@ class UserManager:
         """
         registering user to the system, after checking the validity of the credentials.
         """
-        logger.info(f"Proccessing new user's details.")
+        logger.info("Processing new user's details.")
         try:
-            # Checking username validity using the method username validity
-            logger.debug(f"Checking username validity.")
+            # username validity 
+            logger.debug("Checking username validity.")
             usr_valid = self.username_validity(username)
-            if usr_valid == "FAILED" or not usr_valid[0]:
-                logger.debug(f"The \"{username}\" is an invalid username.")
+            if usr_valid[0] == "FAILED" or not usr_valid[0]:
+                logger.debug(f'The "{username}" is an invalid username.')
                 return {"error": usr_valid[1]}
-            # Checking password validitiy using the method register_page_password_validity
-            logger.debug(f"Checking password validity.")
-            password_validity = self.register_page_password_validity(
-                password, password_confirmation)
+
+            # password validity
+            logger.debug("Checking password validity.")
+            password_validity = self.register_page_password_validity(password, password_confirmation)
             if password_validity[0] == "FAILED" or not password_validity[0]:
-                logger.debug(f"Password invalid.")
+                logger.debug("Password invalid.")
                 return {"error": password_validity[1]}
-            # Adding user to the memory (users variable) and writing it to file
-            logger.debug(f"Adding user to database.")
-            self.users[username] = password
-            write_user_status = self.write_user_to_json(username, password)
-            if write_user_status[0] == "FAILED":
-                logger.debug(f"Writing user to json failed.")
-                return {"error": write_user_status[1]}
-            # Creating a new file for user's domains
-            logger.debug(f"creating {DATA_PATH}{username}_domains.json file.")
+
+            # Write user to DB (use Matan's function as a method)
+            logger.debug("Adding user to database.")
+            write_status = self.write_user_to_DB(username, password)
+            if write_status[0] == "FAILED":
+                return {"error": write_status[1]}
+
+            # 4) Load/create user domains file/structure
             dme.load_user_domains(username)
 
             logger.info(f"{username} registered successfully.")
@@ -72,25 +69,33 @@ class UserManager:
         This method should return True if the password valid and False otherwise, with
         an matching message for the user.
         """
-        logger.info(f"Checking the validity of the password.")
+        logger.info("Checking password validity.")
         try:
+            if password is None or password_confirmation is None:
+                return False, "Password invalid."
+
+            password = str(password)
+            password_confirmation = str(password_confirmation)
+
             if password != password_confirmation:
-                return False, "Password and Password Confirmation are not the same."
-            password_str = f"{password}"
-            if len(password_str) < 8 or len(password_str) > 12:
-                return False, "Password is not between 8 to 12 characters."
-            if not re.search("[A-Z]", password_str):
-                return False, "Password does not include at least one uppercase character."
-            if not re.search("[a-z]", password_str):
-                return False, "Password does not include at least one lowercase character."
-            if not re.search("[0-9]", password_str):
-                return False, "Password does not include at least one digit."
-            if not password_str.isalnum():
-                return False, "Password should include only uppercase characters, lowercase characters and digits!"
+                return False, "Passwords do not match."
+
+            if not (8 <= len(password) <= 12):
+                return False, "Password must be between 8 and 12 characters."
+
+            if not re.search(r"[A-Z]", password):
+                return False, "Password must contain at least one uppercase letter."
+
+            if not re.search(r"[a-z]", password):
+                return False, "Password must contain at least one lowercase letter."
+
+            if not re.search(r"\d", password):
+                return False, "Password must contain at least one digit."
+
             return True, "SUCCESS"
+
         except Exception as e:
-            logger.error(
-                f"Unable to validate user's password; Exception: {str(e)}")
+            logger.error(f"Unable to validate password; Exception: {str(e)}")
             return "FAILED", "Error: Unable to validate password.", e
 # OZ
     def username_validity(self, username):
@@ -100,20 +105,29 @@ class UserManager:
         """
 
         """add select from where querry to check if user is not exist"""
-        logger.info(f"Checking the validity of the username.")
+        logger.info("Checking the validity of the username.")
         try:
-            if username == "":
-                return False,  "Username invalid."
-            if f"{username}" in self.users:
-                return False, "Username already taken."
+            if username is None or str(username).strip() == "":
+                return False, "Username invalid."
+
+            username = str(username).strip()
+
+            with connect_db() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT 1 FROM users WHERE username = %s LIMIT 1", (username,))
+                    exists = cursor.fetchone()
+
+            if exists:
+                return False, "Username already exists."
+
             return True, "Username is valid."
-        except Exception as e:
-            logger.debug(
-                f"Unable to check the validity of the password; Exception: {str(e)}")
+
+        except (Exception, psycopg2.Error) as e:
+            logger.error(f"Unable to validate username; Exception: {str(e)}")
             return "FAILED", "Error: Unable to validate username.", e
 
 # MATAN
-def write_user_to_DB(self, username, password):
+    def write_user_to_DB(self, username, password):
         """
         This method writes the username and password to the PostgreSQL database.
         """
@@ -122,7 +136,7 @@ def write_user_to_DB(self, username, password):
         
         try:
             # Ensure DB_PARAMS is accessible here (either global or self.DB_PARAMS)
-            with psycopg2.connect(**DB_PARAMS) as connection:
+            with connect_db() as connection:
                 with connection.cursor() as cursor:
                     insert_query = """ 
                     INSERT INTO users (username, password, created_at) 
@@ -139,40 +153,28 @@ def write_user_to_DB(self, username, password):
             # FIX: Structure matches old return (Status, Message, ErrorObj)
             return "FAILED", "Error: Unable to write user to database.", error
 # MATAN
-def validate_login(self, username, password):
+    def validate_login(self, username, password):
         """
         This method validates the username and password for login by checking 
         if the username and password pair exists in the PostgreSQL database.
         """
         try:
             # Connect to the database
-            with psycopg2.connect(**DB_PARAMS) as connection:
+            with connect_db() as connection:
                 with connection.cursor() as cursor:
                     
                     # SQL Query: Look for a row where BOTH username and password match.
                     # We select '1' because we don't need the actual data, just to know it exists.
                     query = "SELECT 1 FROM users WHERE username = %s AND password = %s"
                     
-                    # Execute safely using tuple parameters to prevent SQL Injection
                     cursor.execute(query, (username, password))
-                    
-                    # Fetch the result
-                    user_record = cursor.fetchone()
-
-                    # Check if a record was found
-                    if user_record:
-                        logger.info(f"Login successful: username={username}")
-                        return True
-                    else:
-                        # Result is None, meaning no match found
-                        logger.warning(f"Login failed: username={username}")
-                        return False
+                    return cursor.fetchone() is not None
 
         except (Exception, psycopg2.Error) as e:
             logger.error(f"Could not validate users credentials. {str(e)}")
             return False
 # MATAN
-def remove_user(self, username):
+    def remove_user(self, username):
         """
         Removes a user from the PostgreSQL database.
         
@@ -188,7 +190,7 @@ def remove_user(self, username):
         logger.info(f"Deleting {username} and associated orphaned data from database.")
 
         try:
-            with psycopg2.connect(**DB_PARAMS) as connection:
+            with connect_db() as connection:
                 with connection.cursor() as cursor:
                     
                     # --- STEP 1: Find user id ---
