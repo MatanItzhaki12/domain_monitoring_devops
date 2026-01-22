@@ -100,11 +100,11 @@ class UserManager:
 # OZ
     def username_validity(self, username):
         """
-        This method checks username validity, mainly it checks if the 
+        # This method checks username validity, mainly it checks if the 
         username is not empty and not already exist.
+        
+        # add select from where querry to check if user is not exist
         """
-
-        """add select from where querry to check if user is not exist"""
         logger.info("Checking the validity of the username.")
         try:
             if username is None or str(username).strip() == "":
@@ -167,6 +167,7 @@ class UserManager:
                     # We select '1' because we don't need the actual data, just to know it exists.
                     query = "SELECT 1 FROM users WHERE username = %s AND password = %s"
                     
+                    # Execute query and check if at least one matching record exists
                     cursor.execute(query, (username, password))
                     return cursor.fetchone() is not None
 
