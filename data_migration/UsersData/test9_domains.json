@@ -1,0 +1,602 @@
+[
+  {
+    "domain": "500px.com",
+    "status": "Live",
+    "ssl_expiration": "2026-04-05",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "accor.com",
+    "status": "Live",
+    "ssl_expiration": "2026-02-17",
+    "ssl_issuer": "GlobalSign nv-sa"
+  },
+  {
+    "domain": "americanexpress.com",
+    "status": "Live",
+    "ssl_expiration": "2026-09-29",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "army.mil",
+    "status": "Down",
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
+  },
+  {
+    "domain": "att.com",
+    "status": "Live",
+    "ssl_expiration": "2026-04-14",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "billboard.com",
+    "status": "Live",
+    "ssl_expiration": "2025-12-17",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "bitbucket.org",
+    "status": "Live",
+    "ssl_expiration": "2026-08-30",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "bitly.com",
+    "status": "Live",
+    "ssl_expiration": "2026-03-19",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "blogspot.co.uk",
+    "status": "Live",
+    "ssl_expiration": "2026-01-05",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "boston.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-03",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "calameo.com",
+    "status": "Live",
+    "ssl_expiration": "2026-07-17",
+    "ssl_issuer": "Gandi SAS"
+  },
+  {
+    "domain": "centos.org",
+    "status": "Live",
+    "ssl_expiration": "2025-12-08",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "chron.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-25",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "consumerreports.org",
+    "status": "Live",
+    "ssl_expiration": "2026-04-28",
+    "ssl_issuer": "Sectigo Limited"
+  },
+  {
+    "domain": "csdn.net",
+    "status": "Live",
+    "ssl_expiration": "2025-11-27",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "deezer.com",
+    "status": "Live",
+    "ssl_expiration": "2026-07-29",
+    "ssl_issuer": "Gandi"
+  },
+  {
+    "domain": "digital.com",
+    "status": "Down",
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
+  },
+  {
+    "domain": "dol.gov",
+    "status": "Live",
+    "ssl_expiration": "2026-01-19",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "douban.com",
+    "status": "Live",
+    "ssl_expiration": "2026-02-01",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "ea.com",
+    "status": "Live",
+    "ssl_expiration": "2025-12-26",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "ed.ac.uk",
+    "status": "Down",
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
+  },
+  {
+    "domain": "esa.int",
+    "status": "Live",
+    "ssl_expiration": "2025-12-24",
+    "ssl_issuer": "COMODO CA Limited"
+  },
+  {
+    "domain": "fifa.com",
+    "status": "Live",
+    "ssl_expiration": "2025-12-27",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "flic.kr",
+    "status": "Live",
+    "ssl_expiration": "2026-02-02",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "fontawesome.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-19",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "fool.com",
+    "status": "Live",
+    "ssl_expiration": "2025-12-22",
+    "ssl_issuer": "Sectigo Limited"
+  },
+  {
+    "domain": "gamespot.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-12",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "globo.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-24",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "gmail.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-05",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "google.cn",
+    "status": "Live",
+    "ssl_expiration": "2026-01-05",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "google.co.in",
+    "status": "Live",
+    "ssl_expiration": "2026-01-05",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "google.ru",
+    "status": "Live",
+    "ssl_expiration": "2026-01-05",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "greenpeace.org",
+    "status": "Live",
+    "ssl_expiration": "2026-02-06",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "gumroad.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-13",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "hindustantimes.com",
+    "status": "Live",
+    "ssl_expiration": "2026-10-11",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "hootsuite.com",
+    "status": "Live",
+    "ssl_expiration": "2026-02-25",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "hopkinsmedicine.org",
+    "status": "Live",
+    "ssl_expiration": "2026-01-05",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "houzz.com",
+    "status": "Live",
+    "ssl_expiration": "2026-07-28",
+    "ssl_issuer": "GlobalSign nv-sa"
+  },
+  {
+    "domain": "huggingface.co",
+    "status": "Live",
+    "ssl_expiration": "2026-05-12",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "hyatt.com",
+    "status": "Live",
+    "ssl_expiration": "2026-07-10",
+    "ssl_issuer": "Entrust Limited"
+  },
+  {
+    "domain": "i1.wp.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-03",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "ihg.com",
+    "status": "Live",
+    "ssl_expiration": "2026-03-17",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "indiana.edu",
+    "status": "Live",
+    "ssl_expiration": "2026-05-11",
+    "ssl_issuer": "Internet2"
+  },
+  {
+    "domain": "ionos.de",
+    "status": "Live",
+    "ssl_expiration": "2026-09-05",
+    "ssl_issuer": "Sectigo Limited"
+  },
+  {
+    "domain": "istockphoto.com",
+    "status": "Live",
+    "ssl_expiration": "2026-08-15",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "itch.io",
+    "status": "Live",
+    "ssl_expiration": "2026-01-26",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "kpmg.com",
+    "status": "Live",
+    "ssl_expiration": "2026-06-14",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "last.fm",
+    "status": "Live",
+    "ssl_expiration": "2026-03-25",
+    "ssl_issuer": "Sectigo Limited"
+  },
+  {
+    "domain": "lazada.co.id",
+    "status": "Live",
+    "ssl_expiration": "2026-07-08",
+    "ssl_issuer": "GlobalSign nv-sa"
+  },
+  {
+    "domain": "lazada.com.ph",
+    "status": "Live",
+    "ssl_expiration": "2026-07-08",
+    "ssl_issuer": "GlobalSign nv-sa"
+  },
+  {
+    "domain": "lego.com",
+    "status": "Live",
+    "ssl_expiration": "2026-03-28",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "linklist.bio",
+    "status": "Live",
+    "ssl_expiration": "2026-02-07",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "lonelyplanet.com",
+    "status": "Live",
+    "ssl_expiration": "2026-04-29",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "man7.org",
+    "status": "Live",
+    "ssl_expiration": "2026-01-22",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "matomo.org",
+    "status": "Live",
+    "ssl_expiration": "2026-03-31",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "mi.com",
+    "status": "Live",
+    "ssl_expiration": "2026-11-01",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "microfocus.com",
+    "status": "Live",
+    "ssl_expiration": "2026-03-13",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "moodle.com",
+    "status": "Live",
+    "ssl_expiration": "2025-12-25",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "mpg.de",
+    "status": "Live",
+    "ssl_expiration": "2025-11-14",
+    "ssl_issuer": "GEANT Vereniging"
+  },
+  {
+    "domain": "nasdaq.com",
+    "status": "Live",
+    "ssl_expiration": "2026-03-10",
+    "ssl_issuer": "GlobalSign nv-sa"
+  },
+  {
+    "domain": "ncsu.edu",
+    "status": "Live",
+    "ssl_expiration": "2026-08-26",
+    "ssl_issuer": "Internet2"
+  },
+  {
+    "domain": "ndtv.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-07",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "news.cn",
+    "status": "Live",
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
+  },
+  {
+    "domain": "news.com.au",
+    "status": "Live",
+    "ssl_expiration": "2026-09-09",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "news.sky.com",
+    "status": "Live",
+    "ssl_expiration": "2026-10-11",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "nintendo.com",
+    "status": "Live",
+    "ssl_expiration": "2026-07-09",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "nobelprize.org",
+    "status": "Live",
+    "ssl_expiration": "2026-01-04",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "novell.com",
+    "status": "Live",
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
+  },
+  {
+    "domain": "nyc.gov",
+    "status": "Live",
+    "ssl_expiration": "2026-02-25",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "ohchr.org",
+    "status": "Live",
+    "ssl_expiration": "2026-02-11",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "over-blog.com",
+    "status": "Live",
+    "ssl_expiration": "2025-12-04",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "pastebin.com",
+    "status": "Live",
+    "ssl_expiration": "2025-12-20",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "paypal.me",
+    "status": "Live",
+    "ssl_expiration": "2026-07-07",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "salon.com",
+    "status": "Live",
+    "ssl_expiration": "2026-12-04",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "sketchfab.com",
+    "status": "Live",
+    "ssl_expiration": "2026-02-14",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "speedtest.net",
+    "status": "Live",
+    "ssl_expiration": "2026-11-08",
+    "ssl_issuer": "GlobalSign nv-sa"
+  },
+  {
+    "domain": "square.site",
+    "status": "Live",
+    "ssl_expiration": "2025-12-12",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "t.ly",
+    "status": "Live",
+    "ssl_expiration": "2025-12-21",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "tableau.com",
+    "status": "Live",
+    "ssl_expiration": "2026-10-17",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "target.com",
+    "status": "Live",
+    "ssl_expiration": "2026-10-06",
+    "ssl_issuer": "GlobalSign nv-sa"
+  },
+  {
+    "domain": "thebalancemoney.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-07",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "thedailybeast.com",
+    "status": "Live",
+    "ssl_expiration": "2026-08-27",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "thefreedictionary.com",
+    "status": "Live",
+    "ssl_expiration": "2025-12-19",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "themegrill.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-06",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "theregister.com",
+    "status": "Live",
+    "ssl_expiration": "2026-01-20",
+    "ssl_issuer": "Google Trust Services"
+  },
+  {
+    "domain": "today.com",
+    "status": "Live",
+    "ssl_expiration": "2026-07-21",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "unep.org",
+    "status": "Live",
+    "ssl_expiration": "2026-01-21",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "usembassy.gov",
+    "status": "Live",
+    "ssl_expiration": "2026-06-27",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "vanityfair.com",
+    "status": "Live",
+    "ssl_expiration": "2026-11-21",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "verisign.com",
+    "status": "Live",
+    "ssl_expiration": "2026-04-29",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "vkontakte.ru",
+    "status": "Live",
+    "ssl_expiration": "N/A",
+    "ssl_issuer": "N/A"
+  },
+  {
+    "domain": "voanews.com",
+    "status": "Live",
+    "ssl_expiration": "2026-02-01",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "wa.gov",
+    "status": "Live",
+    "ssl_expiration": "2026-01-22",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "wipo.int",
+    "status": "Live",
+    "ssl_expiration": "2026-07-07",
+    "ssl_issuer": "DigiCert Inc"
+  },
+  {
+    "domain": "wustl.edu",
+    "status": "Live",
+    "ssl_expiration": "2026-01-07",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "xbox.com",
+    "status": "Live",
+    "ssl_expiration": "2026-03-30",
+    "ssl_issuer": "Microsoft Corporation"
+  },
+  {
+    "domain": "yandex.com",
+    "status": "Live",
+    "ssl_expiration": "2026-02-23",
+    "ssl_issuer": "GlobalSign nv-sa"
+  },
+  {
+    "domain": "youronlinechoices.eu",
+    "status": "Live",
+    "ssl_expiration": "2025-12-15",
+    "ssl_issuer": "Let's Encrypt"
+  },
+  {
+    "domain": "yumpu.com",
+    "status": "Live",
+    "ssl_expiration": "2026-12-02",
+    "ssl_issuer": "Amazon"
+  },
+  {
+    "domain": "zillow.com",
+    "status": "Live",
+    "ssl_expiration": "2026-08-15",
+    "ssl_issuer": "Amazon"
+  }
+]
